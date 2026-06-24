@@ -175,17 +175,27 @@ function generatePdfBlob(fileName) {
   preparePrintableTemplate();
 
   const originalTemplate = document.getElementById("pdf-printable-template");
+  // Ocultar el overlay durante la captura: si queda visible (position:fixed, z-index alto)
+  // html2canvas lo pinta encima del template y el PDF sale en blanco.
+  if (overlay) overlay.style.visibility = "hidden";
+
   originalTemplate.style.display = "block";
-  originalTemplate.style.position = "fixed";
+  originalTemplate.style.position = "absolute";
   originalTemplate.style.top = "0";
   originalTemplate.style.left = "0";
   originalTemplate.style.width = "794px";
   originalTemplate.style.zIndex = "1";
   originalTemplate.style.background = "white";
-  // En móvil el meta viewport escala el contenido — forzamos zoom 1:1 durante la captura
-  const viewportMeta = document.querySelector('meta[name="viewport"]');
-  const origViewport = viewportMeta ? viewportMeta.content : null;
-  if (viewportMeta) viewportMeta.content = "width=794, initial-scale=1, maximum-scale=1";
+
+  // En móvil el meta viewport limita el contexto de renderizado a ~390px.
+  // Forzamos 794px solo en móvil para que html2canvas capture el template completo.
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  let viewportMeta = null, origViewport = null;
+  if (isMobile) {
+    viewportMeta = document.querySelector('meta[name="viewport"]');
+    origViewport = viewportMeta ? viewportMeta.content : null;
+    if (viewportMeta) viewportMeta.content = "width=794, initial-scale=1, maximum-scale=1";
+  }
 
   const opt = {
     margin:       [10, 10, 10, 10],
@@ -197,8 +207,8 @@ function generatePdfBlob(fileName) {
       logging: false,
       scrollY: 0,
       scrollX: 0,
-      // windowWidth crítico para móvil: html2canvas usa el viewport real (~390px) como
-      // ancho de renderizado por defecto; sin esto el canvas queda en blanco en celulares.
+      // windowWidth: le dice a html2canvas que el "viewport" tiene 794px de ancho.
+      // Sin esto, en móvil usa el viewport real (~390px) y el canvas queda en blanco.
       windowWidth: 794,
       windowHeight: 1123
     },
@@ -218,6 +228,7 @@ function generatePdfBlob(fileName) {
       originalTemplate.style.zIndex = "";
       originalTemplate.style.background = "";
       if (viewportMeta && origViewport !== null) viewportMeta.content = origViewport;
+      if (overlay) overlay.style.visibility = "";
       window.scrollTo(scrollX, scrollY);
       return blob;
     })
@@ -231,8 +242,9 @@ function generatePdfBlob(fileName) {
       originalTemplate.style.zIndex = "";
       originalTemplate.style.background = "";
       if (viewportMeta && origViewport !== null) viewportMeta.content = origViewport;
-      window.scrollTo(scrollX, scrollY);
+      if (overlay) overlay.style.visibility = "";
       if (overlay) overlay.style.display = "none";
+      window.scrollTo(scrollX, scrollY);
       throw err;
     });
 }
