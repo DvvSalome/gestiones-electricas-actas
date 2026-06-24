@@ -1,0 +1,17 @@
+{
+  "name": "ge-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server para Gestiones Eléctricas — integración con Claude",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "bin": {
+    "ge-mcp": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  }
+}
