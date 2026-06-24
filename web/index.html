@@ -2702,110 +2702,95 @@
         if (textEl) textEl.textContent = "Compilando reporte digital en PDF...";
       }
 
+      // Guardar scroll actual para restaurar después
+      const scrollY = window.scrollY || window.pageYOffset;
+      const scrollX = window.scrollX || window.pageXOffset;
+      window.scrollTo(0, 0);
+
       // Preparar plantilla con datos actuales
       preparePrintableTemplate();
 
-      // Crear contenedor temporal fuera de pantalla
+      // Configurar visualización de plantilla en el flujo normal (en pantalla, bajo el overlay de carga)
       const originalTemplate = document.getElementById("pdf-printable-template");
-      const clone = originalTemplate.cloneNode(true);
-      clone.style.display = "block"; // Asegurar visibilidad para captura
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "pdf-capture-wrapper";
-      wrapper.style.position = "absolute";
-      wrapper.style.left = "-9999px";
-      wrapper.style.top = "0";
-      wrapper.style.width = "794px"; // Ancho exacto A4
-      wrapper.style.background = "white";
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
+      originalTemplate.style.display = "block";
+      originalTemplate.style.position = "absolute";
+      originalTemplate.style.top = "0";
+      originalTemplate.style.left = "0";
+      originalTemplate.style.width = "794px"; // Ancho exacto A4 en pantalla
+      originalTemplate.style.zIndex = "1";
+      originalTemplate.style.background = "white";
 
       const opt = {
         margin:       [10, 10, 10, 10], // Margen en mm [top, left, bottom, right]
         filename:     fileName,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        html2canvas:  { 
+          scale: 2, 
+          useCORS: true, 
+          logging: false,
+          scrollY: 0,
+          scrollX: 0
+        },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       return html2pdf()
         .set(opt)
-        .from(wrapper)
+        .from(originalTemplate)
         .outputPdf('blob')
         .then(blob => {
-          document.body.removeChild(wrapper);
+          // Restaurar estilos originales de la plantilla
+          originalTemplate.style.display = "none";
+          originalTemplate.style.position = "";
+          originalTemplate.style.top = "";
+          originalTemplate.style.left = "";
+          originalTemplate.style.width = "";
+          originalTemplate.style.zIndex = "";
+          originalTemplate.style.background = "";
+          
+          // Restaurar scroll original
+          window.scrollTo(scrollX, scrollY);
+          
           if (overlay) overlay.style.display = "none";
           return blob;
         })
         .catch(err => {
           console.error("Error al generar PDF:", err);
-          if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+          originalTemplate.style.display = "none";
+          originalTemplate.style.position = "";
+          originalTemplate.style.top = "";
+          originalTemplate.style.left = "";
+          originalTemplate.style.width = "";
+          originalTemplate.style.zIndex = "";
+          originalTemplate.style.background = "";
+          
+          window.scrollTo(scrollX, scrollY);
           if (overlay) overlay.style.display = "none";
           throw err;
         });
     }
 
-    // --- Descarga PDF usando ventana de impresión nativa ---
+    // --- Descarga PDF directa usando Blob URL (evita popups en celular) ---
     function generateProfessionalPDF() {
       if (!validateFormForExport("descargarlo")) return;
 
-      preparePrintableTemplate();
-
       const cliente = document.getElementById("field-cliente").value.trim();
       const otNum = otBadgeNum.textContent;
+      const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
 
-      // Obtener el HTML completo de la plantilla
-      const templateEl = document.getElementById("pdf-printable-template");
-      const templateHTML = templateEl.innerHTML;
-
-      // Obtener todos los estilos CSS del documento actual
-      const allStyles = Array.from(document.styleSheets)
-        .map(sheet => {
-          try {
-            return Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
-          } catch(e) { return ''; }
-        }).join('\n');
-
-      const printHTML = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Acta Técnica - ${otNum} - ${cliente}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: white; }
-    ${allStyles}
-    #pdf-printable-template { display: block !important; width: 100% !important; }
-    @media print {
-      @page { margin: 0.4in 0.3in; }
-      body { background: white; }
-    }
-  </style>
-</head>
-<body>
-  <div id="pdf-printable-template">
-    ${templateHTML}
-  </div>
-  <script>
-    window.onload = function() {
-      setTimeout(function() {
-        window.print();
-        setTimeout(function() { window.close(); }, 1000);
-      }, 500);
-    };
-  <\/script>
-</body>
-</html>`;
-
-      const printWin = window.open('', `acta-${otNum}`, 'width=900,height=700,scrollbars=yes');
-      if (!printWin) {
-        alert('Por favor permite las ventanas emergentes para poder descargar el acta.');
-        return;
-      }
-      printWin.document.open();
-      printWin.document.write(printHTML);
-      printWin.document.close();
+      generatePdfBlob(fileName).then(blob => {
+        // Descargar el archivo directamente sin ventanas emergentes
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }).catch(err => {
+        console.error("Error al descargar PDF:", err);
+        alert("❌ Error al descargar el PDF.");
+      });
     }
 
     // --- Canales de envío ---
