@@ -1305,9 +1305,36 @@
 
   <!-- Loading Overlay for PDF generation -->
   <div id="loading-overlay">
-    <div style="font-size: 45px; margin-bottom: 15px; animation: spin 1.2s linear infinite;">⚡</div>
-    <div style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Generando Acta en PDF...</div>
-    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 6px;">Espere por favor · El proceso tardará unos segundos</div>
+    <!-- Estado 1: Procesando (Loading) -->
+    <div id="overlay-loading-content" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="font-size: 45px; margin-bottom: 15px; animation: spin 1.2s linear infinite;">⚡</div>
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Generando Acta en PDF...</div>
+      <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 6px;">Espere por favor · El proceso tardará unos segundos</div>
+    </div>
+    
+    <!-- Estado 2: Acciones Disponibles (PDF Listo) -->
+    <div id="overlay-action-content" style="display: none; flex-direction: column; align-items: center; justify-content: center; width: 90%; max-width: 400px; padding: 24px; background: rgba(18, 22, 5, 0.98); border: 2px solid #C9E400; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center; box-sizing: border-box; backdrop-filter: blur(10px);">
+      <div style="font-size: 44px; margin-bottom: 12px;">🎉</div>
+      <div style="font-size: 18px; font-weight: 700; color: #C9E400; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">¡Reporte Listo!</div>
+      <div style="font-size: 13px; color: rgba(255, 255, 255, 0.85); margin-bottom: 24px; line-height: 1.5;">El acta técnica ha sido compilada con éxito. Por favor selecciona cómo deseas guardarla:</div>
+      
+      <!-- Botones de Acción directos -->
+      <button onclick="executeOverlayDownload()" style="width: 100%; margin-bottom: 12px; padding: 14px; background: #C9E400; color: #111; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: transform 0.1s ease;">
+        📥 Guardar PDF en Dispositivo
+      </button>
+      
+      <button onclick="executeOverlayWhatsApp()" style="width: 100%; margin-bottom: 12px; padding: 14px; background: #25D366; color: white; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: transform 0.1s ease;">
+        💬 Compartir por WhatsApp
+      </button>
+      
+      <button onclick="executeOverlayEmail()" style="width: 100%; margin-bottom: 24px; padding: 14px; background: #4A5568; color: white; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; transition: transform 0.1s ease;">
+        ✉️ Enviar por Correo Electrónico
+      </button>
+      
+      <button onclick="closeOverlay()" style="width: 100%; padding: 12px; background: transparent; color: #bbb; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s ease;">
+        Cerrar
+      </button>
+    </div>
   </div>
 
   <div class="mobile-container">

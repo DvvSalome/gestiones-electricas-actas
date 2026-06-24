@@ -157,11 +157,16 @@ function validateFormForExport(actionName = "exportar") {
 // --- Generación programática de PDF Blob usando html2pdf ---
 function generatePdfBlob(fileName) {
   const overlay = document.getElementById("loading-overlay");
-  if (overlay) {
-    overlay.style.display = "flex";
-    const textEl = overlay.querySelector("div:nth-child(2)");
+  const loadingContent = document.getElementById("overlay-loading-content");
+  const actionContent = document.getElementById("overlay-action-content");
+
+  if (overlay) overlay.style.display = "flex";
+  if (loadingContent) {
+    loadingContent.style.display = "flex";
+    const textEl = loadingContent.querySelector("div:nth-child(2)");
     if (textEl) textEl.textContent = "Compilando reporte digital en PDF...";
   }
+  if (actionContent) actionContent.style.display = "none";
 
   const scrollY = window.scrollY || window.pageYOffset;
   const scrollX = window.scrollX || window.pageXOffset;
@@ -171,23 +176,31 @@ function generatePdfBlob(fileName) {
 
   const originalTemplate = document.getElementById("pdf-printable-template");
   originalTemplate.style.display = "block";
-  originalTemplate.style.position = "absolute";
+  originalTemplate.style.position = "fixed";
   originalTemplate.style.top = "0";
   originalTemplate.style.left = "0";
   originalTemplate.style.width = "794px";
   originalTemplate.style.zIndex = "1";
   originalTemplate.style.background = "white";
+  // En móvil el meta viewport escala el contenido — forzamos zoom 1:1 durante la captura
+  const viewportMeta = document.querySelector('meta[name="viewport"]');
+  const origViewport = viewportMeta ? viewportMeta.content : null;
+  if (viewportMeta) viewportMeta.content = "width=794, initial-scale=1, maximum-scale=1";
 
   const opt = {
     margin:       [10, 10, 10, 10],
     filename:     fileName,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { 
-      scale: 2, 
-      useCORS: true, 
+    html2canvas:  {
+      scale: 2,
+      useCORS: true,
       logging: false,
       scrollY: 0,
-      scrollX: 0
+      scrollX: 0,
+      // windowWidth crítico para móvil: html2canvas usa el viewport real (~390px) como
+      // ancho de renderizado por defecto; sin esto el canvas queda en blanco en celulares.
+      windowWidth: 794,
+      windowHeight: 1123
     },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
@@ -204,9 +217,8 @@ function generatePdfBlob(fileName) {
       originalTemplate.style.width = "";
       originalTemplate.style.zIndex = "";
       originalTemplate.style.background = "";
-      
+      if (viewportMeta && origViewport !== null) viewportMeta.content = origViewport;
       window.scrollTo(scrollX, scrollY);
-      if (overlay) overlay.style.display = "none";
       return blob;
     })
     .catch(err => {
@@ -218,37 +230,171 @@ function generatePdfBlob(fileName) {
       originalTemplate.style.width = "";
       originalTemplate.style.zIndex = "";
       originalTemplate.style.background = "";
-      
+      if (viewportMeta && origViewport !== null) viewportMeta.content = origViewport;
       window.scrollTo(scrollX, scrollY);
       if (overlay) overlay.style.display = "none";
       throw err;
     });
 }
 
-// Descarga adaptada y optimizada para celulares y Safari
+// Variables globales para almacenar el PDF compilado
+window.lastGeneratedPdfBlob = null;
+window.lastGeneratedPdfFileName = "";
+
+// Función principal para iniciar la generación y abrir el diálogo Dual-State
+function startPdfProcess() {
+  if (!validateFormForExport("procesar el reporte")) return;
+
+  const cliente = document.getElementById("field-cliente").value.trim();
+  const otNum = window.otBadgeNum.textContent;
+  const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
+  
+  window.lastGeneratedPdfFileName = fileName;
+  window.lastGeneratedPdfBlob = null;
+
+  const overlay = document.getElementById("loading-overlay");
+  const loadingContent = document.getElementById("overlay-loading-content");
+  const actionContent = document.getElementById("overlay-action-content");
+
+  if (overlay) overlay.style.display = "flex";
+  if (loadingContent) loadingContent.style.display = "flex";
+  if (actionContent) actionContent.style.display = "none";
+
+  generatePdfBlob(fileName)
+    .then(blob => {
+      window.lastGeneratedPdfBlob = blob;
+      
+      // Transición al Estado 2 (Acciones Disponibles)
+      if (loadingContent) loadingContent.style.display = "none";
+      if (actionContent) actionContent.style.display = "flex";
+    })
+    .catch(err => {
+      console.error("Error al generar PDF:", err);
+      alert("❌ Ocurrió un error al compilar el reporte PDF.");
+      if (overlay) overlay.style.display = "none";
+    });
+}
+
+// Handlers de los botones principales (mantenemos compatibilidad de nombres con el HTML)
+function generateProfessionalPDF() {
+  startPdfProcess();
+}
+
+function shareByEmail() {
+  startPdfProcess();
+}
+
+function shareByWhatsApp() {
+  startPdfProcess();
+}
+
+// Acciones sincrónicas disparadas desde los botones del Overlay
+function executeOverlayDownload() {
+  if (!window.lastGeneratedPdfBlob || !window.lastGeneratedPdfFileName) {
+    alert("⚠️ No hay un PDF generado en memoria.");
+    return;
+  }
+  downloadBlobFile(window.lastGeneratedPdfBlob, window.lastGeneratedPdfFileName);
+}
+
+function executeOverlayWhatsApp() {
+  if (!window.lastGeneratedPdfBlob || !window.lastGeneratedPdfFileName) {
+    alert("⚠️ No hay un PDF generado en memoria.");
+    return;
+  }
+
+  const tel = document.getElementById("field-telefono").value.replace(/\D/g, '') || "";
+  if (!tel) {
+    alert("Por favor, ingrese un número de teléfono de contacto para el cliente en el formulario.");
+    closeOverlay();
+    return;
+  }
+
+  const otNum = window.otBadgeNum.textContent;
+  const msgText = `Hola, te compartimos el soporte digital de tu servicio de Gestiones Eléctricas con Folio ${otNum} realizado hoy. ¡Agradecemos calificar nuestro servicio en el link de Google! ⚡`;
+
+  shareOrFallback(window.lastGeneratedPdfBlob, window.lastGeneratedPdfFileName, msgText, () => {
+    const msg = encodeURIComponent(msgText);
+    window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+  });
+}
+
+function executeOverlayEmail() {
+  if (!window.lastGeneratedPdfBlob || !window.lastGeneratedPdfFileName) {
+    alert("⚠️ No hay un PDF generado en memoria.");
+    return;
+  }
+
+  const email = document.getElementById("field-email").value.trim() || "cliente@empresa.com";
+  const otNum = window.otBadgeNum.textContent;
+  const subjectText = `Acta de Inspección Técnica - Gestiones Eléctricas ${otNum}`;
+  const bodyText = `Estimado cliente,\n\nLe adjunto el Acta de Inspección Técnica Digital correspondiente al servicio realizado bajo la Orden de Trabajo ${otNum}.\n\n¡Gracias por confiar en el equipo de Gestiones Eléctricas SAS! ⚡`;
+
+  shareOrFallback(window.lastGeneratedPdfBlob, window.lastGeneratedPdfFileName, bodyText, () => {
+    const subject = encodeURIComponent(subjectText);
+    const body = encodeURIComponent(bodyText);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  });
+}
+
+function closeOverlay() {
+  const overlay = document.getElementById("loading-overlay");
+  if (overlay) overlay.style.display = "none";
+}
+
+// Descarga adaptada y optimizada para PC y Celulares
 function downloadBlobFile(blob, fileName) {
-  const blobUrl = URL.createObjectURL(blob);
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    // En móviles, el compartir de archivos es la forma oficial y más robusta de "guardar"
+    // evitando bloqueos de descarga de blob o aperturas de páginas en blanco en Safari / Chrome
+    const file = new File([blob], fileName, { type: "application/pdf" });
+    const shareData = {
+      files: [file],
+      title: fileName,
+      text: "Acta Técnica Digital"
+    };
+
+    if (navigator.canShare && navigator.canShare(shareData)) {
+      navigator.share(shareData)
+        .then(() => console.log("Guardado mediante API Share móvil con éxito"))
+        .catch(err => {
+          if (err.name !== "AbortError") {
+            console.error("Error al descargar con API Share:", err);
+            fallbackDownload(blob, fileName);
+          }
+        });
+      return;
+    }
+  }
+
+  // Descarga tradicional en PC o si el celular no soporta API Share con archivos
+  fallbackDownload(blob, fileName);
+}
+
+function fallbackDownload(blob, fileName) {
+  const blobUrl = URL.createObjectURL(blob);
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   if (isMobile || isSafari) {
     const isIOSChrome = navigator.userAgent.match("CriOS");
     if (isIOSChrome) {
-      // iOS Chrome: abrir a través de conversión a DataURL para evitar bloqueos
+      // Convertir a base64 para iOS Chrome
       const reader = new FileReader();
       reader.onloadend = function() {
         window.open(reader.result, '_blank');
       };
       reader.readAsDataURL(blob);
     } else {
-      // Android Chrome / iOS Safari: Abrir en pestaña nueva o redireccionar actual
       const newWindow = window.open(blobUrl, '_blank');
       if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
         window.location.href = blobUrl;
       }
     }
   } else {
-    // Computadora de escritorio: descarga directa silenciosa
     const link = document.createElement("a");
     link.href = blobUrl;
     link.download = fileName;
@@ -257,30 +403,12 @@ function downloadBlobFile(blob, fileName) {
     document.body.removeChild(link);
   }
 
-  // Revocar para limpiar memoria
   setTimeout(() => {
     URL.revokeObjectURL(blobUrl);
   }, 15000);
 }
 
-// Descarga directa de PDF
-function generateProfessionalPDF() {
-  if (!validateFormForExport("descargarlo")) return;
-
-  const cliente = document.getElementById("field-cliente").value.trim();
-  const otNum = window.otBadgeNum.textContent;
-  const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
-
-  generatePdfBlob(fileName).then(blob => {
-    downloadBlobFile(blob, fileName);
-  }).catch(err => {
-    console.error("Error al descargar PDF:", err);
-    alert("❌ Error al descargar el PDF.");
-  });
-}
-
-// Enviar / Compartir
+// Compartir nativo o fallback a WhatsApp/Email
 function shareOrFallback(blob, fileName, text, fallbackFn) {
   const file = new File([blob], fileName, { type: "application/pdf" });
   const shareData = {
@@ -291,68 +419,18 @@ function shareOrFallback(blob, fileName, text, fallbackFn) {
 
   if (navigator.canShare && navigator.canShare(shareData)) {
     navigator.share(shareData)
-      .then(() => console.log("Compartido con éxito"))
+      .then(() => console.log("Compartido con éxito via API Share"))
       .catch(err => {
         if (err.name !== "AbortError") {
-          console.error("Error al compartir:", err);
+          console.error("Error al compartir via API Share:", err);
           fallbackFn();
         }
       });
   } else {
-    alert("ℹ️ Tu dispositivo no permite adjuntar archivos directamente desde la web. Se procederá a abrir/descargar el acta y luego podrás adjuntarla manualmente.");
-    
-    // Descarga/apertura fallback con soporte móvil
-    downloadBlobFile(blob, fileName);
-
-    // Abrir app del canal (WhatsApp o correo)
-    setTimeout(fallbackFn, 1000);
+    // Si no soporta compartir archivos, descargamos el PDF en el celular
+    // y redirigimos a la app correspondiente (WhatsApp o Email)
+    alert("ℹ️ Tu dispositivo no permite adjuntar archivos directamente. Se procederá a descargar el acta y luego podrás adjuntarla manualmente en el chat o correo.");
+    fallbackDownload(blob, fileName);
+    setTimeout(fallbackFn, 1500);
   }
-}
-
-function shareByEmail() {
-  if (!validateFormForExport("compartirlo")) return;
-
-  const email = document.getElementById("field-email").value.trim() || "cliente@empresa.com";
-  const otNum = window.otBadgeNum.textContent;
-  const cliente = document.getElementById("field-cliente").value.trim();
-  const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
-
-  const subjectText = `Acta de Inspección Técnica - Gestiones Eléctricas ${otNum}`;
-  const bodyText = `Estimado cliente,\n\nLe adjunto el Acta de Inspección Técnica Digital correspondiente al servicio realizado bajo la Orden de Trabajo ${otNum}.\n\n¡Gracias por confiar en el equipo de Gestiones Eléctricas SAS! ⚡`;
-
-  generatePdfBlob(fileName).then(blob => {
-    shareOrFallback(blob, fileName, bodyText, () => {
-      const subject = encodeURIComponent(subjectText);
-      const body = encodeURIComponent(bodyText);
-      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-    });
-  }).catch(err => {
-    console.error("Error al compartir por correo:", err);
-  });
-}
-
-function shareByWhatsApp() {
-  if (!validateFormForExport("compartirlo")) return;
-
-  const tel = document.getElementById("field-telefono").value.replace(/\D/g, '') || "";
-  if (!tel) {
-    alert("Por favor, ingrese un número de teléfono de contacto para el cliente.");
-    return;
-  }
-  const otNum = window.otBadgeNum.textContent;
-  const cliente = document.getElementById("field-cliente").value.trim();
-  const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
-
-  const msgText = `Hola, te compartimos el soporte digital de tu servicio de Gestiones Eléctricas con Folio ${otNum} realizado hoy. ¡Agradecemos calificar nuestro servicio en el link de Google! ⚡`;
-
-  generatePdfBlob(fileName).then(blob => {
-    shareOrFallback(blob, fileName, msgText, () => {
-      const msg = encodeURIComponent(msgText);
-      window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
-    });
-  }).catch(err => {
-    console.error("Error al compartir por WhatsApp:", err);
-  });
 }
