@@ -1,0 +1,2840 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Acta Técnica Digital — Gestiones Eléctricas</title>
+  
+  <!-- Font Google: Outfit para look premium y moderno -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- html2pdf library for PDF generation (local) -->
+  <script src="html2pdf.bundle.min.js"></script>
+
+  <style>
+    /* ════════════════════════════════════════════
+       TOKENS DE DISEÑO E IDENTIDAD DE MARCA
+       Gestiones Eléctricas SAS - Paleta EnergyTech
+       ════════════════════════════════════════════ */
+    :root {
+      --brand-dark:     #0D1100; /* Fondo general e institucional profundo */
+      --brand-dark-card:#1C2203; /* Tarjetas oscuras */
+      --brand-olive:    #283000; /* Verde oliva principal */
+      --brand-lime:     #C7E52F; /* Amarillo lima / chartreuse brillante (acento) */
+      --brand-lime-rgb: 199, 229, 47;
+      --brand-lime-hover: #D7F53F;
+      --brand-bg:       #F5F6F2; /* Fondo gris claro verdoso para el form */
+      --brand-white:    #FFFFFF;
+      --brand-border:   #DCE0D4;
+      --brand-text:     #1E230B;
+      --brand-muted:    #656C51;
+      --brand-ok:       #10B981; /* Verde esmeralda (Conforme) */
+      --brand-warn:     #F59E0B; /* Naranja (No Conforme) */
+      --brand-neutral:  #9CA3AF;
+      
+      --radius-sm:  8px;
+      --radius-md:  16px;
+      --radius-lg:  24px;
+      --shadow-sm:  0 2px 8px rgba(13, 17, 0, 0.05);
+      --shadow-md:  0 8px 24px rgba(13, 17, 0, 0.08);
+      --shadow-lg:  0 16px 40px rgba(13, 17, 0, 0.12);
+      
+      --font-main:  'Outfit', sans-serif;
+      --font-code:  'Space Grotesk', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #E2E6DB;
+      color: var(--brand-text);
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 0;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Contenedor móvil en pantallas grandes */
+    .mobile-container {
+      width: 100%;
+      max-width: 480px;
+      background-color: var(--brand-white);
+      min-height: 100vh;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    .app-header {
+      background-color: var(--brand-dark);
+      color: var(--brand-white);
+      padding: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--brand-lime);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background-color: var(--brand-lime);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px rgba(var(--brand-lime-rgb), 0.3);
+    }
+
+    .logo-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--brand-dark);
+    }
+
+    .logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .logo-title {
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--brand-white);
+      line-height: 1.2;
+    }
+
+    .logo-sub {
+      font-size: 10px;
+      color: var(--brand-lime);
+      font-weight: 400;
+      letter-spacing: 0.5px;
+    }
+
+    .ot-badge {
+      background-color: var(--brand-lime);
+      color: var(--brand-dark);
+      font-weight: 800;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 30px;
+      font-family: var(--font-code);
+      letter-spacing: 0.5px;
+    }
+
+    /* GPS & METADATA BAR */
+    .gps-bar {
+      background-color: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gps-icon {
+      flex-shrink: 0;
+      color: var(--brand-lime);
+      display: flex;
+      align-items: center;
+    }
+
+    .gps-details {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gps-coords {
+      font-family: var(--font-code);
+      font-size: 11px;
+      color: var(--brand-lime);
+      font-weight: 600;
+    }
+
+    .gps-time {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .gps-status {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--brand-ok);
+      box-shadow: 0 0 8px var(--brand-ok);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* TIMELINE PROGRESS */
+    .progress-bar {
+      background-color: var(--brand-dark-card);
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 6px;
+      flex-grow: 1;
+      margin-right: 15px;
+    }
+
+    .progress-dot {
+      height: 6px;
+      flex-grow: 1;
+      border-radius: 3px;
+      background-color: rgba(255, 255, 255, 0.2);
+      transition: background-color 0.4s ease;
+    }
+
+    .progress-dot.active {
+      background-color: var(--brand-lime);
+      box-shadow: 0 0 6px rgba(var(--brand-lime-rgb), 0.5);
+    }
+
+    .progress-text {
+      color: var(--brand-white);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* FORM CONTAINERS */
+    .form-content {
+      padding: 20px;
+      background-color: var(--brand-bg);
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background-color: var(--brand-white);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--brand-border);
+      padding: 20px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--brand-bg);
+      padding-bottom: 12px;
+    }
+
+    .card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--brand-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--brand-lime);
+      flex-shrink: 0;
+    }
+
+    .card-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .card-title h2 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--brand-dark);
+    }
+
+    .card-num {
+      margin-left: auto;
+      font-family: var(--font-code);
+      font-size: 11px;
+      background-color: var(--brand-bg);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 700;
+      color: var(--brand-muted);
+    }
+
+    /* FORM FIELDS */
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--brand-muted);
+      margin-bottom: 6px;
+    }
+
+    .label.required::after {
+      content: " *";
+      color: #EF4444;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      background-color: var(--brand-bg);
+      border: 1.5px solid var(--brand-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: 14px;
+      color: var(--brand-text);
+      transition: all 0.2s ease;
+      -webkit-appearance: none;
+      font-family: var(--font-main);
+    }
+
+    .input:focus, .textarea:focus, .select:focus {
+      outline: none;
+      border-color: var(--brand-olive);
+      background-color: var(--brand-white);
+      box-shadow: 0 0 0 3px rgba(var(--brand-lime-rgb), 0.15);
+    }
+
+    .textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23656C51'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 36px;
+    }
+
+    .readonly {
+      background-color: #EBF0DE;
+      color: var(--brand-dark);
+      font-weight: 700;
+      cursor: not-allowed;
+    }
+
+    /* CHECKLIST */
+    .checklist {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background-color: var(--brand-bg);
+      border: 1.5px solid var(--brand-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .check-box {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid var(--brand-border);
+      background-color: var(--brand-white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+
+    .check-box svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--brand-white);
+      display: none;
+    }
+
+    .check-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-text);
+      flex-grow: 1;
+    }
+
+    .check-status {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: none;
+    }
+
+    /* Estados del Checklist */
+    .check-item.ok {
+      border-color: var(--brand-ok);
+      background-color: rgba(16, 185, 129, 0.05);
+    }
+    .check-item.ok .check-box {
+      background-color: var(--brand-ok);
+      border-color: var(--brand-ok);
+    }
+    .check-item.ok .check-box svg.ok-svg {
+      display: block;
+    }
+    .check-item.ok .check-status {
+      display: inline-block;
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--brand-ok);
+    }
+
+    .check-item.fail {
+      border-color: var(--brand-warn);
+      background-color: rgba(245, 158, 11, 0.05);
+    }
+    .check-item.fail .check-box {
+      background-color: var(--brand-warn);
+      border-color: var(--brand-warn);
+    }
+    .check-item.fail .check-box svg.fail-svg {
+      display: block;
+    }
+    .check-item.fail .check-status {
+      display: inline-block;
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--brand-warn);
+    }
+
+    /* DYNAMIC MATERIALS TABLE */
+    .materials-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+    }
+
+    .materials-table th {
+      background-color: var(--brand-dark);
+      color: var(--brand-lime);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    .materials-table th:first-child {
+      border-radius: var(--radius-sm) 0 0 0;
+    }
+
+    .materials-table th:last-child {
+      border-radius: 0 var(--radius-sm) 0 0;
+    }
+
+    .materials-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--brand-border);
+      vertical-align: middle;
+    }
+
+    .mat-input-field {
+      width: 100%;
+      border: none;
+      background-color: transparent;
+      padding: 4px;
+      font-size: 13px;
+      color: var(--brand-text);
+      font-family: var(--font-main);
+    }
+
+    .mat-input-field:focus {
+      outline: none;
+      background-color: var(--brand-bg);
+      border-radius: 4px;
+    }
+
+    .add-row-btn {
+      width: 100%;
+      background-color: transparent;
+      border: 1.5px dashed var(--brand-border);
+      color: var(--brand-muted);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .add-row-btn:hover {
+      border-color: var(--brand-olive);
+      color: var(--brand-dark);
+      background-color: var(--brand-bg);
+    }
+
+    .remove-row-btn {
+      background: none;
+      border: none;
+      color: #EF4444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    /* RADIO COMPLIANCE */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 8px 12px;
+      background-color: var(--brand-bg);
+      border: 1px solid var(--brand-border);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .radio-label input {
+      accent-color: var(--brand-olive);
+      width: 18px;
+      height: 18px;
+    }
+
+    .radio-label:has(input:checked) {
+      border-color: var(--brand-olive);
+      background-color: rgba(var(--brand-lime-rgb), 0.1);
+    }
+
+    /* PHOTO GRID */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .photo-slot {
+      border: 2px dashed var(--brand-border);
+      background-color: var(--brand-bg);
+      border-radius: var(--radius-md);
+      aspect-ratio: 4/3;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      gap: 8px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .photo-slot:hover {
+      border-color: var(--brand-olive);
+      background-color: #EDF1E7;
+    }
+
+    .photo-slot svg {
+      width: 24px;
+      height: 24px;
+      color: var(--brand-muted);
+    }
+
+    .photo-slot span {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--brand-muted);
+      line-height: 1.3;
+    }
+
+    .photo-slot input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .photo-slot img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 2;
+    }
+
+    .photo-slot .photo-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+      color: var(--brand-white);
+      padding: 6px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .remove-photo-btn {
+      background: rgba(239, 68, 68, 0.9);
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
+
+    /* SIGNATURE */
+    .signature-container {
+      border: 2px solid var(--brand-border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 12px;
+      background-color: #FAFAFA;
+    }
+
+    .signature-canvas {
+      width: 100%;
+      height: 150px;
+      display: block;
+      cursor: crosshair;
+      touch-action: none; /* Previene scroll táctil al firmar */
+    }
+
+    .signature-bar {
+      background-color: var(--brand-dark);
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 11px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .signature-status {
+      font-weight: 700;
+    }
+
+    .signature-status.confirmed {
+      color: var(--brand-lime);
+    }
+
+    .signature-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background-color: transparent;
+      border: 1.5px solid var(--brand-border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--brand-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--brand-olive);
+      color: var(--brand-dark);
+    }
+
+    .btn-primary-outline {
+      flex: 1;
+      background-color: transparent;
+      border: 1.5px solid var(--brand-dark);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary-outline:hover {
+      background-color: var(--brand-dark);
+      color: var(--brand-white);
+    }
+
+    /* SUBMIT SECTION */
+    .submit-section {
+      background-color: var(--brand-white);
+      border-top: 3px solid var(--brand-lime);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-main {
+      width: 100%;
+      background-color: var(--brand-dark);
+      color: var(--brand-lime);
+      border: none;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .btn-main:hover {
+      background-color: #161C02;
+      color: var(--brand-lime-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-main:active {
+      transform: scale(0.98);
+    }
+
+    .channel-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-channel {
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-channel:hover {
+      opacity: 0.9;
+    }
+
+    .btn-email {
+      background-color: #E2ECF8;
+      color: #1E3A8A;
+    }
+
+    .btn-wa {
+      background-color: #DCFCE7;
+      color: #14532D;
+    }
+
+    .btn-reset {
+      background: none;
+      border: none;
+      color: var(--brand-muted);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      margin-top: 5px;
+      align-self: center;
+    }
+
+    .btn-reset:hover {
+      color: #EF4444;
+      text-decoration: underline;
+    }
+
+    /* FOOTER */
+    .app-footer {
+      background-color: var(--brand-dark);
+      color: rgba(255, 255, 255, 0.5);
+      padding: 20px;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .app-footer strong {
+      color: var(--brand-lime);
+    }
+
+    .app-footer a {
+      color: var(--brand-white);
+      text-decoration: none;
+    }
+
+    /* MODAL GOOGLE REVIEWS */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(13, 17, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: linear-gradient(135deg, var(--brand-dark) 0%, #1D2403 100%);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--brand-lime);
+      width: 100%;
+      max-width: 400px;
+      padding: 30px 24px;
+      text-align: center;
+      color: var(--brand-white);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.open .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-card::before {
+      content: "⚡";
+      position: absolute;
+      top: -10px;
+      right: 14px;
+      font-size: 64px;
+      opacity: 0.08;
+      pointer-events: none;
+    }
+
+    .modal-stars {
+      font-size: 28px;
+      color: #FBBF24;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+      animation: bounce 1.5s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      line-height: 1.3;
+      color: var(--brand-white);
+    }
+
+    .modal-desc {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background-color: var(--brand-lime);
+      color: var(--brand-dark);
+      font-size: 14px;
+      font-weight: 800;
+      padding: 14px 20px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 6px 20px rgba(199, 229, 47, 0.3);
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+    }
+
+    .btn-google:hover {
+      background-color: var(--brand-lime-hover);
+      box-shadow: 0 8px 24px rgba(199, 229, 47, 0.4);
+    }
+
+    .btn-close-modal {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-close-modal:hover {
+      color: var(--brand-white);
+    }
+
+    /* =========================================
+       PLANTILLA DE IMPRESIÓN / EXPORTACIÓN PDF
+       Disiseño profesional A4 con membrete oficial
+       ========================================= */
+    #pdf-printable-template {
+      /* Elemento de plantilla — se mantiene fuera del flujo normal */
+      display: none;
+    }
+
+    /* Wrapper temporal para captura de PDF */
+    .pdf-capture-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 794px;
+      background: white;
+      z-index: -999;
+      pointer-events: none;
+    }
+
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 17, 0, 0.9);
+      color: white;
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media print {
+      body {
+        background-color: white;
+      }
+      .mobile-container {
+        display: none !important;
+      }
+      #pdf-printable-template {
+        position: static !important;
+        display: block !important;
+        width: 100% !important;
+      }
+    }
+
+    /* Estilos del PDF */
+    .pdf-page {
+      font-family: Arial, sans-serif;
+      color: #333333;
+      padding: 40px;
+      background-color: #ffffff;
+      line-height: 1.4;
+      font-size: 11px;
+    }
+
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 3px solid #283000;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .pdf-logo-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pdf-logo-circle {
+      width: 45px;
+      height: 45px;
+      background-color: #BEA100;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pdf-logo-circle svg {
+      width: 26px;
+      height: 26px;
+      fill: #283000;
+    }
+
+    .pdf-logo-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pdf-logo-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #283000;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pdf-logo-sub {
+      font-size: 9px;
+      color: #656C51;
+      font-weight: bold;
+    }
+
+    .pdf-ot-box {
+      text-align: right;
+    }
+
+    .pdf-ot-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #283000;
+      margin-bottom: 2px;
+    }
+
+    .pdf-ot-date {
+      font-size: 9px;
+      color: #656C51;
+    }
+
+    .pdf-section-title {
+      font-size: 11px;
+      font-weight: bold;
+      background-color: #283000;
+      color: #FFFFFF;
+      padding: 6px 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      border-radius: 3px;
+    }
+
+    .pdf-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .pdf-grid-col {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pdf-data-row {
+      display: flex;
+      border-bottom: 1px solid #EAEAEA;
+      padding: 4px 0;
+    }
+
+    .pdf-data-label {
+      width: 140px;
+      font-weight: bold;
+      color: #656C51;
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+
+    .pdf-data-val {
+      flex-grow: 1;
+      color: #111111;
+    }
+
+    .pdf-checklist-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+
+    .pdf-checklist-table td {
+      border: 1px solid #E5E7EB;
+      padding: 6px 8px;
+    }
+
+    .pdf-badge {
+      font-size: 8px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+
+    .pdf-badge.ok {
+      background-color: #D1FAE5;
+      color: #065F46;
+    }
+
+    .pdf-badge.fail {
+      background-color: #FEF3C7;
+      color: #92400E;
+    }
+
+    .pdf-badge.empty {
+      background-color: #F3F4F6;
+      color: #6B7280;
+    }
+
+    .pdf-text-box {
+      background-color: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 4px;
+      padding: 10px;
+      min-height: 50px;
+      white-space: pre-wrap;
+      color: #111111;
+      margin-bottom: 10px;
+    }
+
+    .pdf-materials {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+
+    .pdf-materials th {
+      border: 1px solid #E5E7EB;
+      background-color: #F3F4F6;
+      padding: 6px 8px;
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .pdf-materials td {
+      border: 1px solid #E5E7EB;
+      padding: 6px 8px;
+    }
+
+    .pdf-photo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+      page-break-inside: avoid;
+    }
+
+    .pdf-photo-container {
+      border: 1px solid #E5E7EB;
+      background-color: #F9FAFB;
+      border-radius: 4px;
+      padding: 6px;
+      text-align: center;
+    }
+
+    .pdf-photo-img {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 2px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .pdf-photo-placeholder {
+      width: 100%;
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #E5E7EB;
+      color: #9CA3AF;
+      font-size: 10px;
+      border-radius: 2px;
+      margin-bottom: 6px;
+    }
+
+    .pdf-photo-label {
+      font-size: 9px;
+      font-weight: bold;
+      color: #656C51;
+      text-transform: uppercase;
+    }
+
+    .pdf-signature-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-top: 30px;
+      page-break-inside: avoid;
+    }
+
+    .pdf-signature-box {
+      border-top: 1px solid #333333;
+      padding-top: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pdf-signature-image {
+      height: 70px;
+      object-fit: contain;
+      margin-bottom: 8px;
+      align-self: flex-start;
+    }
+
+    .pdf-signature-empty {
+      height: 70px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      color: #EF4444;
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    .pdf-signature-title {
+      font-weight: bold;
+      font-size: 10px;
+    }
+
+    .pdf-signature-meta {
+      font-size: 8px;
+      color: #656C51;
+    }
+
+    .pdf-footer {
+      border-top: 1px solid #E5E7EB;
+      padding-top: 15px;
+      margin-top: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pdf-footer-text {
+      font-size: 8px;
+      color: #9CA3AF;
+      max-width: 75%;
+    }
+
+    .pdf-footer-qr {
+      text-align: right;
+      font-size: 8px;
+      color: #283000;
+    }
+
+    .pdf-footer-qr a {
+      color: #283000;
+      text-decoration: underline;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Overlay for PDF generation -->
+  <div id="loading-overlay">
+    <div style="font-size: 45px; margin-bottom: 15px; animation: spin 1.2s linear infinite;">⚡</div>
+    <div style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">Generando Acta en PDF...</div>
+    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-top: 6px;">Espere por favor · El proceso tardará unos segundos</div>
+  </div>
+
+  <div class="mobile-container">
+    
+    <!-- ══════════════════════════════════════════
+         1. CABECERA E INTEGRACIÓN GPS
+         ══════════════════════════════════════════ -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 22h9l-1-7h6l-1 7h7L12 2z"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">Gestiones Eléctricas</span>
+            <span class="logo-sub">INGENIERÍA · BARRANQUILLA</span>
+          </div>
+        </div>
+        <div class="ot-badge" id="ot-badge-num">OT-0000</div>
+      </div>
+
+      <div class="gps-bar">
+        <div class="gps-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <div class="gps-details">
+          <span class="gps-coords" id="gps-coords-display">📡 Localizando GPS...</span>
+          <span class="gps-time" id="gps-time-display">—</span>
+        </div>
+        <div class="gps-status" id="gps-status-dot"></div>
+      </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════
+         2. TIMELINE / PASOS (Estilo ClickMobile)
+         ══════════════════════════════════════════ -->
+    <div class="progress-bar">
+      <div class="progress-dots">
+        <div class="progress-dot active" id="dot-info"></div>
+        <div class="progress-dot" id="dot-check"></div>
+        <div class="progress-dot" id="dot-photo"></div>
+        <div class="progress-dot" id="dot-sign"></div>
+      </div>
+      <div class="progress-text" id="progress-text-display">Paso 1 de 4 — Datos</div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         3. FORMULARIO PRINCIPAL
+         ══════════════════════════════════════════ -->
+    <div class="form-content">
+
+      <!-- BLOQUE 1: IDENTIFICACIÓN DEL SERVICIO -->
+      <section class="card" id="card-identificacion">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <h2>Identificación del Servicio</h2>
+          <span class="card-num">01</span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="label required">Orden de Trabajo</span>
+            <input type="text" class="input readonly" id="field-ot" value="OT-1035" readonly>
+          </div>
+          <div class="field">
+            <span class="label required">Tipo de Servicio</span>
+            <select class="select" id="field-servicio-tipo">
+              <option value="Correctivo">Correctivo</option>
+              <option value="Preventivo">Preventivo</option>
+              <option value="Diagnóstico" selected>Diagnóstico</option>
+              <option value="Instalación">Instalación</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label required">Nombre del Cliente / Empresa</span>
+          <input type="text" class="input" id="field-cliente" placeholder="Ej. Constructora del Caribe S.A.S.">
+        </div>
+
+        <div class="field">
+          <span class="label required">Dirección del Servicio</span>
+          <input type="text" class="input" id="field-direccion" placeholder="Ej. Calle 79 # 53-22, Barranquilla">
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="label">Teléfono Cliente</span>
+            <input type="tel" class="input" id="field-telefono" placeholder="+57 300 000 0000">
+          </div>
+          <div class="field">
+            <span class="label">Correo Cliente</span>
+            <input type="email" class="input" id="field-email" placeholder="cliente@correo.com">
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="label required">Técnico Asignado</span>
+            <input type="text" class="input" id="field-tecnico" placeholder="Nombre del técnico">
+          </div>
+          <div class="field">
+            <span class="label">Matrícula Profesional</span>
+            <input type="text" class="input" id="field-matricula" placeholder="CONTE / RETIE">
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOQUE 2: CHECKLIST DE INSPECCIÓN -->
+      <section class="card" id="card-checklist">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          </div>
+          <h2>Checklist de Inspección</h2>
+          <span class="card-num">02</span>
+        </div>
+
+        <p style="font-size:11px; color: var(--brand-muted); margin-bottom: 12px;">
+          Toca cada ítem para ciclar estados: <span style="color: var(--brand-ok); font-weight:700">✓ Conforme</span> ➔ <span style="color: var(--brand-warn); font-weight:700">✗ Falla</span> ➔ <span style="color: var(--brand-muted); font-weight:700">Neutral</span>.
+        </p>
+
+        <div class="checklist">
+          <!-- Item 1 -->
+          <div class="check-item" data-index="0" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Tablero eléctrico principal</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="check-item" data-index="1" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Protecciones termomagnéticas (Breakers)</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="check-item" data-index="2" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Acometida y medidores de energía</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="check-item" data-index="3" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Conductores eléctricos y canalizaciones</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 5 -->
+          <div class="check-item" data-index="4" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Sistema de puesta a tierra (SPT)</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 6 -->
+          <div class="check-item" data-index="5" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Tomacorrientes y salidas GFCI</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 7 -->
+          <div class="check-item" data-index="6" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Iluminación y luminarias</span>
+            <span class="check-status">Ok</span>
+          </div>
+
+          <!-- Item 8 -->
+          <div class="check-item" data-index="7" onclick="cycleCheckState(this)">
+            <div class="check-box">
+              <svg class="ok-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg class="fail-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <span class="check-label">Señalización de seguridad eléctrica</span>
+            <span class="check-status">Ok</span>
+          </div>
+        </div>
+
+        <div class="field" style="margin-top: 18px;">
+          <span class="label required">Diagnóstico Técnico del Sistema</span>
+          <textarea class="textarea" id="field-diagnostico" placeholder="Indicar las anomalías encontradas, riesgos eléctricos activos o condiciones técnicas generales del predio."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="label">Tensión Operación (V)</span>
+            <input type="number" class="input" id="field-tension" placeholder="Ej. 120 / 208 / 220">
+          </div>
+          <div class="field">
+            <span class="label">Corriente Medida (A)</span>
+            <input type="number" class="input" id="field-corriente" placeholder="Ej. 15 / 32 / 40">
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOQUE 3: NORMALIZACIÓN Y MATERIALES -->
+      <section class="card" id="card-normalizacion">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.2.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+          </div>
+          <h2>Acciones y Materiales</h2>
+          <span class="card-num">03</span>
+        </div>
+
+        <div class="field">
+          <span class="label required">Acciones Correctivas Ejecutadas</span>
+          <textarea class="textarea" id="field-acciones" placeholder="Describir las labores realizadas para solucionar la falla, readecuar las instalaciones o normalizar la operación bajo RETIE."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <span class="label">Norma Aplicable</span>
+            <select class="select" id="field-norma">
+              <option value="RETIE 2013 / 2022" selected>RETIE 2013 / 2022</option>
+              <option value="NTC 2050">NTC 2050 (Cod. Eléctrico Nal.)</option>
+              <option value="RETILAP">RETILAP (Iluminación)</option>
+              <option value="No Aplica">No Aplica / Otra</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">Materiales e Insumos Utilizados</span>
+          <table class="materials-table">
+            <thead>
+              <tr>
+                <th style="width: 50%;">Descripción</th>
+                <th style="width: 15%;">Cant</th>
+                <th style="width: 25%;">Ref / Marca</th>
+                <th style="width: 10%;"></th>
+              </tr>
+            </thead>
+            <tbody id="materials-list-tbody">
+              <!-- Filas dinámicas -->
+            </tbody>
+          </table>
+          <button type="button" class="add-row-btn" onclick="addMaterialRow()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar Material / Repuesto
+          </button>
+        </div>
+
+        <div class="field" style="margin-top: 15px;">
+          <span class="label">Condición Operativa Final</span>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="operacion-final" value="si" checked>
+              <span>✅ Conforme (Operando 100% Bajo Norma)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="operacion-final" value="parcial">
+              <span>⚠️ Parcial (Requiere Adecuación Pendiente)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="operacion-final" value="no">
+              <span>❌ No Conforme (Instalación en Riesgo)</span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOQUE 4: EVIDENCIA FOTOGRÁFICA -->
+      <section class="card" id="card-fotografica">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+          </div>
+          <h2>Evidencia Fotográfica</h2>
+          <span class="card-num">04</span>
+        </div>
+
+        <p style="font-size:11px; color: var(--brand-muted); margin-bottom: 15px;">
+          Toca para capturar con la cámara del celular o seleccionar archivo.
+        </p>
+
+        <div class="photo-grid">
+          <!-- Slot 1 -->
+          <div class="photo-slot" id="slot-container-antes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Foto Antes<br>Intervención</span>
+            <input type="file" accept="image/*" capture="environment" id="img-antes" onchange="handleImageUpload(this, 'antes')">
+            <div id="preview-antes"></div>
+          </div>
+
+          <!-- Slot 2 -->
+          <div class="photo-slot" id="slot-container-despues">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Foto Después<br>Normalización</span>
+            <input type="file" accept="image/*" capture="environment" id="img-despues" onchange="handleImageUpload(this, 'despues')">
+            <div id="preview-despues"></div>
+          </div>
+
+          <!-- Slot 3 -->
+          <div class="photo-slot" id="slot-container-detalle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Detalle Técnico<br>Breaker / Tablero</span>
+            <input type="file" accept="image/*" capture="environment" id="img-detalle" onchange="handleImageUpload(this, 'detalle')">
+            <div id="preview-detalle"></div>
+          </div>
+
+          <!-- Slot 4 -->
+          <div class="photo-slot" id="slot-container-adicional">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>
+            </svg>
+            <span>Evidencia<br>Adicional</span>
+            <input type="file" accept="image/*" capture="environment" id="img-adicional" onchange="handleImageUpload(this, 'adicional')">
+            <div id="preview-adicional"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BLOQUE 5: FIRMA DIGITAL -->
+      <section class="card" id="card-firmas">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </div>
+          <h2>Conformidad del Cliente</h2>
+          <span class="card-num">05</span>
+        </div>
+
+        <p style="font-size:12px; color: var(--brand-muted); margin-bottom: 12px; line-height: 1.5;">
+          "Manifiesto conformidad con el diagnóstico y/o trabajos eléctricos detallados en esta acta técnica realizada por Gestiones Eléctricas SAS."
+        </p>
+
+        <div class="signature-container">
+          <canvas class="signature-canvas" id="canvas-firma"></canvas>
+          <div class="signature-bar">
+            <span>Firma Digital del Cliente</span>
+            <span class="signature-status" id="signature-status-txt">✍ Sin firmar</span>
+          </div>
+        </div>
+
+        <div class="signature-actions">
+          <button type="button" class="btn-secondary" onclick="clearSignature()">Limpiar</button>
+          <button type="button" class="btn-primary-outline" onclick="lockSignatureAndPrompt()">Confirmar Firma</button>
+        </div>
+
+        <div class="field" style="margin-top: 15px;">
+          <span class="label required">Nombre Responsable</span>
+          <input type="text" class="input" id="field-firmante-nombre" placeholder="Nombre completo del cliente">
+        </div>
+
+        <div class="field">
+          <span class="label required">C.C. / NIT</span>
+          <input type="text" class="input" id="field-firmante-documento" placeholder="Número de identificación">
+        </div>
+      </section>
+
+      <!-- El bloque de calificación fue movido a la sección final de envío -->
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         4. ENVÍO Y DESCARGA
+         ══════════════════════════════════════════ -->
+    <div class="submit-section">
+      <button class="btn-main" onclick="generateProfessionalPDF()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Descargar Acta en PDF
+      </button>
+
+      <div class="channel-buttons">
+        <button class="btn-channel btn-email" onclick="shareByEmail()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          E-mail PDF
+        </button>
+        <button class="btn-channel btn-wa" onclick="shareByWhatsApp()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          WhatsApp
+        </button>
+      </div>
+
+      <div style="margin-top: 24px; text-align: center; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 24px;">
+        <p style="font-size: 13px; color: var(--text-light); margin-bottom: 12px; font-weight: 600;">¿Estás satisfecho con nuestro servicio?</p>
+        <a href="https://g.page/r/CZfA-gPNaf91EBM/review" target="_blank" class="btn-google" style="display: inline-flex; width: auto; margin: 0 auto; padding: 12px 24px; background: white; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-decoration: none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:8px; vertical-align: middle;">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Calificar a la empresa en Google
+        </a>
+      </div>
+
+      <button class="btn-reset" onclick="resetForm()" style="margin-top: 32px;">Resetear Formulario</button>
+    </div>
+
+    <!-- FOOTER LEGAL MÓVIL -->
+    <footer class="app-footer">
+      <strong>Gestiones Eléctricas SAS</strong><br>
+      Ingeniería Especializada en Barranquilla y Región Caribe<br>
+      <a href="https://www.gestioneselectricas.com" target="_blank">www.gestioneselectricas.com</a>
+    </footer>
+
+  </div> <!-- /.mobile-container -->
+
+
+
+
+
+  <!-- ══════════════════════════════════════════
+       6. PLANTILLA PROFESIONAL DE IMPRESIÓN A4 (PDF)
+       ══════════════════════════════════════════ -->
+  <div id="pdf-printable-template">
+    <div class="pdf-page">
+      
+      <!-- Logo y OT -->
+      <div class="pdf-header">
+        <div class="pdf-logo-box">
+          <div class="pdf-logo-circle">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2L2 22h9l-1-7h6l-1 7h7L12 2z"/>
+            </svg>
+          </div>
+          <div class="pdf-logo-text">
+            <span class="pdf-logo-title">Gestiones Eléctricas</span>
+            <span class="pdf-logo-sub">INGENIERÍA ELÉCTRICA · BARRANQUILLA</span>
+          </div>
+        </div>
+        <div class="pdf-ot-box">
+          <div class="pdf-ot-title" id="pdf-ot-val">OT-XXXX</div>
+          <div class="pdf-ot-date" id="pdf-date-val">Fecha: --/--/----</div>
+        </div>
+      </div>
+
+      <!-- Datos del servicio -->
+      <div class="pdf-section-title">1. Identificación del Servicio Técnico</div>
+      <div class="pdf-grid">
+        <div class="pdf-grid-col">
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Cliente / Empresa:</div>
+            <div class="pdf-data-val" id="pdf-cliente-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Dirección:</div>
+            <div class="pdf-data-val" id="pdf-direccion-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Teléfono:</div>
+            <div class="pdf-data-val" id="pdf-telefono-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Correo Electrónico:</div>
+            <div class="pdf-data-val" id="pdf-email-val">—</div>
+          </div>
+        </div>
+        <div class="pdf-grid-col">
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Tipo de Servicio:</div>
+            <div class="pdf-data-val" id="pdf-tipo-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Técnico Autorizado:</div>
+            <div class="pdf-data-val" id="pdf-tecnico-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Matrícula Profesional:</div>
+            <div class="pdf-data-val" id="pdf-matricula-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Coordenadas GPS:</div>
+            <div class="pdf-data-val" id="pdf-coords-val">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist de Inspección -->
+      <div class="pdf-section-title">2. Checklist de Inspección Técnica de Seguridad</div>
+      <table class="pdf-checklist-table" id="pdf-checklist-tbody">
+        <!-- Dinámico con JS en formato 2 columnas para optimizar espacio -->
+      </table>
+
+      <!-- Mediciones y Diagnóstico -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Tensión Medida (V)</div>
+          <div style="font-size: 13px; font-weight: bold; color: #283000;" id="pdf-tension-val">— V</div>
+        </div>
+        <div>
+          <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Corriente Medida (A)</div>
+          <div style="font-size: 13px; font-weight: bold; color: #283000;" id="pdf-corriente-val">— A</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Diagnóstico Técnico Encontrado</div>
+        <div class="pdf-text-box" id="pdf-diagnostico-val">—</div>
+      </div>
+
+      <!-- Acciones de Normalización -->
+      <div class="pdf-section-title">3. Acciones de Normalización y Materiales</div>
+      <div>
+        <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Acciones Correctivas Ejecutadas (Cumplimiento RETIE)</div>
+        <div class="pdf-text-box" id="pdf-acciones-val">—</div>
+      </div>
+
+      <div class="pdf-grid" style="margin-top: 5px;">
+        <div>
+          <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Norma Técnica Aplicada</div>
+          <div style="font-size: 11px; font-weight: bold;" id="pdf-norma-val">—</div>
+        </div>
+        <div>
+          <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Estado Final del Sistema</div>
+          <div style="font-size: 11px; font-weight: bold;" id="pdf-estado-final-val">—</div>
+        </div>
+      </div>
+
+      <!-- Tabla de Materiales en PDF -->
+      <div style="margin-top: 10px;">
+        <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Materiales y Repuestos Utilizados</div>
+        <table class="pdf-materials">
+          <thead>
+            <tr>
+              <th style="width: 50%;">Descripción</th>
+              <th style="width: 15%;">Cantidad</th>
+              <th style="width: 35%;">Referencia / Marca</th>
+            </tr>
+          </thead>
+          <tbody id="pdf-materials-tbody">
+            <!-- Dinámico -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Salto de página para evidencia y firmas (limpio y controlado) -->
+      <div style="page-break-before: always;"></div>
+
+      <div class="pdf-header">
+        <div class="pdf-logo-box">
+          <div class="pdf-logo-text">
+            <span class="pdf-logo-title" style="font-size: 12px;">Gestiones Eléctricas</span>
+            <span class="pdf-logo-sub" style="font-size: 8px;">EVIDENCIA FOTOGRÁFICA Y FIRMA DE CONFORMIDAD</span>
+          </div>
+        </div>
+        <div class="pdf-ot-box">
+          <div class="pdf-ot-title" style="font-size: 14px;" id="pdf-ot-val2">OT-XXXX</div>
+        </div>
+      </div>
+
+      <!-- Evidencia Fotográfica en PDF -->
+      <div class="pdf-section-title">4. Evidencia Fotográfica Registrada</div>
+      <div class="pdf-photo-grid">
+        <div class="pdf-photo-container">
+          <div id="pdf-img-antes-box"></div>
+          <span class="pdf-photo-label">Foto Antes de la Intervención</span>
+        </div>
+        <div class="pdf-photo-container">
+          <div id="pdf-img-despues-box"></div>
+          <span class="pdf-photo-label">Foto Después de la Normalización</span>
+        </div>
+        <div class="pdf-photo-container">
+          <div id="pdf-img-detalle-box"></div>
+          <span class="pdf-photo-label">Detalle Técnico (Tablero / Equipo)</span>
+        </div>
+        <div class="pdf-photo-container">
+          <div id="pdf-img-adicional-box"></div>
+          <span class="pdf-photo-label">Evidencia Adicional / Reporte</span>
+        </div>
+      </div>
+
+      <!-- Firmas en PDF -->
+      <div class="pdf-section-title">5. Firmas de Conformidad y Cierre</div>
+      <div class="pdf-signature-section">
+        <!-- Técnico -->
+        <div class="pdf-signature-box">
+          <div style="height: 70px; display: flex; align-items: flex-end; margin-bottom: 8px;">
+            <div style="font-family: 'Space Grotesk', monospace; font-size: 16px; color: #283000; font-weight: bold; border-bottom: 1.5px dashed #283000; padding: 2px 10px; width: 100%; text-align: center;">
+              TÉCNICO AUTORIZADO
+            </div>
+          </div>
+          <span class="pdf-signature-title" id="pdf-firmante-tecnico-nombre">Ing./Téc. Asignado</span>
+          <span class="pdf-signature-meta" id="pdf-firmante-tecnico-matricula">Reg. Profesional: CONTE / RETIE</span>
+          <span class="pdf-signature-meta" id="pdf-gps-tecnico-time">Firma Electrónica mediante GPS</span>
+        </div>
+        
+        <!-- Cliente -->
+        <div class="pdf-signature-box">
+          <div id="pdf-signature-img-box">
+            <!-- Contendrá la imagen de la firma o texto de pendiente -->
+          </div>
+          <span class="pdf-signature-title" id="pdf-firmante-cliente-nombre">Nombre Responsable Cliente</span>
+          <span class="pdf-signature-meta" id="pdf-firmante-cliente-documento">C.C. / NIT: —</span>
+          <span class="pdf-signature-meta" id="pdf-gps-cliente-time">Fecha/Hora: --:-- - GPS Confirmado</span>
+        </div>
+      </div>
+
+      <!-- Footer legal y QR Google -->
+      <div class="pdf-footer">
+        <div class="pdf-footer-text">
+          Este documento constituye la constancia técnica oficial del servicio prestado por Gestiones Eléctricas SAS bajo los estándares establecidos en la normativa RETIE de la República de Colombia. Para cualquier reclamación o soporte, por favor comuníquese a través de nuestro sitio web oficial.
+        </div>
+        <div class="pdf-footer-qr">
+          ¿Cómo fue tu servicio hoy?<br>
+          <a href="https://g.page/r/CZfA-gPNaf91EBM/review" target="_blank">Calificar en Google</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       7. LÓGICA DE PROGRAMACIÓN (JAVASCRIPT)
+       ══════════════════════════════════════════ -->
+  <script>
+    // Variables de control de firmas e imágenes
+    let isDrawing = false;
+    let signatureConfirmed = false;
+    let signatureDataURL = "";
+    
+    // Objeto que almacena fotos en Base64 en memoria (no los guardamos en localStorage para evitar errores de quota)
+    const imagesInMemory = {
+      antes: "",
+      despues: "",
+      detalle: "",
+      adicional: ""
+    };
+
+    // Checklist data base
+    const checklistItems = [
+      { id: "tablero", label: "Tablero eléctrico principal", state: "" }, // states: "", "ok", "fail"
+      { id: "breakers", label: "Protecciones termomagnéticas (Breakers)", state: "" },
+      { id: "acometida", label: "Acometida y medidores de energía", state: "" },
+      { id: "conductores", label: "Conductores eléctricos y canalizaciones", state: "" },
+      { id: "puesta_tierra", label: "Sistema de puesta a tierra (SPT)", state: "" },
+      { id: "tomacorrientes", label: "Tomacorrientes y salidas GFCI", state: "" },
+      { id: "iluminacion", label: "Iluminación y luminarias", state: "" },
+      { id: "senalizacion", label: "Señalización de seguridad eléctrica", state: "" }
+    ];
+
+    // --- DOM Elements ---
+    const canvas = document.getElementById("canvas-firma");
+    const ctx = canvas.getContext("2d");
+    const otBadgeNum = document.getElementById("ot-badge-num");
+    const otField = document.getElementById("field-ot");
+    const gpsCoordsDisplay = document.getElementById("gps-coords-display");
+    const gpsTimeDisplay = document.getElementById("gps-time-display");
+    const progressTextDisplay = document.getElementById("progress-text-display");
+    const materialsTbody = document.getElementById("materials-list-tbody");
+
+
+    // --- Inicialización ---
+    window.addEventListener("DOMContentLoaded", () => {
+      initOTNumber();
+      initGPSData();
+      setupCanvas();
+      loadLocalStorageData();
+      updateTimelineProgress();
+      
+      // Auto-guardado en inputs comunes
+      const inputsToWatch = [
+        "field-servicio-tipo", "field-cliente", "field-direccion",
+        "field-telefono", "field-email", "field-tecnico", 
+        "field-matricula", "field-diagnostico", "field-tension", 
+        "field-corriente", "field-acciones", "field-norma",
+        "field-firmante-nombre", "field-firmante-documento"
+      ];
+      
+      inputsToWatch.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener("input", saveCurrentFormToLocal);
+          el.addEventListener("change", saveCurrentFormToLocal);
+        }
+      });
+
+      // Escuchar cambios de radios de cumplimiento operativo final
+      document.querySelectorAll('input[name="operacion-final"]').forEach(r => {
+        r.addEventListener("change", saveCurrentFormToLocal);
+      });
+    });
+
+    // Generador o cargador de N° de OT
+    function initOTNumber() {
+      let ot = localStorage.getItem("ge_current_ot");
+      if (!ot) {
+        // Generar un número aleatorio para OT
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        ot = `OT-${rand}`;
+        localStorage.setItem("ge_current_ot", ot);
+      }
+      otBadgeNum.textContent = ot;
+      otField.value = ot;
+    }
+
+    // Geolocalización
+    function initGPSData() {
+      const now = new Date();
+      const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+      const formattedDate = now.toLocaleDateString('es-CO', options);
+      
+      gpsTimeDisplay.textContent = `${formattedDate}`;
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude.toFixed(6);
+            const lon = position.coords.longitude.toFixed(6);
+            const coordsStr = `${lat}, ${lon}`;
+            gpsCoordsDisplay.textContent = coordsStr;
+            localStorage.setItem("ge_last_gps", coordsStr);
+            document.getElementById("gps-status-dot").style.backgroundColor = "var(--brand-ok)";
+            document.getElementById("gps-status-dot").style.boxShadow = "0 0 8px var(--brand-ok)";
+          },
+          (error) => {
+            console.log("GPS no autorizado o sin señal. Usando Barranquilla por defecto.");
+            const fallbackCoords = "10.9878, -74.7889 (Barranquilla)";
+            gpsCoordsDisplay.textContent = fallbackCoords;
+            localStorage.setItem("ge_last_gps", fallbackCoords);
+            document.getElementById("gps-status-dot").style.backgroundColor = "var(--brand-warn)";
+            document.getElementById("gps-status-dot").style.boxShadow = "0 0 8px var(--brand-warn)";
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        gpsCoordsDisplay.textContent = "GPS no soportado en dispositivo";
+      }
+    }
+
+    // --- Lógica del Canvas para Firma ---
+    function setupCanvas() {
+      // Ajustar resolución de canvas
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      ctx.strokeStyle = "#0D1100";
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      // Eventos Mouse
+      canvas.addEventListener("mousedown", startDrawing);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDrawing);
+      canvas.addEventListener("mouseout", stopDrawing);
+
+      // Eventos Táctiles (Mobile)
+      canvas.addEventListener("touchstart", (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent("mousedown", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+        e.preventDefault();
+      }, { passive: false });
+
+      canvas.addEventListener("touchmove", (e) => {
+        const touch = e.touches[0];
+        const mouseEvent = new MouseEvent("mousemove", {
+          clientX: touch.clientX,
+          clientY: touch.clientY
+        });
+        canvas.dispatchEvent(mouseEvent);
+        e.preventDefault();
+      }, { passive: false });
+
+      canvas.addEventListener("touchend", (e) => {
+        const mouseEvent = new MouseEvent("mouseup", {});
+        canvas.dispatchEvent(mouseEvent);
+        e.preventDefault();
+      }, { passive: false });
+    }
+
+    function getMousePos(canvasDom, mouseEvent) {
+      const rect = canvasDom.getBoundingClientRect();
+      return {
+        x: (mouseEvent.clientX - rect.left) * (canvasDom.width / rect.width),
+        y: (mouseEvent.clientY - rect.top) * (canvasDom.height / rect.height)
+      };
+    }
+
+    function startDrawing(e) {
+      if (signatureConfirmed) return;
+      isDrawing = true;
+      const pos = getMousePos(canvas, e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+      if (!isDrawing || signatureConfirmed) return;
+      const pos = getMousePos(canvas, e);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+    }
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      signatureConfirmed = false;
+      signatureDataURL = "";
+      const statusTxt = document.getElementById("signature-status-txt");
+      statusTxt.textContent = "✍ Sin firmar";
+      statusTxt.classList.remove("confirmed");
+      localStorage.removeItem("ge_signature");
+      updateTimelineProgress();
+    }
+
+    function lockSignatureAndPrompt() {
+      // Verificar si hay algo dibujado (si no está completamente en blanco)
+      const isBlank = isCanvasBlank(canvas);
+      if (isBlank) {
+        alert("Por favor, dibuje la firma antes de confirmar.");
+        return;
+      }
+
+      signatureConfirmed = true;
+      signatureDataURL = canvas.toDataURL("image/png");
+      
+      const statusTxt = document.getElementById("signature-status-txt");
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} hrs`;
+      statusTxt.textContent = `✅ Confirmado - ${timeStr}`;
+      statusTxt.classList.add("confirmed");
+      
+      localStorage.setItem("ge_signature", signatureDataURL);
+      updateTimelineProgress();
+
+      // Guardar en la API (en segundo plano)
+      saveActaToAPI();
+
+      alert("✅ Firma confirmada con éxito. Recuerda descargar el reporte PDF y compartirlo.");
+    }
+
+    async function saveActaToAPI() {
+      const API_BASE = `http://${window.location.hostname}:3001/api`;
+      const data = {
+        ot_number: document.getElementById("header-ot").textContent.replace('OT-', '') || '0000',
+        fecha: new Date().toISOString().split('T')[0],
+        tipo_visita: document.getElementById("field-servicio-tipo").value || 'mantenimiento',
+        cliente: document.getElementById("field-cliente").value || 'Cliente No Especificado',
+        contacto: document.getElementById("field-firmante-nombre").value || '',
+        telefono: document.getElementById("field-telefono").value || '',
+        direccion: document.getElementById("field-direccion").value || 'No especificada',
+        ciudad: document.getElementById("header-date").textContent.split(',')[0] || '',
+        tecnico: document.getElementById("field-tecnico").value || 'Técnico GE',
+        matricula: document.getElementById("field-matricula").value || '',
+        diagnostico: document.getElementById("field-diagnostico").value || 'Pendiente',
+        acciones: document.getElementById("field-acciones").value || 'Pendiente',
+        observaciones: document.getElementById("field-norma").value || '',
+        firma_cliente: signatureDataURL || '',
+        firmante_nombre: document.getElementById("field-firmante-nombre").value || '',
+        firmante_doc: document.getElementById("field-firmante-documento").value || '',
+        estado: 'firmado',
+        gps_lat: parseFloat(document.getElementById("gps-lat").textContent) || null,
+        gps_lng: parseFloat(document.getElementById("gps-lng").textContent) || null
+      };
+
+      try {
+        await fetch(`${API_BASE}/actas`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        console.log("Acta guardada exitosamente en la plataforma.");
+      } catch (e) {
+        console.error("Error guardando acta en la API", e);
+      }
+    }
+
+    function isCanvasBlank(canvasDom) {
+      const blank = document.createElement('canvas');
+      blank.width = canvasDom.width;
+      blank.height = canvasDom.height;
+      return canvasDom.toDataURL() === blank.toDataURL();
+    }
+
+
+
+    // --- Checklist States Cycle ---
+    function cycleCheckState(element) {
+      const idx = element.getAttribute("data-index");
+      const statusSpan = element.querySelector(".check-status");
+      
+      if (!element.classList.contains("ok") && !element.classList.contains("fail")) {
+        // Cambiar a Conforme (OK)
+        element.classList.add("ok");
+        statusSpan.textContent = "OK";
+        checklistItems[idx].state = "ok";
+      } else if (element.classList.contains("ok")) {
+        // Cambiar a Falla
+        element.classList.remove("ok");
+        element.classList.add("fail");
+        statusSpan.textContent = "FALLA";
+        checklistItems[idx].state = "fail";
+      } else {
+        // Volver a neutral
+        element.classList.remove("fail");
+        statusSpan.textContent = "";
+        checklistItems[idx].state = "";
+      }
+      
+      saveCurrentFormToLocal();
+      updateTimelineProgress();
+    }
+
+    // --- Dynamic Materials Table ---
+    function addMaterialRow(desc = "", cant = "", ref = "") {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input type="text" class="mat-input-field desc-input" placeholder="Ej. Breaker Schneider 2x20A" value="${desc}"></td>
+        <td><input type="number" class="mat-input-field cant-input" placeholder="1" style="text-align:center;" value="${cant}"></td>
+        <td><input type="text" class="mat-input-field ref-input" placeholder="Ej. Ref. QO220" value="${ref}"></td>
+        <td style="text-align:center;">
+          <button type="button" class="remove-row-btn" onclick="removeMaterialRow(this)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          </button>
+        </td>
+      `;
+      materialsTbody.appendChild(tr);
+      
+      // Listener para guardar al editar
+      tr.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", saveCurrentFormToLocal);
+      });
+      
+      saveCurrentFormToLocal();
+    }
+
+    function removeMaterialRow(button) {
+      button.closest("tr").remove();
+      saveCurrentFormToLocal();
+    }
+
+    // --- Image Upload & Base64 previews ---
+    function handleImageUpload(input, type) {
+      if (!input.files || !input.files[0]) return;
+      
+      const file = input.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        // Reducir la imagen un poco antes de procesarla para optimizar rendimiento del PDF
+        compressImage(e.target.result, 600, (compressedBase64) => {
+          imagesInMemory[type] = compressedBase64;
+          
+          const previewDiv = document.getElementById(`preview-${type}`);
+          previewDiv.innerHTML = `
+            <img src="${compressedBase64}">
+            <div class="photo-overlay">
+              <span>Slot ${type}</span>
+            </div>
+            <button type="button" class="remove-photo-btn" onclick="removePhoto('${type}', event)">×</button>
+          `;
+          
+          updateTimelineProgress();
+        });
+      };
+      
+      reader.readAsDataURL(file);
+    }
+
+    function removePhoto(type, event) {
+      if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+      
+      imagesInMemory[type] = "";
+      document.getElementById(`img-${type}`).value = "";
+      document.getElementById(`preview-${type}`).innerHTML = "";
+      updateTimelineProgress();
+    }
+
+    // Compresión de imagen client-side simple
+    function compressImage(base64Str, maxWidth, callback) {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvasObj = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+
+        canvasObj.width = width;
+        canvasObj.height = height;
+        const ctxImg = canvasObj.getContext("2d");
+        ctxImg.drawImage(img, 0, 0, width, height);
+        
+        // Retorna JPEG con calidad 0.7 para que no pese demasiado
+        callback(canvasObj.toDataURL("image/jpeg", 0.7));
+      };
+    }
+
+    // --- LocalStorage AutoSave ---
+    function saveCurrentFormToLocal() {
+      const data = {
+        servicioTipo: document.getElementById("field-servicio-tipo").value,
+        cliente: document.getElementById("field-cliente").value,
+        direccion: document.getElementById("field-direccion").value,
+        telefono: document.getElementById("field-telefono").value,
+        email: document.getElementById("field-email").value,
+        tecnico: document.getElementById("field-tecnico").value,
+        matricula: document.getElementById("field-matricula").value,
+        diagnostico: document.getElementById("field-diagnostico").value,
+        tension: document.getElementById("field-tension").value,
+        corriente: document.getElementById("field-corriente").value,
+        acciones: document.getElementById("field-acciones").value,
+        norma: document.getElementById("field-norma").value,
+        firmanteNombre: document.getElementById("field-firmante-nombre").value,
+        firmanteDocumento: document.getElementById("field-firmante-documento").value,
+        operacionFinal: document.querySelector('input[name="operacion-final"]:checked')?.value || "si",
+        checklist: checklistItems.map(item => ({ id: item.id, state: item.state })),
+        materials: Array.from(materialsTbody.querySelectorAll("tr")).map(tr => ({
+          desc: tr.querySelector(".desc-input").value,
+          cant: tr.querySelector(".cant-input").value,
+          ref: tr.querySelector(".ref-input").value
+        }))
+      };
+      
+      localStorage.setItem("ge_form_draft", JSON.stringify(data));
+      updateTimelineProgress();
+    }
+
+    function loadLocalStorageData() {
+      const draftStr = localStorage.getItem("ge_form_draft");
+      if (draftStr) {
+        try {
+          const data = JSON.parse(draftStr);
+          
+          document.getElementById("field-servicio-tipo").value = data.servicioTipo || "Diagnóstico";
+          document.getElementById("field-cliente").value = data.cliente || "";
+          document.getElementById("field-direccion").value = data.direccion || "";
+          document.getElementById("field-telefono").value = data.telefono || "";
+          document.getElementById("field-email").value = data.email || "";
+          document.getElementById("field-tecnico").value = data.tecnico || "";
+          document.getElementById("field-matricula").value = data.matricula || "";
+          document.getElementById("field-diagnostico").value = data.diagnostico || "";
+          document.getElementById("field-tension").value = data.tension || "";
+          document.getElementById("field-corriente").value = data.corriente || "";
+          document.getElementById("field-acciones").value = data.acciones || "";
+          document.getElementById("field-norma").value = data.norma || "RETIE 2013 / 2022";
+          document.getElementById("field-firmante-nombre").value = data.firmanteNombre || "";
+          document.getElementById("field-firmante-documento").value = data.firmanteDocumento || "";
+          
+          // Compliance radio
+          const opVal = data.operacionFinal || "si";
+          const radio = document.querySelector(`input[name="operacion-final"][value="${opVal}"]`);
+          if (radio) radio.checked = true;
+          
+          // Checklist
+          if (data.checklist) {
+            data.checklist.forEach(savedItem => {
+              const localItem = checklistItems.find(i => i.id === savedItem.id);
+              if (localItem) {
+                localItem.state = savedItem.state;
+                
+                // Actualizar interfaz visual
+                const checkDiv = document.querySelector(`.check-item[data-index="${checklistItems.indexOf(localItem)}"]`);
+                if (checkDiv) {
+                  const statusSpan = checkDiv.querySelector(".check-status");
+                  checkDiv.classList.remove("ok", "fail");
+                  if (savedItem.state === "ok") {
+                    checkDiv.classList.add("ok");
+                    statusSpan.textContent = "OK";
+                  } else if (savedItem.state === "fail") {
+                    checkDiv.classList.add("fail");
+                    statusSpan.textContent = "FALLA";
+                  } else {
+                    statusSpan.textContent = "";
+                  }
+                }
+              }
+            });
+          }
+
+          // Materials Table
+          if (data.materials && data.materials.length > 0) {
+            materialsTbody.innerHTML = "";
+            data.materials.forEach(m => {
+              addMaterialRow(m.desc, m.cant, m.ref);
+            });
+          } else {
+            // Añadir por lo menos dos filas en blanco iniciales
+            addMaterialRow();
+            addMaterialRow();
+          }
+
+        } catch (e) {
+          console.error("Error cargando borrador local:", e);
+        }
+      } else {
+        // Tabla con dos filas por defecto si está vacío
+        addMaterialRow();
+        addMaterialRow();
+      }
+
+      // Cargar firma si fue confirmada
+      const savedSign = localStorage.getItem("ge_signature");
+      if (savedSign) {
+        signatureConfirmed = true;
+        signatureDataURL = savedSign;
+        
+        // Dibujarla en canvas
+        const img = new Image();
+        img.src = savedSign;
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+        };
+        
+        const statusTxt = document.getElementById("signature-status-txt");
+        statusTxt.textContent = "✅ Confirmado (Borrador)";
+        statusTxt.classList.add("confirmed");
+      }
+    }
+
+    function resetForm() {
+      if (confirm("¿Está seguro de que desea vaciar el acta técnica? Perderá todos los datos de esta visita.")) {
+        localStorage.removeItem("ge_form_draft");
+        localStorage.removeItem("ge_signature");
+        localStorage.removeItem("ge_current_ot");
+        
+        // Limpiar fotos en memoria
+        removePhoto("antes");
+        removePhoto("despues");
+        removePhoto("detalle");
+        removePhoto("adicional");
+        
+        // Resetear inputs text y checklist
+        document.querySelectorAll(".input").forEach(i => {
+          if (!i.classList.contains("readonly")) i.value = "";
+        });
+        document.querySelectorAll(".textarea").forEach(t => t.value = "");
+        
+        checklistItems.forEach(item => item.state = "");
+        document.querySelectorAll(".check-item").forEach(el => {
+          el.classList.remove("ok", "fail");
+          el.querySelector(".check-status").textContent = "";
+        });
+        
+        materialsTbody.innerHTML = "";
+        addMaterialRow();
+        addMaterialRow();
+        
+        clearSignature();
+        initOTNumber();
+        initGPSData();
+        updateTimelineProgress();
+      }
+    }
+
+    // --- Timeline Status Bar ---
+    function updateTimelineProgress() {
+      const dotInfo = document.getElementById("dot-info");
+      const dotCheck = document.getElementById("dot-check");
+      const dotPhoto = document.getElementById("dot-photo");
+      const dotSign = document.getElementById("dot-sign");
+
+      // Paso 1: Datos cliente y técnico
+      const cliente = document.getElementById("field-cliente").value.trim();
+      const tecnico = document.getElementById("field-tecnico").value.trim();
+      const infoOk = cliente.length > 2 && tecnico.length > 2;
+
+      // Paso 2: Checklist e inputs técnicos
+      const diagnostico = document.getElementById("field-diagnostico").value.trim();
+      const checkOk = diagnostico.length > 2;
+
+      // Paso 3: Evidencia fotográfica (al menos una foto)
+      const photoOk = imagesInMemory.antes || imagesInMemory.despues || imagesInMemory.detalle || imagesInMemory.adicional;
+
+      // Paso 4: Firma
+      const signOk = signatureConfirmed;
+
+      // Actualizar dots
+      dotInfo.className = "progress-dot" + (infoOk ? " active" : "");
+      dotCheck.className = "progress-dot" + (checkOk ? " active" : "");
+      dotPhoto.className = "progress-dot" + (photoOk ? " active" : "");
+      dotSign.className = "progress-dot" + (signOk ? " active" : "");
+
+      // Determinar en qué paso estamos para la etiqueta
+      if (!infoOk) {
+        progressTextDisplay.textContent = "Paso 1 de 4 — Datos del Cliente";
+        dotInfo.className = "progress-dot active";
+      } else if (!checkOk) {
+        progressTextDisplay.textContent = "Paso 2 de 4 — Diagnóstico y Checklist";
+        dotCheck.className = "progress-dot active";
+      } else if (!photoOk) {
+        progressTextDisplay.textContent = "Paso 3 de 4 — Evidencia Fotográfica";
+        dotPhoto.className = "progress-dot active";
+      } else if (!signOk) {
+        progressTextDisplay.textContent = "Paso 4 de 4 — Firma y Conformidad";
+        dotSign.className = "progress-dot active";
+      } else {
+        progressTextDisplay.textContent = "¡Todo Listo para Descargar! ⚡";
+      }
+    }
+
+    // --- Compilar datos de pantalla hacia la plantilla A4 del PDF ---
+    function preparePrintableTemplate() {
+      // OT y Fecha
+      const otNum = otBadgeNum.textContent;
+      document.getElementById("pdf-ot-val").textContent = otNum;
+      document.getElementById("pdf-ot-val2").textContent = otNum;
+      
+      const now = new Date();
+      const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} hrs`;
+      document.getElementById("pdf-date-val").textContent = `Fecha: ${dateStr} - Hora: ${timeStr}`;
+
+      // Identificación
+      document.getElementById("pdf-cliente-val").textContent = document.getElementById("field-cliente").value || "— No especificado —";
+      document.getElementById("pdf-direccion-val").textContent = document.getElementById("field-direccion").value || "— No especificado —";
+      document.getElementById("pdf-telefono-val").textContent = document.getElementById("field-telefono").value || "— No especificado —";
+      document.getElementById("pdf-email-val").textContent = document.getElementById("field-email").value || "— No especificado —";
+      document.getElementById("pdf-tipo-val").textContent = document.getElementById("field-servicio-tipo").value;
+      document.getElementById("pdf-tecnico-val").textContent = document.getElementById("field-tecnico").value || "— No especificado —";
+      document.getElementById("pdf-matricula-val").textContent = document.getElementById("field-matricula").value || "— No especificado —";
+      document.getElementById("pdf-coords-val").textContent = gpsCoordsDisplay.textContent;
+
+      // Diagnóstico y Mediciones
+      document.getElementById("pdf-tension-val").textContent = (document.getElementById("field-tension").value || "—") + " V";
+      document.getElementById("pdf-corriente-val").textContent = (document.getElementById("field-corriente").value || "—") + " A";
+      document.getElementById("pdf-diagnostico-val").textContent = document.getElementById("field-diagnostico").value || "— Sin diagnóstico detallado —";
+
+      // Normalización
+      document.getElementById("pdf-acciones-val").textContent = document.getElementById("field-acciones").value || "— Sin acciones reportadas —";
+      document.getElementById("pdf-norma-val").textContent = document.getElementById("field-norma").value;
+      
+      // Estado operativo final radio text
+      const opRadio = document.querySelector('input[name="operacion-final"]:checked')?.value || "si";
+      let opRadioTxt = "✅ Conforme (Operando bajo norma)";
+      if (opRadio === "parcial") opRadioTxt = "⚠️ Parcial (Requiere adecuación)";
+      if (opRadio === "no") opRadioTxt = "❌ No conforme (Instalación en riesgo)";
+      document.getElementById("pdf-estado-final-val").textContent = opRadioTxt;
+
+      // Checklist en PDF formato 2 columnas
+      const checklistTable = document.getElementById("pdf-checklist-tbody");
+      checklistTable.innerHTML = "";
+      
+      for (let i = 0; i < checklistItems.length; i += 2) {
+        const item1 = checklistItems[i];
+        const item2 = checklistItems[i+1];
+        
+        let state1Html = `<span class="pdf-badge empty">No Evaluado</span>`;
+        if (item1.state === "ok") state1Html = `<span class="pdf-badge ok">Conforme</span>`;
+        if (item1.state === "fail") state1Html = `<span class="pdf-badge fail">Falla</span>`;
+
+        let state2Html = "";
+        let label2 = "";
+        if (item2) {
+          label2 = item2.label;
+          state2Html = `<span class="pdf-badge empty">No Evaluado</span>`;
+          if (item2.state === "ok") state2Html = `<span class="pdf-badge ok">Conforme</span>`;
+          if (item2.state === "fail") state2Html = `<span class="pdf-badge fail">Falla</span>`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="width: 35%; font-weight: bold;">${item1.label}</td>
+          <td style="width: 15%; text-align: center;">${state1Html}</td>
+          <td style="width: 35%; font-weight: bold;">${label2}</td>
+          <td style="width: 15%; text-align: center;">${state2Html}</td>
+        `;
+        checklistTable.appendChild(tr);
+      }
+
+      // Insumos y materiales en PDF
+      const pdfMaterialsTbody = document.getElementById("pdf-materials-tbody");
+      pdfMaterialsTbody.innerHTML = "";
+      const rows = Array.from(materialsTbody.querySelectorAll("tr"));
+      
+      let addedMaterialsCount = 0;
+      rows.forEach(tr => {
+        const desc = tr.querySelector(".desc-input").value.trim();
+        const cant = tr.querySelector(".cant-input").value.trim();
+        const ref = tr.querySelector(".ref-input").value.trim();
+        
+        if (desc || cant || ref) {
+          addedMaterialsCount++;
+          const trPdf = document.createElement("tr");
+          trPdf.innerHTML = `
+            <td>${desc || "—"}</td>
+            <td>${cant || "1"}</td>
+            <td>${ref || "—"}</td>
+          `;
+          pdfMaterialsTbody.appendChild(trPdf);
+        }
+      });
+      
+      if (addedMaterialsCount === 0) {
+        pdfMaterialsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #9CA3AF;">Ningún material o insumo registrado para esta intervención.</td></tr>`;
+      }
+
+      // Cargar imágenes en PDF
+      const slots = ["antes", "despues", "detalle", "adicional"];
+      slots.forEach(slot => {
+        const box = document.getElementById(`pdf-img-${slot}-box`);
+        box.innerHTML = "";
+        
+        if (imagesInMemory[slot]) {
+          box.innerHTML = `<img src="${imagesInMemory[slot]}" class="pdf-photo-img">`;
+        } else {
+          box.innerHTML = `<div class="pdf-photo-placeholder">Sin Imagen Adjunta</div>`;
+        }
+      });
+
+      // Firmas en PDF
+      const pdfTecnicoNombre = document.getElementById("pdf-firmante-tecnico-nombre");
+      const pdfTecnicoMatricula = document.getElementById("pdf-firmante-tecnico-matricula");
+      const pdfGpsTecnicoTime = document.getElementById("pdf-gps-tecnico-time");
+      
+      pdfTecnicoNombre.textContent = document.getElementById("field-tecnico").value || "Ing./Téc. Asignado";
+      pdfTecnicoMatricula.textContent = "Matrícula: " + (document.getElementById("field-matricula").value || "CONTE / RETIE");
+      pdfGpsTecnicoTime.textContent = `Firma Geolocalizada: ${gpsCoordsDisplay.textContent} · ${timeStr}`;
+
+      const pdfClienteNombre = document.getElementById("pdf-firmante-cliente-nombre");
+      const pdfClienteDocumento = document.getElementById("pdf-firmante-cliente-documento");
+      const pdfGpsClienteTime = document.getElementById("pdf-gps-cliente-time");
+      const pdfSignatureImgBox = document.getElementById("pdf-signature-img-box");
+      
+      pdfClienteNombre.textContent = document.getElementById("field-firmante-nombre").value || "Responsable de Recibir";
+      pdfClienteDocumento.textContent = "C.C. / NIT: " + (document.getElementById("field-firmante-documento").value || "— No especificado —");
+      pdfGpsClienteTime.textContent = `Registro: ${gpsCoordsDisplay.textContent} · ${dateStr} ${timeStr}`;
+
+      pdfSignatureImgBox.innerHTML = "";
+      if (signatureConfirmed && signatureDataURL) {
+        pdfSignatureImgBox.innerHTML = `<img src="${signatureDataURL}" class="pdf-signature-image">`;
+      } else {
+        pdfSignatureImgBox.innerHTML = `<div class="pdf-signature-empty">PENDIENTE DE FIRMA</div>`;
+      }
+    }
+
+    // --- Descarga PDF usando ventana de impresión nativa ---
+    function generateProfessionalPDF() {
+      // Validaciones básicas
+      const cliente = document.getElementById("field-cliente").value.trim();
+      const direccion = document.getElementById("field-direccion").value.trim();
+      const tecnico = document.getElementById("field-tecnico").value.trim();
+      const diagnostico = document.getElementById("field-diagnostico").value.trim();
+      const acciones = document.getElementById("field-acciones").value.trim();
+      const firmante = document.getElementById("field-firmante-nombre").value.trim();
+      const documento = document.getElementById("field-firmante-documento").value.trim();
+
+      if (!cliente || !direccion || !tecnico || !diagnostico || !acciones) {
+        alert("⚠️ Por favor complete todos los campos obligatorios del reporte antes de descargarlo.");
+        return;
+      }
+
+      if (!signatureConfirmed || !firmante || !documento) {
+        alert("⚠️ El cliente debe firmar el documento e ingresar su nombre/identificación antes de exportar el acta.");
+        return;
+      }
+
+      // Actualizar plantilla con datos actuales
+      preparePrintableTemplate();
+
+      const otNum = otBadgeNum.textContent;
+      const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+      // Obtener el HTML completo de la plantilla
+      const templateEl = document.getElementById("pdf-printable-template");
+      const templateHTML = templateEl.innerHTML;
+
+      // Obtener todos los estilos CSS del documento actual
+      const allStyles = Array.from(document.styleSheets)
+        .map(sheet => {
+          try {
+            return Array.from(sheet.cssRules || []).map(r => r.cssText).join('\n');
+          } catch(e) { return ''; }
+        }).join('\n');
+
+      // Construir el HTML de la ventana de impresion
+      const printHTML = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acta Técnica - ${otNum} - ${cliente}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: white; }
+    ${allStyles}
+    #pdf-printable-template { display: block !important; width: 100% !important; }
+    @media print {
+      @page { margin: 0.4in 0.3in; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div id="pdf-printable-template">
+    ${templateHTML}
+  </div>
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+        setTimeout(function() { window.close(); }, 1000);
+      }, 500);
+    };
+  <\/script>
+</body>
+</html>`;
+
+      // Abrir ventana de impresion
+      const printWin = window.open('', `acta-${otNum}`, 'width=900,height=700,scrollbars=yes');
+      if (!printWin) {
+        alert('Por favor permite las ventanas emergentes para poder descargar el acta.');
+        return;
+      }
+      printWin.document.open();
+      printWin.document.write(printHTML);
+      printWin.document.close();
+    }
+
+    // --- Canales de envío ---
+    function shareByEmail() {
+      const email = document.getElementById("field-email").value.trim() || "cliente@empresa.com";
+      const otNum = otBadgeNum.textContent;
+      const subject = encodeURIComponent(`Acta de Inspección Técnica - Gestiones Eléctricas ${otNum}`);
+      const body = encodeURIComponent(`Estimado cliente,\n\nLe adjunto el Acta de Inspección Técnica Digital correspondiente al servicio realizado bajo la Orden de Trabajo ${otNum}.\n\n¡Gracias por confiar en el equipo de Gestiones Eléctricas SAS! ⚡`);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    }
+
+    function shareByWhatsApp() {
+      const tel = document.getElementById("field-telefono").value.replace(/\D/g, '') || "";
+      if (!tel) {
+        alert("Por favor, ingrese un número de teléfono de contacto para el cliente.");
+        return;
+      }
+      const otNum = otBadgeNum.textContent;
+      const msg = encodeURIComponent(`Hola, te compartimos el soporte digital de tu servicio de Gestiones Eléctricas con Folio ${otNum} realizado hoy. ¡Agradecemos calificar nuestro servicio en el link de Google! ⚡`);
+      window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revisión de Anuncios — Gestiones Eléctricas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #C7E52F; /* Verde corporativo */
+      --primary-dark: #AEC81B;
+      --bg: #0A0A0C;      /* Negro / oscuro */
+      --card-bg: #141418;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --border: rgba(199, 229, 47, 0.15);
+      --glass: rgba(20, 20, 24, 0.75);
+      --success: #10B981;
+      --danger: #EF4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0d0d10;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #272730;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    header {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title span {
+      color: var(--primary);
+    }
+
+    .badge {
+      background: rgba(199, 229, 47, 0.1);
+      border: 1px solid rgba(199, 229, 47, 0.3);
+      color: var(--primary);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .search-box {
+      position: relative;
+      width: 260px;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.6rem 1rem 0.6rem 2.3rem;
+      border-radius: 30px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .search-box input:focus {
+      border-color: var(--primary);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .actions-header {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 30px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--bg);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--primary);
+    }
+
+    main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 1200px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Cinema Section */
+    .player-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .player-container {
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--border);
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+
+    .player-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .review-panel {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .video-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .video-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .video-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      display: flex;
+      gap: 1.2rem;
+    }
+
+    .video-meta span b {
+      color: var(--primary);
+    }
+
+    /* Feedback & Action Controls */
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .approval-buttons {
+      display: flex;
+      gap: 0.8rem;
+    }
+
+    .btn-approve {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success);
+    }
+
+    .btn-approve:hover, .btn-approve.selected {
+      background: var(--success);
+      color: #fff;
+      border-color: var(--success);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-reject {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--danger);
+    }
+
+    .btn-reject:hover, .btn-reject.selected {
+      background: var(--danger);
+      color: #fff;
+      border-color: var(--danger);
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+    }
+
+    .comment-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    .comment-section label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .comment-section textarea {
+      width: 100%;
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 0.8rem;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: vertical;
+      min-height: 80px;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .comment-section textarea:focus {
+      border-color: var(--primary);
+    }
+
+    /* Right Side: Playlist Grid */
+    .list-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .list-header {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .list-count {
+      color: var(--primary);
+      font-size: 0.9rem;
+    }
+
+    .video-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .video-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 1rem;
+      padding: 0.6rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-card:hover {
+      background: #1e1e24;
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .video-card.active {
+      background: rgba(199, 229, 47, 0.04);
+      border-color: var(--primary);
+    }
+
+    .video-card.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--primary);
+    }
+
+    .card-thumbnail {
+      width: 120px;
+      height: 68px;
+      background: #000;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-thumbnail video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.5;
+    }
+
+    .card-details {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.3rem;
+      min-width: 0;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Small badge indicating card review status */
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-left: 0.5rem;
+    }
+
+    .status-dot.approved {
+      background-color: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .status-dot.rejected {
+      background-color: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+
+    /* ══════════════════════
+       TABS DE NAVEGACIÓN
+       ══════════════════════ */
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 1rem 2rem 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .nav-tab {
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 0.6rem 1.4rem;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: transparent;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-tab:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .nav-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background: rgba(199, 229, 47, 0.05);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ══════════════════════
+       GALERÍA DE IMÁGENES
+       ══════════════════════ */
+    .images-main {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .images-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .images-toolbar h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .images-toolbar h2 span {
+      color: var(--primary);
+    }
+
+    .img-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .img-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .img-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+
+    .img-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: #111;
+    }
+
+    .img-card-info {
+      padding: 0.8rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .img-card-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+
+    .img-download-btn {
+      background: rgba(199,229,47,0.1);
+      border: 1px solid rgba(199,229,47,0.25);
+      color: var(--primary);
+      font-family: inherit;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .img-download-btn:hover {
+      background: var(--primary);
+      color: var(--bg);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 1rem;
+      padding: 2rem;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+
+    .lightbox-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .lightbox-name {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .lightbox-close:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .lightbox-nav:hover {
+      background: rgba(199,229,47,0.2);
+      color: var(--primary);
+    }
+
+    .lightbox-prev { left: 1.5rem; }
+    .lightbox-next { right: 1.5rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-title">Gestiones <span>Eléctricas</span></div>
+      <div class="badge">Revisor de Contenido</div>
+    </div>
+    
+    <div class="search-box">
+      <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="searchInput" placeholder="Buscar video..." onkeyup="filterVideos()">
+    </div>
+
+    <div class="actions-header">
+      <button class="btn btn-secondary" onclick="exportFeedbackMarkdown()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+        Copiar Reporte
+      </button>
+      <button class="btn btn-primary" onclick="downloadFeedbackFile()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar Reporte
+      </button>
+    </div>
+  </header>
+
+  <!-- Tabs de Navegación -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-videos" onclick="switchTab('videos')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+      Videos
+    </button>
+    <button class="nav-tab" id="tab-imagenes" onclick="switchTab('imagenes')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"></polyline></svg>
+      Imágenes
+      <span class="badge" style="font-size:0.7rem; padding:0.1rem 0.5rem;">39</span>
+    </button>
+  </div>
+
+  <!-- TAB: Videos -->
+  <div class="tab-content active" id="content-videos">
+    <main>
+      <!-- Left Cinema Section -->
+      <section class="player-section">
+        <div class="player-container">
+          <video id="mainPlayer" controls autoplay>
+            <source src="" type="video/mp4">
+            Tu navegador no soporta el reproductor de video.
+          </video>
+        </div>
+        
+        <div class="review-panel">
+          <div class="video-header-row">
+            <div>
+              <h1 class="video-title" id="playerTitle">Selecciona un video</h1>
+              <div class="video-meta">
+                <span>Archivo: <b id="playerFilename">-</b></span>
+                <span>Resolución: <b>Original (1080p sin pérdidas)</b></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review inputs -->
+          <div class="comment-section">
+            <label for="videoComment">Comentarios y correcciones para este video:</label>
+            <textarea id="videoComment" placeholder="Escribe aquí tus observaciones técnicas o correcciones de postproducción..." oninput="saveCurrentComment()"></textarea>
+          </div>
+
+          <div class="control-row">
+            <div class="approval-buttons">
+              <button class="btn btn-approve" id="btnApprove" onclick="setApproval(true)">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 12l-3-3 1.41-1.41L10 11.17l5.59-5.59L17 7l-7 7z"/></svg>
+                Aprobar Video
+              </button>
+              <button class="btn btn-reject" id="btnReject" onclick="setApproval(false)">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-6.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+                Rechazar Video
+              </button>
+            </div>
+
+            <a class="btn btn-secondary" id="downloadBtn" href="" download>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Descargar Video Original
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Playlist Section -->
+      <section class="list-section">
+        <div class="list-header">
+          <span>Videos en Carpeta</span>
+          <span class="list-count" id="videoCount">0 videos</span>
+        </div>
+        
+        <div class="video-grid" id="videoGrid">
+          <!-- Rendered by JS -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- TAB: Imágenes -->
+  <div class="tab-content" id="content-imagenes">
+    <div class="images-main">
+      <div class="images-toolbar">
+        <h2>Imágenes <span>Entregables Finales</span></h2>
+        <span class="badge">15 imágenes · PNG 4K</span>
+      </div>
+      <div class="img-grid" id="imgGrid">
+        <!-- Renderizado por JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox" onclick="closeLightboxOnBg(event)">
+    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">&#8249;</button>
+    <img id="lightboxImg" src="" alt="">
+    <div class="lightbox-controls">
+      <span class="lightbox-name" id="lightboxName"></span>
+      <a class="img-download-btn" id="lightboxDownload" href="" download>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Descargar imagen
+      </a>
+    </div>
+    <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">&#8250;</button>
+  </div>
+
+  <script>
+    // ═══════════════════════════
+    // TABS
+    // ═══════════════════════════
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById('content-' + tab).classList.add('active');
+      document.getElementById('tab-' + tab).classList.add('active');
+    }
+
+    // ═══════════════════════════
+    // VIDEOS
+    // ═══════════════════════════
+    // Directorio de videos (vacío porque index.html ya está en 'publicidad ')
+    const BASE_VIDEO = "";
+
+    const videoFiles = [
+      { filename: "01.mp4", name: "Anuncio 01 — Diagnóstico Térmico" },
+      { filename: "02.mp4", name: "Anuncio 02 — Simulación Flujo ETAP" },
+      { filename: "03.mp4", name: "Anuncio 03 — Pruebas VLF MT" },
+      { filename: "04.mp4", name: "Anuncio 04 — Reporte Campo Claude" },
+      { filename: "05.mp4", name: "Anuncio 05 — Aislamiento Megger" },
+      { filename: "06.mp4", name: "Anuncio 06 — Malla Puesta Tierra" },
+      { filename: "0622.mp4", name: "Anuncio 0622 — Alternativo Malla" },
+      { filename: "07.mp4", name: "Anuncio 07 — Armónicos NTC 5001" },
+      { filename: "08.mp4", name: "Anuncio 08 — Mitigación Reactiva" },
+      { filename: "ok 09.mp4", name: "Anuncio 09 — Pruebas TTR Aprobadas" },
+      { filename: "ok 10.mp4", name: "Anuncio 10 — Bloqueo LOTO Seguridad" },
+      { filename: "ok 11.mp4", name: "Anuncio 11 — Dron Termografía Aérea" },
+      { filename: "ok 12.mp4", name: "Anuncio 12 — Fugas de Corriente" },
+      { filename: "ok 2.mp4", name: "Anuncio 02 (OK) — Flujo ETAP v2" },
+      { filename: "ok 3.mp4", name: "Anuncio 03 (OK) — VLF Optimizado" },
+      { filename: "ok 5.mp4", name: "Anuncio 05 (OK) — Aislamiento Megger v2" },
+      { filename: "ok 6.mp4", name: "Anuncio 06 (OK) — Malla Tierra v2" },
+      { filename: "ok 7.mp4", name: "Anuncio 07 (OK) — Armónicos v2" },
+      { filename: "pro 06.mp4", name: "Anuncio 06 (Pro) — Malla Alta Precisión" },
+      { filename: "pro 08.mp4", name: "Anuncio 08 (Pro) — Reactiva Avanzada" },
+      { filename: "pro 09.mp4", name: "Anuncio 09 (Pro) — Relación TTR Pro" },
+      { filename: "pro 1.mp4", name: "Anuncio 01 (Pro) — Termografía Fluke Pro" },
+      { filename: "pro 10.mp4", name: "Anuncio 10 (Pro) — LOTO Dieléctrico Pro" },
+      { filename: "pro 11.mp4", name: "Anuncio 11 (Pro) — Dron Térmico Pro" },
+      { filename: "pro 13.mp4", name: "Anuncio 13 (Pro) — Arco Eléctrico ETAP" },
+      { filename: "pro 4.mp4", name: "Anuncio 04 (Pro) — Reportes Claude Pro" },
+      { filename: "pro 5.mp4", name: "Anuncio 05 (Pro) — Aislamiento Megger Pro" }
+    ];
+
+    let currentVideo = null;
+    let reviews = {};
+    const API_BASE = `http://${window.location.hostname}:3001/api`;
+
+    async function fetchReviewsFromAPI() {
+      try {
+        const res = await fetch(`${API_BASE}/reviews`);
+        if (res.ok) {
+          const data = await res.json();
+          // Convert array back to object format: { "01.mp4": { approved: true, comment: "" } }
+          data.reviews.forEach(r => {
+            reviews[r.filename] = { approved: r.approved, comment: r.comment };
+          });
+        }
+      } catch (e) {
+        console.error("Error conectando con la API. Asegúrate de que el servidor en puerto 3001 esté corriendo.", e);
+        // Fallback
+        reviews = JSON.parse(localStorage.getItem('ge_reviews') || '{}');
+      }
+    }
+
+    const videoGrid = document.getElementById('videoGrid');
+    const videoCount = document.getElementById('videoCount');
+    const mainPlayer = document.getElementById('mainPlayer');
+    const playerTitle = document.getElementById('playerTitle');
+    const playerFilename = document.getElementById('playerFilename');
+    const videoComment = document.getElementById('videoComment');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const btnApprove = document.getElementById('btnApprove');
+    const btnReject = document.getElementById('btnReject');
+
+    function loadPlaylist() {
+      videoGrid.innerHTML = '';
+      videoCount.textContent = `${videoFiles.length} videos`;
+
+      videoFiles.forEach((video, index) => {
+        const card = document.createElement('div');
+        card.id = `card-${video.filename.replace(/[\s\/]+/g, '_')}`;
+        card.className = 'video-card';
+        card.onclick = () => selectVideo(video, card);
+        card.setAttribute('data-name', video.name.toLowerCase());
+        card.setAttribute('data-file', video.filename.toLowerCase());
+
+        const status = reviews[video.filename];
+        let statusHtml = '';
+        if (status && status.approved !== undefined) {
+          statusHtml = `<span class="status-dot ${status.approved ? 'approved' : 'rejected'}"></span>`;
+        }
+
+        card.innerHTML = `
+          <div class="card-thumbnail">
+            <video muted preload="metadata">
+              <source src="${BASE_VIDEO}${encodeURIComponent(video.filename)}" type="video/mp4">
+            </video>
+          </div>
+          <div class="card-details">
+            <h3 class="card-title">${video.name}</h3>
+            <div class="card-meta">
+              <span>MP4</span>
+              <span>${video.filename.split('/').pop()} ${statusHtml}</span>
+            </div>
+          </div>
+        `;
+        videoGrid.appendChild(card);
+      });
+
+      if (videoFiles.length > 0) selectVideo(videoFiles[0], videoGrid.children[0]);
+    }
+
+    function selectVideo(video, cardElement) {
+      currentVideo = video;
+      document.querySelectorAll('.video-card').forEach(c => c.classList.remove('active'));
+      cardElement.classList.add('active');
+      const videoUrl = BASE_VIDEO + encodeURIComponent(video.filename);
+      mainPlayer.src = videoUrl;
+      mainPlayer.load();
+      mainPlayer.play().catch(() => {});
+      playerTitle.textContent = video.name;
+      playerFilename.textContent = video.filename;
+      downloadBtn.href = videoUrl;
+      const review = reviews[video.filename] || {};
+      videoComment.value = review.comment || '';
+      updateButtonUI(review.approved);
+    }
+
+    function updateButtonUI(approved) {
+      btnApprove.classList.remove('selected');
+      btnReject.classList.remove('selected');
+      if (approved === true) btnApprove.classList.add('selected');
+      else if (approved === false) btnReject.classList.add('selected');
+    }
+
+    async function saveCurrentComment() {
+      if (!currentVideo) return;
+      if (!reviews[currentVideo.filename]) reviews[currentVideo.filename] = {};
+      reviews[currentVideo.filename].comment = videoComment.value;
+      localStorage.setItem('ge_reviews', JSON.stringify(reviews));
+
+      try {
+        await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approved: reviews[currentVideo.filename].approved,
+            comment: reviews[currentVideo.filename].comment
+          })
+        });
+      } catch (e) { console.error("Error al guardar comentario en API", e); }
+    }
+
+    async function setApproval(isApproved) {
+      if (!currentVideo) return;
+      if (!reviews[currentVideo.filename]) reviews[currentVideo.filename] = {};
+      if (reviews[currentVideo.filename].approved === isApproved) {
+        reviews[currentVideo.filename].approved = null;
+      } else {
+        reviews[currentVideo.filename].approved = isApproved;
+      }
+      localStorage.setItem('ge_reviews', JSON.stringify(reviews));
+      updateButtonUI(reviews[currentVideo.filename].approved);
+      const safeId = `card-${currentVideo.filename.replace(/[\s\/]+/g, '_')}`;
+      const card = document.getElementById(safeId);
+      if (card) {
+        const metaSpan = card.querySelector('.card-meta span:last-child');
+        const approved = reviews[currentVideo.filename].approved;
+        const fname = currentVideo.filename.split('/').pop();
+        metaSpan.innerHTML = approved !== null && approved !== undefined
+          ? `${fname} <span class="status-dot ${approved ? 'approved' : 'rejected'}"></span>`
+          : fname;
+      }
+
+      try {
+        await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approved: reviews[currentVideo.filename].approved,
+            comment: reviews[currentVideo.filename].comment || ''
+          })
+        });
+      } catch (e) { console.error("Error al guardar estado en API", e); }
+    }
+
+    function filterVideos() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      document.querySelectorAll('.video-card').forEach(card => {
+        const match = card.getAttribute('data-name').includes(query) || card.getAttribute('data-file').includes(query);
+        card.style.display = match ? 'grid' : 'none';
+      });
+    }
+
+    function generateReportMarkdown() {
+      let md = `# Reporte de Revisión de Videos — Gestiones Eléctricas\n`;
+      md += `Generado el: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n\n`;
+      md += `| Video / Archivo | Estado | Observación |\n| :--- | :---: | :--- |\n`;
+      videoFiles.forEach(video => {
+        const r = reviews[video.filename] || {};
+        let status = '⏳ Pendiente';
+        if (r.approved === true) status = '🟢 Aprobado';
+        if (r.approved === false) status = '🔴 Rechazado';
+        md += `| **${video.name}** | ${status} | ${(r.comment || '-').replace(/\n/g, ' ')} |\n`;
+      });
+      return md;
+    }
+
+    function exportFeedbackMarkdown() {
+      navigator.clipboard.writeText(generateReportMarkdown()).then(() => {
+        alert('¡Reporte copiado al portapapeles!');
+      });
+    }
+
+    function downloadFeedbackFile() {
+      const blob = new Blob([generateReportMarkdown()], { type: 'text/markdown;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Reporte_Revision_${new Date().toISOString().slice(0,10)}.md`;
+      link.click();
+    }
+
+    // ═══════════════════════════
+    // IMÁGENES
+    // ═══════════════════════════
+    const imageFiles = [
+      // CIG — Catálogo de Imágenes Corporativas (24)
+      "CIG01_TablerosInstalacion.png",
+      "CIG02_TablerosControl.png",
+      "CIG03_AuditoriaEnergetica.png",
+      "CIG04_EficienciaEnergetica.png",
+      "CIG05_ModernizacionPlantas.png",
+      "CIG06_SubestacionDiseno.png",
+      "CIG07_AutomatizacionIndustrial.png",
+      "CIG08_ControlInteligente.png",
+      "CIG09_SeguridadElectrica.png",
+      "CIG10_ProteccionArco.png",
+      "CIG11_MantenimientoPredictivo.png",
+      "CIG12_Monitoreo247.png",
+      "CIG13_TermografiaDiagnostico.png",
+      "CIG14_CalidadEnergia.png",
+      "CIG15_ContinuidadOperativa.png",
+      "CIG16_ReduccionParadas.png",
+      "CIG17_IngenieriaIntegral.png",
+      "CIG18_ConfiabilidadRed.png",
+      "CIG19_GestionEnergiaDatos.png",
+      "CIG20_IAInfraestructura.png",
+      "CIG21_DatacenterEnergia.png",
+      "CIG22_TableroEmergencia.png",
+      "CIG23_PlantasIndustriales.png",
+      "CIG24_AsesoriaIngenieria.png",
+      // IMG — Imágenes de Campaña Predictivo (15)
+      "IMG01_MantenimientoPredictivo.png",
+      "IMG02_AnticipaLaFalla.png",
+      "IMG03_EnergiaNoSeDetiene.png",
+      "IMG04_IAQueCuida.png",
+      "IMG05_DelReactivoAlPredictivo.png",
+      "IMG06_Monitoreo247.png",
+      "IMG07_MenosParadas.png",
+      "IMG08_InteligenciaRed.png",
+      "IMG09_DiagnosticoTemprano.png",
+      "IMG10_SiempreEnLinea.png",
+      "IMG11_EficienciaInteligente.png",
+      "IMG12_GemeloDigital.png",
+      "IMG13_DatosEnTiempoReal.png",
+      "IMG14_ContinuidadOperativa.png",
+      "IMG15_FuturoPredictivo.png"
+    ];
+
+    // RUTA CORREGIDA: index.html está en publicidad/ → las imágenes están en ../entregables_finales/imagenes/
+    const BASE_IMG = "../entregables_finales/imagenes/";
+    let lightboxIndex = 0;
+
+    function loadImages() {
+      const grid = document.getElementById('imgGrid');
+      imageFiles.forEach((file, i) => {
+        const card = document.createElement('div');
+        card.className = 'img-card';
+        const name = file.replace(/\.png$/i, '').replace(/_/g, ' ');
+        card.innerHTML = `
+          <img src="${BASE_IMG}${encodeURIComponent(file)}" alt="${name}" loading="lazy" onclick="openLightbox(${i})">
+          <div class="img-card-info">
+            <span class="img-card-name">${name}</span>
+            <a class="img-download-btn" href="${BASE_IMG}${encodeURIComponent(file)}" download="${file}">
+              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Descargar
+            </a>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openLightbox(index) {
+      lightboxIndex = index;
+      updateLightbox();
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('open');
+    }
+
+    function closeLightboxOnBg(e) {
+      if (e.target === document.getElementById('lightbox')) closeLightbox();
+    }
+
+    function updateLightbox() {
+      const file = imageFiles[lightboxIndex];
+      const src = `${BASE_IMG}${encodeURIComponent(file)}`;
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightboxName').textContent = file.replace(/\.png$/i,'').replace(/_/g,' ');
+      document.getElementById('lightboxDownload').href = src;
+      document.getElementById('lightboxDownload').download = file;
+    }
+
+    function lightboxNav(dir) {
+      lightboxIndex = (lightboxIndex + dir + imageFiles.length) % imageFiles.length;
+      updateLightbox();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') lightboxNav(-1);
+      if (e.key === 'ArrowRight') lightboxNav(1);
+      if (e.key === 'Escape') closeLightbox();
+    });
+
+    // ═══════════════════════════
+    // INIT
+    // ═══════════════════════════
+    window.onload = async function() {
+      await fetchReviewsFromAPI();
+      loadPlaylist();
+      loadImages();
+    };
+  </script>
+</body>
+</html>
