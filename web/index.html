@@ -1944,6 +1944,21 @@
        7. LÓGICA DE PROGRAMACIÓN (JAVASCRIPT)
        ══════════════════════════════════════════ -->
   <script>
+    // Monkeypatch canvas getContext to automatically set willReadFrequently: true.
+    // This resolves the Chromium warning about multiple readback operations inside html2canvas / html2pdf.
+    (function() {
+      const originalGetContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type, contextAttributes) {
+        if (type === '2d') {
+          if (!contextAttributes) {
+            contextAttributes = {};
+          }
+          contextAttributes.willReadFrequently = true;
+        }
+        return originalGetContext.call(this, type, contextAttributes);
+      };
+    })();
+
     // Variables de control de firmas e imágenes
     let isDrawing = false;
     let signatureConfirmed = false;
@@ -1971,7 +1986,7 @@
 
     // --- DOM Elements ---
     const canvas = document.getElementById("canvas-firma");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     const otBadgeNum = document.getElementById("ot-badge-num");
     const otField = document.getElementById("field-ot");
     const gpsCoordsDisplay = document.getElementById("gps-coords-display");
@@ -2324,7 +2339,7 @@
 
         canvasObj.width = width;
         canvasObj.height = height;
-        const ctxImg = canvasObj.getContext("2d");
+        const ctxImg = canvasObj.getContext("2d", { willReadFrequently: true });
         ctxImg.drawImage(img, 0, 0, width, height);
         
         // Retorna JPEG con calidad 0.7 para que no pese demasiado
