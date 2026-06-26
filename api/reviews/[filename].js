@@ -3,7 +3,7 @@
 //  POST /api/reviews/:filename?tenant=X  → Guardar/actualizar review
 //  GET  /api/reviews/:filename?tenant=X  → Ver review individual
 // ============================================================
-import { put, list, getStore } from '@vercel/blob';
+const { put, list } = require('@vercel/blob');
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -17,8 +17,7 @@ function blobKey(tenant) {
 
 async function getReviews(tenant) {
   try {
-    const store = getStore({ token: process.env.BLOB_READ_WRITE_TOKEN });
-    const { blobs } = await store.list({ prefix: blobKey(tenant) });
+    const { blobs } = await list({ prefix: blobKey(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
     if (blobs.length === 0) return {};
     const res = await fetch(blobs[0].url);
     if (!res.ok) return {};
@@ -37,7 +36,7 @@ async function saveReviews(tenant, reviews) {
   });
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -94,4 +93,4 @@ export default async function handler(req, res) {
   }
 
   res.status(405).json({ error: 'Método no permitido' });
-}
+};
