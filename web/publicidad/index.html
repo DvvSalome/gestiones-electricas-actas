@@ -1903,12 +1903,19 @@
       }
     }
 
+    // Wrapper to automatically add tunnel bypass headers
+    function apiFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+      headers.set('bypass-tunnel-reminder', 'true');
+      return fetch(url, { ...options, headers });
+    }
+
     async function fetchReviewsFromAPI() {
       const localReviews = JSON.parse(localStorage.getItem('ge_reviews_' + tenant) || '{}');
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
-        const res = await fetch(`${API_BASE}/reviews?tenant=${encodeURIComponent(tenant)}`, { signal: controller.signal });
+        const res = await apiFetch(`${API_BASE}/reviews?tenant=${encodeURIComponent(tenant)}`, { signal: controller.signal });
         clearTimeout(timeoutId);
 
         if (res.ok) {
@@ -1939,7 +1946,7 @@
           // Sequentially upload unsynced reviews to backend
           for (const item of filesToUpload) {
             try {
-              await fetch(`${API_BASE}/reviews/${encodeURIComponent(item.filename)}?tenant=${encodeURIComponent(tenant)}`, {
+              await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(item.filename)}?tenant=${encodeURIComponent(tenant)}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -2151,7 +2158,7 @@
       localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
 
       try {
-        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
+        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2209,7 +2216,7 @@
       }
 
       try {
-        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
+        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2686,7 +2693,7 @@
       localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
 
       try {
-        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
+        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2728,7 +2735,7 @@
       }
 
       try {
-        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
+        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
