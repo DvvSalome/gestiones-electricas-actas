@@ -1670,6 +1670,28 @@
   <!-- TAB: Dashboard -->
   <div class="tab-content" id="content-dashboard">
     <div style="max-width: 1600px; margin: 0 auto; padding: 2rem;">
+      
+      <!-- NUEVO PANEL DE SUBIDA (Solo Admin) -->
+      <div id="admin-upload-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Subir Nuevo Recurso (Video o Imagen)
+        </h3>
+        <form id="uploadForm" onsubmit="handleUpload(event)" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Archivo (MP4, PNG, JPG, WEBP)</label>
+            <input type="file" id="uploadFileInput" accept="video/mp4,image/png,image/jpeg,image/webp" required style="width: 100%; padding: 0.5rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--text);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Nombre Amistoso (Ej: Anuncio 19 — Dron Pro)</label>
+            <input type="text" id="uploadNameInput" placeholder="Nombre descriptivo" required style="width: 100%; padding: 0.55rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--text);">
+          </div>
+          <button type="submit" style="padding: 0.6rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: opacity 0.2s;">
+            Subir Recurso
+          </button>
+        </form>
+      </div>
+
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
         <!-- Tarjetas de métricas -->
         <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center;">
@@ -1818,7 +1840,7 @@
     // Se detecta dinámicamente la ruta base en Vercel cuando la ruta del navegador no termina en barra diagonal
     const BASE_VIDEO = (window.location.protocol !== 'file:' && window.location.pathname === '/publicidad') ? 'publicidad/' : '';
 
-    const videoFiles = [
+    let videoFiles = [
       { filename: "01.mp4", name: "Anuncio 01 — Diagnóstico Térmico" },
       { filename: "02.mp4", name: "Anuncio 02 — Simulación Flujo ETAP" },
       { filename: "03.mp4", name: "Anuncio 03 — Pruebas VLF MT" },
@@ -2143,7 +2165,7 @@
         card.innerHTML = `
           <div class="card-thumbnail">
             <video muted preload="metadata">
-              <source src="${BASE_VIDEO}${encodeURIComponent(video.filename)}" type="video/mp4">
+              <source src="${(video.url && video.url.startsWith('http')) ? video.url : BASE_VIDEO + encodeURIComponent(video.filename)}" type="video/mp4">
             </video>
           </div>
           <div class="card-details" style="display: flex; flex-direction: column; gap: 0.2rem;">
@@ -2182,7 +2204,7 @@
       currentVideo = video;
       document.querySelectorAll('.video-card').forEach(c => c.classList.remove('active'));
       if (cardElement) cardElement.classList.add('active');
-      const videoUrl = BASE_VIDEO + encodeURIComponent(video.filename);
+      const videoUrl = (video.url && video.url.startsWith('http')) ? video.url : BASE_VIDEO + encodeURIComponent(video.filename);
       mainPlayer.src = videoUrl;
       mainPlayer.load();
       mainPlayer.play().catch(() => {});
@@ -2340,7 +2362,7 @@
     // ═══════════════════════════
     // IMÁGENES
     // ═══════════════════════════
-    const imageFiles = [
+    let imageFiles = [
       // CIG — Catálogo de Imágenes Corporativas (24)
       "CIG01_TablerosInstalacion.png",
       "CIG02_TablerosControl.png",
@@ -2665,9 +2687,13 @@
           statusHtml = `<span class="status-dot ${dotClass}" style="position: absolute; top: 6px; right: 6px; margin: 0; width: 10px; height: 10px;"></span>`;
         }
 
+        const filename = typeof file === 'string' ? file : file.filename;
+        const name = typeof file === 'string' ? file.replace(/\.png$/i, '').replace(/_/g, ' ') : file.name;
+        const src = (typeof file === 'object' && file.url && file.url.startsWith('http')) ? file.url : `${BASE_IMG}${encodeURIComponent(filename)}`;
+
         card.innerHTML = `
           ${statusHtml}
-          <img src="${BASE_IMG}${encodeURIComponent(file)}" alt="${name}" loading="lazy">
+          <img src="${src}" alt="${name}" loading="lazy">
           <div class="carousel-thumb-info">${name}</div>
         `;
         track.appendChild(card);
@@ -2679,7 +2705,9 @@
 
     function selectFeaturedImage(file, updateActiveThumbnail = true) {
       featuredImage = file;
-      const src = `${BASE_IMG}${encodeURIComponent(file)}`;
+      const filename = typeof file === 'string' ? file : file.filename;
+      const name = typeof file === 'string' ? file.replace(/\.png$/i, '').replace(/_/g, ' ') : file.name;
+      const src = (typeof file === 'object' && file.url && file.url.startsWith('http')) ? file.url : `${BASE_IMG}${encodeURIComponent(filename)}`;
 
       const imgEl = document.getElementById('featuredImg');
       imgEl.style.opacity = "0.5";
@@ -2688,10 +2716,10 @@
         imgEl.style.opacity = "1";
       }, 100);
 
-      document.getElementById('featuredImgName').textContent = file.replace(/\.png$/i,'').replace(/_/g,' ');
-      document.getElementById('featuredImgFilename').textContent = file;
+      document.getElementById('featuredImgName').textContent = name;
+      document.getElementById('featuredImgFilename').textContent = filename;
       document.getElementById('featuredImgDownload').href = src;
-      document.getElementById('featuredImgDownload').download = file;
+      document.getElementById('featuredImgDownload').download = filename;
 
       const review = reviews[file] || {};
       document.getElementById('featuredImgComment').value = review.comment || '';
@@ -2940,6 +2968,245 @@
       }, 3000);
     }
 
+    async function fetchMediaFromSupabase() {
+      if (!supabase) return;
+      try {
+        const { data: dbVideos, error: vError } = await supabase
+          .from('videos')
+          .select('filename, name, url')
+          .eq('tenant', tenant)
+          .order('created_at', { ascending: true });
+        
+        if (vError) throw vError;
+
+        const { data: dbImages, error: iError } = await supabase
+          .from('images')
+          .select('filename, name, url')
+          .eq('tenant', tenant)
+          .order('created_at', { ascending: true });
+
+        if (iError) throw iError;
+
+        if ((!dbVideos || dbVideos.length === 0) && (!dbImages || dbImages.length === 0)) {
+          console.log("[Supabase] Seeding default videos and images...");
+          
+          const initialVideos = [
+            { filename: "01.mp4", name: "Anuncio 01 — Diagnóstico Térmico" },
+            { filename: "02.mp4", name: "Anuncio 02 — Simulación Flujo ETAP" },
+            { filename: "03.mp4", name: "Anuncio 03 — Pruebas VLF MT" },
+            { filename: "04.mp4", name: "Anuncio 04 — Reporte Campo Claude" },
+            { filename: "05.mp4", name: "Anuncio 05 — Aislamiento Megger" },
+            { filename: "06.mp4", name: "Anuncio 06 — Malla Puesta Tierra" },
+            { filename: "0622.mp4", name: "Anuncio 0622 — Alternativo Malla" },
+            { filename: "07.mp4", name: "Anuncio 07 — Armónicos NTC 5001" },
+            { filename: "08.mp4", name: "Anuncio 08 — Mitigación Reactiva" },
+            { filename: "ok 09.mp4", name: "Anuncio 09 — Pruebas TTR Aprobadas" },
+            { filename: "ok 10.mp4", name: "Anuncio 10 — Bloqueo LOTO Seguridad" },
+            { filename: "ok 11.mp4", name: "Anuncio 11 — Dron Termografía Aérea" },
+            { filename: "ok 12.mp4", name: "Anuncio 12 — Fugas de Corriente" },
+            { filename: "ok 2.mp4", name: "Anuncio 02 (OK) — Flujo ETAP v2" },
+            { filename: "ok 3.mp4", name: "Anuncio 03 (OK) — VLF Optimizado" },
+            { filename: "ok 5.mp4", name: "Anuncio 05 (OK) — Aislamiento Megger v2" },
+            { filename: "ok 6.mp4", name: "Anuncio 06 (OK) — Malla Tierra v2" },
+            { filename: "ok 7.mp4", name: "Anuncio 07 (OK) — Armónicos v2" },
+            { filename: "pro 06.mp4", name: "Anuncio 06 (Pro) — Malla Alta Precisión" },
+            { filename: "pro 08.mp4", name: "Anuncio 08 (Pro) — Reactiva Avanzada" },
+            { filename: "pro 09.mp4", name: "Anuncio 09 (Pro) — Relación TTR Pro" },
+            { filename: "pro 1.mp4", name: "Anuncio 01 (Pro) — Termografía Fluke Pro" },
+            { filename: "pro 10.mp4", name: "Anuncio 10 (Pro) — LOTO Dieléctrico Pro" },
+            { filename: "pro 11.mp4", name: "Anuncio 11 (Pro) — Dron Térmico Pro" },
+            { filename: "pro 13.mp4", name: "Anuncio 13 (Pro) — Arco Eléctrico ETAP" },
+            { filename: "pro 4.mp4", name: "Anuncio 04 (Pro) — Reportes Claude Pro" },
+            { filename: "pro 5.mp4", name: "Anuncio 05 (Pro) — Aislamiento Megger Pro" },
+            { filename: "final 1.mp4", name: "Anuncio Final 01" },
+            { filename: "final 2.mp4", name: "Anuncio Final 02" },
+            { filename: "final 03.mp4", name: "Anuncio Final 03" },
+            { filename: "final 4.mp4", name: "Anuncio Final 04" },
+            { filename: "final 05.mp4", name: "Anuncio Final 05" },
+            { filename: "final 6.mp4", name: "Anuncio Final 06" },
+            { filename: "final 7.mp4", name: "Anuncio Final 07" },
+            { filename: "final 8.mp4", name: "Anuncio Final 08" },
+            { filename: "final 9.mp4", name: "Anuncio Final 09" },
+            { filename: "final 10.mp4", name: "Anuncio Final 10" },
+            { filename: "final 11.mp4", name: "Anuncio Final 11" },
+            { filename: "final 12.mp4", name: "Anuncio Final 12" },
+            { filename: "final 13.mp4", name: "Anuncio Final 13" },
+            { filename: "final 14.mp4", name: "Anuncio Final 14" },
+            { filename: "final 15.mp4", name: "Anuncio Final 15" },
+            { filename: "final 16.mp4", name: "Anuncio Final 16" },
+            { filename: "final 17.mp4", name: "Anuncio Final 17" },
+            { filename: "final 18.mp4", name: "Anuncio Final 18" }
+          ];
+
+          const initialImages = [
+            "CIG01_TablerosInstalacion.png", "CIG02_TablerosControl.png", "CIG03_AuditoriaEnergetica.png",
+            "CIG04_EficienciaEnergetica.png", "CIG05_ModernizacionPlantas.png", "CIG06_SubestacionDiseno.png",
+            "CIG07_AutomatizacionIndustrial.png", "CIG08_ControlInteligente.png", "CIG09_SeguridadElectrica.png",
+            "CIG10_ProteccionArco.png", "CIG11_MantenimientoPredictivo.png", "CIG12_Monitoreo247.png",
+            "CIG13_TermografiaDiagnostico.png", "CIG14_CalidadEnergia.png", "CIG15_ContinuidadOperativa.png",
+            "CIG16_ReduccionParadas.png", "CIG17_IngenieriaIntegral.png", "CIG18_ConfiabilidadRed.png",
+            "CIG19_GestionEnergiaDatos.png", "CIG20_IAInfraestructura.png", "CIG21_DatacenterEnergia.png",
+            "CIG22_TableroEmergencia.png", "CIG23_PlantasIndustriales.png", "CIG24_AsesoriaIngenieria.png",
+            "IMG01_MantenimientoPredictivo.png", "IMG02_AnticipaLaFalla.png", "IMG03_EnergiaNoSeDetiene.png",
+            "IMG04_IAQueCuida.png", "IMG05_DelReactivoAlPredictivo.png", "IMG06_Monitoreo247.png",
+            "IMG07_MenosParadas.png", "IMG08_InteligenciaRed.png", "IMG09_DiagnosticoTemprano.png",
+            "IMG10_SiempreEnLinea.png", "IMG11_EficienciaInteligente.png", "IMG12_GemeloDigital.png",
+            "IMG13_DatosEnTiempoReal.png", "IMG14_ContinuidadOperativa.png", "IMG15_FuturoPredictivo.png"
+          ];
+
+          for (const v of initialVideos) {
+            await supabase.from('videos').insert({
+              tenant,
+              filename: v.filename,
+              name: v.name,
+              url: v.filename
+            });
+          }
+
+          for (const img of initialImages) {
+            const friendlyName = img.replace(/\.png$/i, '').replace(/_/g, ' ');
+            await supabase.from('images').insert({
+              tenant,
+              filename: img,
+              name: friendlyName,
+              url: img
+            });
+          }
+
+          return fetchMediaFromSupabase();
+        }
+
+        if (dbVideos && dbVideos.length > 0) {
+          videoFiles = dbVideos.map(v => ({
+            filename: v.filename,
+            name: v.name,
+            url: v.url
+          }));
+        }
+
+        if (dbImages && dbImages.length > 0) {
+          imageFiles = dbImages.map(img => ({
+            filename: img.filename,
+            name: img.name,
+            url: img.url
+          }));
+        }
+      } catch (err) {
+        console.error("Error loading media from Supabase:", err);
+      }
+    }
+
+    async function handleUpload(event) {
+      event.preventDefault();
+      const fileInput = document.getElementById('uploadFileInput');
+      const nameInput = document.getElementById('uploadNameInput');
+      const file = fileInput.files[0];
+      const friendlyName = nameInput.value.trim();
+
+      if (!file || !friendlyName || !supabase) {
+        showToast('Falta archivo o no hay conexión con Supabase', 'error');
+        return;
+      }
+
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Subiendo...';
+
+      try {
+        const fileExt = file.name.split('.').pop();
+        const filename = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const path = `${tenant}/${filename}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('publicidad')
+          .upload(path, file, { cacheControl: '3600', upsert: false });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('publicidad')
+          .getPublicUrl(path);
+        
+        const publicUrl = urlData.publicUrl;
+
+        const isVideo = file.type.startsWith('video/');
+        const targetTable = isVideo ? 'videos' : 'images';
+
+        const { error: insertError } = await supabase
+          .from(targetTable)
+          .insert({
+            tenant,
+            filename: file.name,
+            name: friendlyName,
+            url: publicUrl
+          });
+
+        if (insertError) throw insertError;
+
+        showToast('Recurso subido exitosamente', 'success');
+        fileInput.value = '';
+        nameInput.value = '';
+        
+        await fetchMediaFromSupabase();
+        if (isVideo) {
+          loadPlaylist();
+        } else {
+          loadImages();
+        }
+        updateDashboard();
+
+      } catch (err) {
+        console.error('Error al subir archivo:', err);
+        showToast('Error al subir: ' + err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    }
+
+    function setupRealtimeSubscriptions() {
+      if (!supabase) return;
+      
+      supabase
+        .channel('public:reviews')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews', filter: `tenant=eq.${tenant}` }, payload => {
+          console.log('[Realtime] Review change received:', payload);
+          const r = payload.new;
+          if (r) {
+            reviews[r.filename] = {
+              approved: r.approved ?? null,
+              comment: r.comment || '',
+              updated_at: r.updated_at ? new Date(r.updated_at).toLocaleString('es-CO') : ''
+            };
+            loadPlaylist();
+            loadImages();
+            updateDashboard();
+          }
+        })
+        .subscribe();
+
+      supabase
+        .channel('public:videos')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'videos', filter: `tenant=eq.${tenant}` }, async payload => {
+          console.log('[Realtime] Videos change received:', payload);
+          await fetchMediaFromSupabase();
+          loadPlaylist();
+          updateDashboard();
+        })
+        .subscribe();
+
+      supabase
+        .channel('public:images')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'images', filter: `tenant=eq.${tenant}` }, async payload => {
+          console.log('[Realtime] Images change received:', payload);
+          await fetchMediaFromSupabase();
+          loadImages();
+          updateDashboard();
+        })
+        .subscribe();
+    }
+
     window.onload = async function() {
       // Configurar interfaz según si es Administrador o Cliente
       if (!isAdmin) {
@@ -2948,6 +3215,9 @@
         
         const actionsHeader = document.querySelector('.actions-header');
         if (actionsHeader) actionsHeader.style.display = 'none';
+        
+        const uploadPanel = document.getElementById('admin-upload-panel');
+        if (uploadPanel) uploadPanel.style.display = 'none';
       }
 
       // Colapsar acordeones en móviles/tabletas por defecto
@@ -2956,6 +3226,8 @@
         document.getElementById('accordion-image-filters')?.classList.replace('expanded', 'collapsed');
       }
       await fetchReviewsFromAPI();
+      await fetchMediaFromSupabase();
+      setupRealtimeSubscriptions();
       lastReviewsHash = JSON.stringify(reviews);
       loadPlaylist();
       loadImages();
