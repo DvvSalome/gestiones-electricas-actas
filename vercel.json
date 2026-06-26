@@ -1,5 +1,8 @@
 {
   "cleanUrls": true,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
   "rewrites": [
     { "source": "/publicidad", "destination": "/web/publicidad/index.html" },
     { "source": "/publicidad/(.*)", "destination": "/web/publicidad/$1" },
