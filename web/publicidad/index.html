@@ -1719,6 +1719,7 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     // ═══════════════════════════
     // TABS
@@ -1793,6 +1794,12 @@
     // ═══════════════════════════
     const urlParams = new URLSearchParams(window.location.search);
     const tenant = urlParams.get('tenant') || 'gestiones-electricas';
+    const isAdmin = urlParams.get('view') === 'admin';
+    
+    // Supabase Initialization
+    const supabaseUrl = 'https://aoglarmebyimcygdrnxo.supabase.co';
+    const supabaseKey = '***REDACTED***';
+    const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
     
     let API_BASE = '/api';
     const apiParam = urlParams.get('api');
@@ -1800,7 +1807,7 @@
       API_BASE = apiParam.endsWith('/') ? `${apiParam}api` : `${apiParam}/api`;
     }
     
-    console.log(`[Revisor] Iniciando en modo Multitenant. Cliente: "${tenant}"`);
+    console.log(`[Revisor] Iniciando en modo Multitenant. Cliente: "${tenant}" (Vista: ${isAdmin ? 'Administrador' : 'Cliente'})`);
     console.log('[API] Base URL:', API_BASE);
     let lastReviewsHash = '';
 
@@ -1912,80 +1919,131 @@
       return fetch(url, { ...options, headers });
     }
 
+    function areReviewsEqual(r1, r2) {
+      if (!r1 || !r2) return false;
+      const keys1 = Object.keys(r1);
+      const keys2 = Object.keys(r2);
+      if (keys1.length !== keys2.length) return false;
+      for (const key of keys1) {
+        const item1 = r1[key] || {};
+        const item2 = r2[key] || {};
+        if (item1.approved !== item2.approved ||
+            item1.comment !== item2.comment ||
+            item1.updated_at !== item2.updated_at) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     async function fetchReviewsFromAPI() {
       const localReviews = JSON.parse(localStorage.getItem('ge_reviews_' + tenant) || '{}');
+      if (!supabase) {
+        reviews = localReviews;
+        isConnected = false;
+        updateConnectionUI(false);
+        return;
+      }
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        const res = await apiFetch(`${API_BASE}/reviews?tenant=${encodeURIComponent(tenant)}`, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('filename, approved, comment, updated_at')
+          .eq('tenant', tenant);
 
-        if (res.ok) {
-          const data = await res.json();
-          const serverReviews = {};
-          data.reviews.forEach(r => {
-            serverReviews[r.filename] = { approved: r.approved, comment: r.comment, updated_at: r.updated_at };
-          });
-          
-          // Copy server reviews to our main in-memory reviews object
-          Object.assign(reviews, serverReviews);
-          
-          // Find reviews present in localStorage but not on the server database, to upload them
-          const filesToUpload = [];
-          for (const filename in localReviews) {
-            const hasStatus = localReviews[filename].approved !== null && localReviews[filename].approved !== undefined;
-            const hasComment = !!localReviews[filename].comment;
-            if (!serverReviews[filename] && (hasStatus || hasComment)) {
-              filesToUpload.push({
-                filename,
-                approved: localReviews[filename].approved,
-                comment: localReviews[filename].comment || ''
-              });
-              reviews[filename] = localReviews[filename];
-            }
-          }
-          
-          // Sequentially upload unsynced reviews to backend
-          for (const item of filesToUpload) {
-            try {
-              await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(item.filename)}?tenant=${encodeURIComponent(tenant)}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  approved: item.approved,
-                  comment: item.comment
-                })
-              });
-              console.log(`[Sync] Sincronizado local -> API para: ${item.filename}`);
-            } catch (err) {
-              console.error(`[Sync] Fallo al sincronizar ${item.filename}`, err);
-            }
-          }
-          
-          // Update localStorage with the consolidated reviews
-          localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
+        if (error) throw error;
 
-          // Connection recovered
-          if (!isConnected && wasConnectedBefore) {
-            showToast('Conexión restaurada — sincronizando cambios', 'success', 4000);
-          } else if (!wasConnectedBefore) {
-            wasConnectedBefore = true;
+        const serverReviews = {};
+        (data || []).forEach(r => {
+          serverReviews[r.filename] = { 
+            approved: r.approved ?? null, 
+            comment: r.comment || '', 
+            updated_at: r.updated_at ? new Date(r.updated_at).toLocaleString('es-CO') : '' 
+          };
+        });
+
+        // Copy server reviews to our main in-memory reviews object
+        Object.assign(reviews, serverReviews);
+
+        // Find reviews present in localStorage but not on the server database, to upload them
+        const filesToUpload = [];
+        for (const filename in localReviews) {
+          const hasStatus = localReviews[filename].approved !== null && localReviews[filename].approved !== undefined;
+          const hasComment = !!localReviews[filename].comment;
+          if (!serverReviews[filename] && (hasStatus || hasComment)) {
+            filesToUpload.push({
+              filename,
+              approved: localReviews[filename].approved,
+              comment: localReviews[filename].comment || ''
+            });
+            reviews[filename] = localReviews[filename];
           }
-          isConnected = true;
-          consecutiveFailures = 0;
-          updateConnectionUI(true);
         }
+
+        // Upload unsynced reviews to Supabase
+        for (const item of filesToUpload) {
+          try {
+            const { error: upsertError } = await supabase
+              .from('reviews')
+              .upsert({
+                tenant,
+                filename: item.filename,
+                approved: item.approved,
+                comment: item.comment,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'tenant,filename' });
+
+            if (upsertError) throw upsertError;
+            console.log(`[Sync] Sincronizado local -> Supabase para: ${item.filename}`);
+          } catch (err) {
+            console.error(`[Sync] Fallo al sincronizar ${item.filename}`, err);
+          }
+        }
+
+        // Update localStorage with the consolidated reviews
+        localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
+
+        // Connection recovered
+        if (!isConnected && wasConnectedBefore) {
+          showToast('Conexión con Supabase restaurada', 'success', 4000);
+        } else if (!wasConnectedBefore) {
+          wasConnectedBefore = true;
+        }
+        isConnected = true;
+        consecutiveFailures = 0;
+        updateConnectionUI(true);
       } catch (e) {
-        console.error("Error conectando con la API. Usando localStorage como fallback.", e);
+        console.error("Error conectando con Supabase. Usando localStorage como fallback.", e);
         reviews = localReviews;
         consecutiveFailures++;
 
         // Only show toast on first failure or every 10 failures (avoid spam)
         if (isConnected || consecutiveFailures === 1) {
-          showToast('Sin conexión a la API — los cambios se guardan localmente', 'error', 6000);
+          showToast('Sin conexión a Supabase — los cambios se guardan localmente', 'error', 6000);
         }
         isConnected = false;
         updateConnectionUI(false);
+      }
+    }
+
+    async function saveReviewToSupabase(filename, approved, comment) {
+      if (!supabase) return null;
+      try {
+        const { data, error } = await supabase
+          .from('reviews')
+          .upsert({
+            tenant,
+            filename,
+            approved: approved,
+            comment: comment || '',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'tenant,filename' })
+          .select();
+
+        if (error) throw error;
+        return data && data[0] ? data[0] : null;
+      } catch (e) {
+        console.error(`Error al guardar en Supabase para ${filename}`, e);
+        return null;
       }
     }
 
@@ -2159,22 +2217,14 @@
       reviews[currentVideo.filename].comment = videoComment.value;
       localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
 
-      try {
-        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            approved: reviews[currentVideo.filename].approved,
-            comment: reviews[currentVideo.filename].comment
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.review) {
-            reviews[currentVideo.filename].updated_at = data.review.updated_at;
-          }
-        }
-      } catch (e) { console.error("Error al guardar comentario en API", e); }
+      const updated = await saveReviewToSupabase(
+        currentVideo.filename,
+        reviews[currentVideo.filename].approved,
+        reviews[currentVideo.filename].comment
+      );
+      if (updated) {
+        reviews[currentVideo.filename].updated_at = new Date(updated.updated_at).toLocaleString('es-CO');
+      }
       
       updateDashboard();
       loadPlaylist();
@@ -2217,27 +2267,17 @@
         metaSpan.innerHTML = fname + statusHtml;
       }
 
-      try {
-        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            approved: reviews[currentVideo.filename].approved,
-            comment: reviews[currentVideo.filename].comment || ''
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.review) {
-            reviews[currentVideo.filename].updated_at = data.review.updated_at;
-            if (playerDate) {
-              playerDate.textContent = data.review.updated_at;
-            }
-            updateDashboard();
-            loadPlaylist();
-          }
+      const updated = await saveReviewToSupabase(
+        currentVideo.filename,
+        reviews[currentVideo.filename].approved,
+        reviews[currentVideo.filename].comment || ''
+      );
+      if (updated) {
+        reviews[currentVideo.filename].updated_at = new Date(updated.updated_at).toLocaleString('es-CO');
+        if (playerDate) {
+          playerDate.textContent = reviews[currentVideo.filename].updated_at;
         }
-      } catch (e) { console.error("Error al guardar estado en API", e); }
+      }
       
       updateDashboard();
       loadPlaylist();
@@ -2694,24 +2734,16 @@
       reviews[featuredImage].comment = commentInput.value;
       localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
 
-      try {
-        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            approved: reviews[featuredImage].approved,
-            comment: reviews[featuredImage].comment
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.review) {
-            reviews[featuredImage].updated_at = data.review.updated_at;
-            const lbDate = document.getElementById('featuredImgDate');
-            if (lbDate) lbDate.textContent = data.review.updated_at;
-          }
-        }
-      } catch (e) { console.error("Error al guardar comentario de imagen en API", e); }
+      const updated = await saveReviewToSupabase(
+        featuredImage,
+        reviews[featuredImage].approved,
+        reviews[featuredImage].comment
+      );
+      if (updated) {
+        reviews[featuredImage].updated_at = new Date(updated.updated_at).toLocaleString('es-CO');
+        const lbDate = document.getElementById('featuredImgDate');
+        if (lbDate) lbDate.textContent = reviews[featuredImage].updated_at;
+      }
 
       updateDashboard();
     }
@@ -2736,26 +2768,14 @@
         lbDate.textContent = reviews[featuredImage].updated_at;
       }
 
-      try {
-        const res = await apiFetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            approved: reviews[featuredImage].approved,
-            comment: reviews[featuredImage].comment || ''
-          })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.review) {
-            reviews[featuredImage].updated_at = data.review.updated_at;
-            if (lbDate) lbDate.textContent = data.review.updated_at;
-            updateDashboard();
-            loadImages();
-          }
-        }
-      } catch (e) {
-        console.error("Error al guardar estado de aprobación de imagen en API", e);
+      const updated = await saveReviewToSupabase(
+        featuredImage,
+        reviews[featuredImage].approved,
+        reviews[featuredImage].comment || ''
+      );
+      if (updated) {
+        reviews[featuredImage].updated_at = new Date(updated.updated_at).toLocaleString('es-CO');
+        if (lbDate) lbDate.textContent = reviews[featuredImage].updated_at;
         updateDashboard();
         loadImages();
       }
@@ -2881,12 +2901,12 @@
     // ═══════════════════════════
     async function startPolling() {
       setInterval(async () => {
-        const prevHash = lastReviewsHash;
+        // Deep copy of reviews before fetch to detect differences
+        const oldReviews = JSON.parse(JSON.stringify(reviews));
         await fetchReviewsFromAPI();
-        const newHash = JSON.stringify(reviews);
+        
         // Solo re-renderizar listas si los datos cambiaron (evita parpadeo)
-        if (newHash !== prevHash) {
-          lastReviewsHash = newHash;
+        if (!areReviewsEqual(oldReviews, reviews)) {
           loadPlaylist();
           loadImages();
           updateDashboard();
@@ -2921,6 +2941,15 @@
     }
 
     window.onload = async function() {
+      // Configurar interfaz según si es Administrador o Cliente
+      if (!isAdmin) {
+        const tabDashboard = document.getElementById('tab-dashboard');
+        if (tabDashboard) tabDashboard.style.display = 'none';
+        
+        const actionsHeader = document.querySelector('.actions-header');
+        if (actionsHeader) actionsHeader.style.display = 'none';
+      }
+
       // Colapsar acordeones en móviles/tabletas por defecto
       if (window.innerWidth <= 768) {
         document.getElementById('accordion-video-filters')?.classList.replace('expanded', 'collapsed');
