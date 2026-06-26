@@ -1,8 +1,14 @@
 {
   "cleanUrls": true,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "@vercel/node@3"
+    }
+  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/web/(.*)", "destination": "/web/$1" },
-    { "source": "/(.*)", "destination": "/web/$1" }
+    { "source": "/publicidad", "destination": "/web/publicidad/index.html" },
+    { "source": "/publicidad/(.*)", "destination": "/web/publicidad/$1" },
+    { "source": "/((?!api/).*)", "destination": "/web/$1" }
   ]
 }
