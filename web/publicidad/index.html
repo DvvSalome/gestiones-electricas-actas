@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Revisión de Anuncios — Gestiones Eléctricas</title>
+  <link rel="icon" href="data:,">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -280,6 +281,19 @@
       box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
     }
 
+    .btn-adjust {
+      background: rgba(251, 188, 5, 0.1);
+      border: 1px solid rgba(251, 188, 5, 0.3);
+      color: #FBBC05;
+    }
+
+    .btn-adjust:hover, .btn-adjust.selected {
+      background: #FBBC05;
+      color: #000;
+      border-color: #FBBC05;
+      box-shadow: 0 0 12px rgba(251, 188, 5, 0.2);
+    }
+
     .comment-section {
       display: flex;
       flex-direction: column;
@@ -440,6 +454,11 @@
       box-shadow: 0 0 8px var(--danger);
     }
 
+    .status-dot.adjusting {
+      background-color: #FBBC05;
+      box-shadow: 0 0 8px #FBBC05;
+    }
+
     /* ══════════════════════
        TABS DE NAVEGACIÓN
        ══════════════════════ */
@@ -587,44 +606,67 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.92);
+      background: rgba(0, 0, 0, 0.95);
       z-index: 1000;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 2rem;
+      padding: 1.5rem;
     }
 
     .lightbox.open {
       display: flex;
     }
 
-    .lightbox img {
-      max-width: 90vw;
-      max-height: 80vh;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    .lightbox-content-wrapper {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      width: 90vw;
+      max-width: 1300px;
+      height: 85vh;
+      background: #0D0D10;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+      position: relative;
     }
 
-    .lightbox-controls {
+    .lightbox-left-pane {
+      position: relative;
       display: flex;
-      gap: 1rem;
       align-items: center;
+      justify-content: center;
+      background: #000;
+      padding: 1.5rem;
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      height: 100%;
+      min-height: 0;
     }
 
-    .lightbox-name {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      font-weight: 600;
+    .lightbox-left-pane img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .lightbox-right-pane {
+      background: var(--card-bg);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
     }
 
     .lightbox-close {
       position: absolute;
       top: 1.5rem;
       right: 1.5rem;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border: none;
       color: white;
       width: 40px;
@@ -636,17 +678,18 @@
       align-items: center;
       justify-content: center;
       transition: background 0.2s;
+      z-index: 1010;
     }
 
     .lightbox-close:hover {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .lightbox-nav {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       border: none;
       color: white;
       width: 48px;
@@ -658,15 +701,596 @@
       align-items: center;
       justify-content: center;
       transition: background 0.2s;
+      z-index: 10;
     }
 
     .lightbox-nav:hover {
-      background: rgba(199,229,47,0.2);
+      background: rgba(199, 229, 47, 0.2);
       color: var(--primary);
     }
 
-    .lightbox-prev { left: 1.5rem; }
-    .lightbox-next { right: 1.5rem; }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+
+    @media (max-width: 992px) {
+      .lightbox-content-wrapper {
+        grid-template-columns: 1fr;
+        height: 90vh;
+        width: 95vw;
+      }
+      .lightbox-left-pane {
+        height: 50% !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .lightbox-right-pane {
+        height: 50% !important;
+        padding: 1.2rem;
+      }
+      .lightbox-nav {
+        width: 36px;
+        height: 36px;
+        font-size: 1.1rem;
+      }
+    }
+
+    /* Estilos de Dashboard */
+    #content-dashboard table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    
+    #content-dashboard th, #content-dashboard td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    #content-dashboard tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    /* Estilos de Categorias y Filtros de Imagenes */
+    .images-toolbar {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 1.5rem;
+    }
+    
+    .images-toolbar-top {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      align-items: center;
+    }
+    
+    .filter-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .filter-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+    }
+    
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--primary);
+    }
+    
+    .filter-btn.active {
+      background: var(--primary);
+      color: var(--bg);
+      border-color: var(--primary);
+    }
+    
+    .filter-btn.active .btn-badge {
+      background: rgba(0, 0, 0, 0.15);
+      color: #000;
+    }
+
+    .btn-badge {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 0.1rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.7rem;
+    }
+
+    /* ═════════════════════════════════════════════
+       CAROUSEL & PROTAGONIST VIEW WINDOW FOR IMAGES
+       ═════════════════════════════════════════════ */
+    .image-viewer-container {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 1.5rem;
+      background: #0D0D10;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      margin-bottom: 2rem;
+      height: 520px;
+    }
+
+    .image-protagonist-pane {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      padding: 1.5rem;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .image-protagonist-pane .image-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-protagonist-pane img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .viewer-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 10;
+      outline: none;
+    }
+
+    .viewer-nav:hover {
+      background: var(--primary);
+      color: var(--bg);
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    .viewer-prev { left: 1.5rem; }
+    .viewer-next { right: 1.5rem; }
+
+    .image-review-panel {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      min-height: 0;
+      overflow-y: auto;
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Bottom Thumbnail Carousel */
+    .carousel-section {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 16px;
+      padding: 1rem;
+    }
+
+    .carousel-track-container {
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .carousel-track {
+      display: flex;
+      gap: 0.8rem;
+      transition: transform 0.3s ease-in-out;
+      width: max-content;
+      will-change: transform;
+      padding: 0.2rem 0;
+    }
+
+    .carousel-thumb {
+      width: 130px;
+      flex-shrink: 0;
+      background: #181820;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .carousel-thumb:hover {
+      transform: translateY(-2px);
+      border-color: rgba(199, 229, 47, 0.5);
+    }
+
+    .carousel-thumb.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(199, 229, 47, 0.3);
+      background: rgba(199, 229, 47, 0.04);
+    }
+
+    .carousel-thumb img {
+      width: 100%;
+      height: 72px;
+      object-fit: cover;
+      display: block;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .carousel-thumb.active img, .carousel-thumb:hover img {
+      opacity: 1;
+    }
+
+    .carousel-thumb-info {
+      padding: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .carousel-control {
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
+      outline: none;
+    }
+
+    .carousel-control:hover {
+      background: var(--primary);
+      color: var(--bg);
+      border-color: var(--primary);
+    }
+
+    .filter-select {
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-family: inherit;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+    
+    .filter-select:focus {
+      border-color: var(--primary);
+    }
+
+    .date-input {
+      background: #141418;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .date-input:focus {
+      border-color: var(--primary);
+    }
+
+    @media (max-width: 992px) {
+      .image-viewer-container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      .image-protagonist-pane {
+        height: 350px;
+      }
+      .image-review-panel {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+      }
+    }
+
+    /* ══════════════════════
+       ACCORDION STYLING
+       ══════════════════════ */
+    .accordion-wrapper {
+      background: var(--card-bg);
+      border: 1px solid rgba(199, 229, 47, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      flex-shrink: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .accordion-wrapper:hover {
+      border-color: rgba(199, 229, 47, 0.3);
+    }
+    
+    .accordion-header {
+      padding: 0.85rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.01);
+      transition: background 0.2s ease;
+    }
+    
+    .accordion-header:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .accordion-header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+    
+    .accordion-header-left svg {
+      color: var(--primary);
+    }
+    
+    .accordion-active-indicator {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: none;
+      letter-spacing: normal;
+      background: rgba(199, 229, 47, 0.08);
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      border: 1px solid rgba(199, 229, 47, 0.15);
+      margin-left: 0.5rem;
+    }
+    
+    .accordion-header-right {
+      display: flex;
+      align-items: center;
+      color: var(--text-muted);
+    }
+    
+    .accordion-chevron {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .accordion-wrapper.expanded .accordion-chevron {
+      transform: rotate(180deg);
+    }
+    
+    .accordion-body {
+      max-height: 500px;
+      opacity: 1;
+      padding: 1.2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                  opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                  padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    
+    .accordion-wrapper.collapsed .accordion-body {
+      max-height: 0 !important;
+      opacity: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      border-top-color: transparent !important;
+    }
+
+    .svg-inline-badge {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .svg-electrical-filter {
+      display: inline-block;
+      vertical-align: middle;
+    }
+    
+    .svg-electrical-filter path:first-child {
+      stroke: var(--text-muted);
+    }
+    
+    .svg-electrical-filter path:last-child {
+      stroke: var(--primary);
+      fill: rgba(199, 229, 47, 0.1);
+      filter: drop-shadow(0 0 3px rgba(199, 229, 47, 0.4));
+    }
+
+    /* ═══ Connection Status Indicator ═══ */
+    .conn-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      transition: all 0.4s ease;
+      cursor: default;
+      user-select: none;
+    }
+    .conn-status.online {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #10B981;
+    }
+    .conn-status.offline {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #EF4444;
+    }
+    .conn-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .conn-status.online .conn-dot {
+      background: #10B981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+    .conn-status.offline .conn-dot {
+      background: #EF4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+      animation: pulse-dot 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.5); }
+    }
+
+    /* ═══ Toast Notifications ═══ */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.8rem 1.2rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateX(120%);
+      opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+      max-width: 380px;
+    }
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    .toast.toast-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34D399;
+    }
+    .toast.toast-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #F87171;
+    }
+    .toast.toast-info {
+      background: rgba(96, 165, 250, 0.15);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      color: #93C5FD;
+    }
+    .toast-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .toast-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 1.1rem;
+      cursor: pointer;
+      opacity: 0.6;
+      padding: 0 4px;
+    }
+    .toast-close:hover { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .toast-container {
+        top: auto;
+        bottom: 20px;
+        right: 10px;
+        left: 10px;
+      }
+      .toast { max-width: 100%; font-size: 0.8rem; }
+      .conn-status span:not(.conn-dot) { display: none; }
+      .conn-status { padding: 0.3rem 0.45rem; }
+    }
   </style>
 </head>
 <body>
@@ -675,6 +1299,10 @@
     <div class="brand">
       <div class="brand-title">Gestiones <span>Eléctricas</span></div>
       <div class="badge">Revisor de Contenido</div>
+      <div class="conn-status online" id="connStatus" title="Estado de conexión con la API">
+        <span class="conn-dot"></span>
+        <span>En línea</span>
+      </div>
     </div>
     
     <div class="search-box">
@@ -697,6 +1325,9 @@
     </div>
   </header>
 
+  <!-- Toast Notifications Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <!-- Tabs de Navegación -->
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-videos" onclick="switchTab('videos')">
@@ -706,7 +1337,11 @@
     <button class="nav-tab" id="tab-imagenes" onclick="switchTab('imagenes')">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"></polyline></svg>
       Imágenes
-      <span class="badge" style="font-size:0.7rem; padding:0.1rem 0.5rem;">39</span>
+      <span class="badge" id="img-tab-badge" style="font-size:0.7rem; padding:0.1rem 0.5rem;">39</span>
+    </button>
+    <button class="nav-tab" id="tab-dashboard" onclick="switchTab('dashboard')">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+      Dashboard
     </button>
   </div>
 
@@ -726,9 +1361,10 @@
           <div class="video-header-row">
             <div>
               <h1 class="video-title" id="playerTitle">Selecciona un video</h1>
-              <div class="video-meta">
-                <span>Archivo: <b id="playerFilename">-</b></span>
+              <div class="video-meta" style="display: flex; flex-wrap: wrap; gap: 1.2rem; align-items: center;">
+                <span>Archivo: <b id="playerFilename" style="color: var(--primary);">-</b></span>
                 <span>Resolución: <b>Original (1080p sin pérdidas)</b></span>
+                <span>Fecha/Hora de Revisión: <b id="playerDate" style="color: var(--text);">-</b></span>
               </div>
             </div>
           </div>
@@ -741,11 +1377,15 @@
 
           <div class="control-row">
             <div class="approval-buttons">
-              <button class="btn btn-approve" id="btnApprove" onclick="setApproval(true)">
+              <button class="btn btn-approve" id="btnApprove" onclick="setApproval(1)">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 12l-3-3 1.41-1.41L10 11.17l5.59-5.59L17 7l-7 7z"/></svg>
                 Aprobar Video
               </button>
-              <button class="btn btn-reject" id="btnReject" onclick="setApproval(false)">
+              <button class="btn btn-adjust" id="btnAdjust" onclick="setApproval(2)">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                Solicitar Ajustes
+              </button>
+              <button class="btn btn-reject" id="btnReject" onclick="setApproval(0)">
                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-6.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
                 Rechazar Video
               </button>
@@ -761,9 +1401,85 @@
 
       <!-- Right Playlist Section -->
       <section class="list-section">
-        <div class="list-header">
-          <span>Videos en Carpeta</span>
-          <span class="list-count" id="videoCount">0 videos</span>
+        <div class="list-header" style="display: flex; flex-direction: column; align-items: stretch; gap: 0.8rem; margin-bottom: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span style="font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+              Videos en Carpeta
+            </span>
+            <span class="list-count" id="videoCount" style="font-weight: 700;">0 videos</span>
+          </div>
+        </div>
+
+        <!-- ACORDEÓN DE FILTROS DE VIDEOS -->
+        <div class="accordion-wrapper expanded" id="accordion-video-filters">
+          <div class="accordion-header" onclick="toggleAccordion('accordion-video-filters')">
+            <div class="accordion-header-left">
+              <svg class="svg-electrical-filter" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 2 3 H 22 L 14 12 V 19 L 10 21 V 12 Z" opacity="0.4"></path>
+                <path d="M 13 5 L 8 13 H 13 L 11 19 L 17 11 H 11 Z" stroke="var(--primary)" fill="rgba(199, 229, 47, 0.2)" stroke-width="1.5"></path>
+              </svg>
+              <span>Filtros y Búsqueda</span>
+              <span class="accordion-active-indicator" id="video-active-filters-badge" style="display: none;">Activos</span>
+            </div>
+            <div class="accordion-header-right">
+              <svg class="accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          
+          <div class="accordion-body">
+            <!-- Filtro de Decisiones en Videos -->
+            <div style="display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem;">
+              <span class="filter-label" style="display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Filtrar por Decisiones
+              </span>
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <button class="filter-btn active" id="btn-video-all" onclick="filterVideoStatus('all')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;">
+                  <span>Todos</span>
+                  <span class="btn-badge" id="badge-video-all" style="font-size: 0.65rem; padding: 0.05rem 0.3rem;">0</span>
+                </button>
+                <button class="filter-btn" id="btn-video-approved" onclick="filterVideoStatus('approved')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-left: 2px solid var(--success); display: flex; align-items: center; gap: 0.3rem;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span>Aprobados</span>
+                  <span class="btn-badge" id="badge-video-approved" style="font-size: 0.65rem; padding: 0.05rem 0.3rem;">0</span>
+                </button>
+                <button class="filter-btn" id="btn-video-adjusting" onclick="filterVideoStatus('adjusting')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-left: 2px solid #FBBC05; display: flex; align-items: center; gap: 0.3rem;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: #FBBC05;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  <span>Por Ajustar</span>
+                  <span class="btn-badge" id="badge-video-adjusting" style="font-size: 0.65rem; padding: 0.05rem 0.3rem;">0</span>
+                </button>
+                <button class="filter-btn" id="btn-video-rejected" onclick="filterVideoStatus('rejected')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-left: 2px solid var(--danger); display: flex; align-items: center; gap: 0.3rem;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                  <span>Rechazados</span>
+                  <span class="btn-badge" id="badge-video-rejected" style="font-size: 0.65rem; padding: 0.05rem 0.3rem;">0</span>
+                </button>
+                <button class="filter-btn" id="btn-video-pending" onclick="filterVideoStatus('pending')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; border-left: 2px solid var(--text-muted); display: flex; align-items: center; gap: 0.3rem;">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Pendientes</span>
+                  <span class="btn-badge" id="badge-video-pending" style="font-size: 0.65rem; padding: 0.05rem 0.3rem;">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filtro de Fecha en Videos -->
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <span class="filter-label" style="display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Filtrar por Fecha
+              </span>
+              <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; width: 100%;">
+                <select id="videoDateFilter" class="filter-select" onchange="onVideoDateFilterChange()" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; border-radius: 6px; flex-grow: 1;">
+                  <option value="all">Cualquier fecha</option>
+                  <option value="today">Hoy</option>
+                  <option value="yesterday">Ayer</option>
+                  <option value="older">Fechas pasadas</option>
+                  <option value="custom">Fecha específica...</option>
+                </select>
+                <input type="date" id="videoCustomDate" class="date-input" onchange="onVideoCustomDateChange()" style="display: none; padding: 0.3rem 0.5rem; font-size: 0.75rem; border-radius: 6px; flex-grow: 1;">
+              </div>
+            </div>
+          </div>
         </div>
         
         <div class="video-grid" id="videoGrid">
@@ -776,29 +1492,231 @@
   <!-- TAB: Imágenes -->
   <div class="tab-content" id="content-imagenes">
     <div class="images-main">
-      <div class="images-toolbar">
-        <h2>Imágenes <span>Entregables Finales</span></h2>
-        <span class="badge">15 imágenes · PNG 4K</span>
+      <div class="images-toolbar" style="margin-bottom: 1rem; border-bottom: none; padding-bottom: 0;">
+        <div class="images-toolbar-top" style="margin-bottom: 1rem;">
+          <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            Imágenes <span>Entregables Finales</span>
+          </h2>
+          <span class="badge" id="images-top-badge">39 imágenes · PNG 4K</span>
+        </div>
       </div>
-      <div class="img-grid" id="imgGrid">
-        <!-- Renderizado por JS -->
+
+      <!-- ACORDEÓN DE FILTROS DE IMÁGENES -->
+      <div class="accordion-wrapper expanded" id="accordion-image-filters" style="margin-bottom: 1.5rem;">
+        <div class="accordion-header" onclick="toggleAccordion('accordion-image-filters')">
+          <div class="accordion-header-left">
+            <svg class="svg-electrical-filter" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 2 3 H 22 L 14 12 V 19 L 10 21 V 12 Z" opacity="0.4"></path>
+              <path d="M 13 5 L 8 13 H 13 L 11 19 L 17 11 H 11 Z" stroke="var(--primary)" fill="rgba(199, 229, 47, 0.2)" stroke-width="1.5"></path>
+            </svg>
+            <span>Filtros y Categorías de Imágenes</span>
+            <span class="accordion-active-indicator" id="image-active-filters-badge" style="display: none;">Activos</span>
+          </div>
+          <div class="accordion-header-right">
+            <svg class="accordion-chevron" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+        </div>
+
+        <div class="accordion-body">
+          <div class="filter-container" style="margin-top: 0; padding: 0.5rem 0;">
+            <!-- Categorías (Carpeta) -->
+            <div class="filter-group">
+              <span class="filter-label" style="display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                Carpetas / Categorías
+              </span>
+              <div class="filter-buttons">
+                <button class="filter-btn active" id="btn-cat-all" onclick="filterCategory('all')">
+                  <svg class="svg-inline-badge" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                  <span>Todas las Imágenes</span>
+                  <span class="btn-badge" id="badge-cat-all">39</span>
+                </button>
+                <button class="filter-btn" id="btn-cat-cig" onclick="filterCategory('cig')">
+                  <svg class="svg-inline-badge" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                  <span>Catálogo Corporativo (CIG)</span>
+                  <span class="btn-badge" id="badge-cat-cig">24</span>
+                </button>
+                <button class="filter-btn" id="btn-cat-img" onclick="filterCategory('img')">
+                  <svg class="svg-inline-badge" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                  <span>Campaña Predictivo (IMG)</span>
+                  <span class="btn-badge" id="badge-cat-img">15</span>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Filtro de Decisiones (Aprobado, Rechazado, Ajustes) -->
+            <div class="filter-group">
+              <span class="filter-label" style="display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                Filtrar por Decisiones
+              </span>
+              <div class="filter-buttons">
+                <button class="filter-btn active" id="btn-status-all" onclick="filterStatus('all')">
+                  <span>Todas</span>
+                  <span class="btn-badge" id="badge-status-all">39</span>
+                </button>
+                <button class="filter-btn" id="btn-status-approved" onclick="filterStatus('approved')" style="border-left: 3px solid var(--success); display: flex; align-items: center; gap: 0.3rem;">
+                  <svg class="svg-inline-badge" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  <span>Aprobadas</span>
+                  <span class="btn-badge" id="badge-status-approved">0</span>
+                </button>
+                <button class="filter-btn" id="btn-status-adjusting" onclick="filterStatus('adjusting')" style="border-left: 3px solid #FBBC05; display: flex; align-items: center; gap: 0.3rem;">
+                  <svg class="svg-inline-badge" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: #FBBC05;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                  <span>Por Ajustar</span>
+                  <span class="btn-badge" id="badge-status-adjusting">0</span>
+                </button>
+                <button class="filter-btn" id="btn-status-rejected" onclick="filterStatus('rejected')" style="border-left: 3px solid var(--danger); display: flex; align-items: center; gap: 0.3rem;">
+                  <svg class="svg-inline-badge" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--danger);"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                  <span>Rechazadas</span>
+                  <span class="btn-badge" id="badge-status-rejected">0</span>
+                </button>
+                <button class="filter-btn" id="btn-status-pending" onclick="filterStatus('pending')" style="border-left: 3px solid var(--text-muted); display: flex; align-items: center; gap: 0.3rem;">
+                  <svg class="svg-inline-badge" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <span>Pendientes</span>
+                  <span class="btn-badge" id="badge-status-pending">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filtro de Fechas -->
+            <div class="filter-group">
+              <span class="filter-label" style="display: flex; align-items: center; gap: 0.3rem;">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Filtrar por Fecha
+              </span>
+              <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <select id="imageDateFilter" class="filter-select" onchange="onImageDateFilterChange()" style="padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 20px; height: 38px;">
+                  <option value="all">Cualquier fecha</option>
+                  <option value="today">Hoy</option>
+                  <option value="yesterday">Ayer</option>
+                  <option value="older">Fechas pasadas</option>
+                  <option value="custom">Fecha específica...</option>
+                </select>
+                <input type="date" id="imageCustomDate" class="date-input" onchange="onImageCustomDateChange()" style="display: none; padding: 0.4rem 0.8rem; font-size: 0.8rem; border-radius: 20px; height: 38px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <!-- Cinema layout for images -->
+      <div class="image-viewer-container">
+        <!-- Columna Izquierda: Imagen Protagonista -->
+        <div class="image-protagonist-pane">
+          <button class="viewer-nav viewer-prev" onclick="navigateImage(-1)" title="Anterior (Flecha Izquierda)">&#8249;</button>
+          <div class="image-wrapper">
+            <img id="featuredImg" src="" alt="Protagonista">
+          </div>
+          <button class="viewer-nav viewer-next" onclick="navigateImage(1)" title="Siguiente (Flecha Derecha)">&#8250;</button>
+        </div>
+
+        <!-- Columna Derecha: Panel de Aprobación de la imagen destacada -->
+        <div class="image-review-panel">
+          <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+            <div>
+              <h3 id="featuredImgName" style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin-bottom: 0.4rem;">Seleccione una imagen</h3>
+              <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.3rem;">
+                <span>Archivo: <b id="featuredImgFilename" style="color: var(--primary);">-</b></span>
+                <span>Resolución: <b>Original (PNG 4K)</b></span>
+                <span>Fecha/Hora de Revisión: <b id="featuredImgDate" style="color: var(--text);">-</b></span>
+              </div>
+            </div>
+
+            <div class="comment-section" style="width: 100%;">
+              <label for="featuredImgComment">Comentarios y correcciones para esta imagen:</label>
+              <textarea id="featuredImgComment" placeholder="Escribe aquí tus observaciones técnicas o correcciones sobre el diseño..." oninput="saveFeaturedImageComment()"></textarea>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.2rem; margin-top: 1.2rem; width: 100%;">
+            <div style="display: flex; gap: 0.5rem; width: 100%;">
+              <button class="btn btn-approve" id="btnFeaturedApprove" onclick="setFeaturedImageApproval(1)" style="flex: 1; justify-content: center; font-size: 0.8rem; padding: 0.6rem 0.5rem;">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 12l-3-3 1.41-1.41L10 11.17l5.59-5.59L17 7l-7 7z"/></svg>
+                Aprobar
+              </button>
+              <button class="btn btn-adjust" id="btnFeaturedAdjust" onclick="setFeaturedImageApproval(2)" style="flex: 1; justify-content: center; font-size: 0.8rem; padding: 0.6rem 0.5rem;">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                Ajustar
+              </button>
+              <button class="btn btn-reject" id="btnFeaturedReject" onclick="setFeaturedImageApproval(0)" style="flex: 1; justify-content: center; font-size: 0.8rem; padding: 0.6rem 0.5rem;">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-6.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>
+                Rechazar
+              </button>
+            </div>
+
+            <a class="btn btn-secondary" id="featuredImgDownload" href="" download style="justify-content: center; width: 100%; font-size: 0.8rem; padding: 0.6rem 1rem;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Descargar imagen original
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carrusel Inferior de Miniaturas -->
+      <div class="carousel-section">
+        <button class="carousel-control carousel-prev" onclick="scrollCarousel(-1)">&#8249;</button>
+        <div class="carousel-track-container">
+          <div class="carousel-track" id="carouselTrack">
+            <!-- Renderizado por JS -->
+          </div>
+        </div>
+        <button class="carousel-control carousel-next" onclick="scrollCarousel(1)">&#8250;</button>
       </div>
     </div>
   </div>
 
-  <!-- Lightbox -->
-  <div class="lightbox" id="lightbox" onclick="closeLightboxOnBg(event)">
-    <button class="lightbox-close" onclick="closeLightbox()">×</button>
-    <button class="lightbox-nav lightbox-prev" onclick="lightboxNav(-1)">&#8249;</button>
-    <img id="lightboxImg" src="" alt="">
-    <div class="lightbox-controls">
-      <span class="lightbox-name" id="lightboxName"></span>
-      <a class="img-download-btn" id="lightboxDownload" href="" download>
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        Descargar imagen
-      </a>
+  <!-- TAB: Dashboard -->
+  <div class="tab-content" id="content-dashboard">
+    <div style="max-width: 1600px; margin: 0 auto; padding: 2rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <!-- Tarjetas de métricas -->
+        <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center;">
+          <div style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem;">Total Contenido</div>
+          <div id="dash-total" style="font-size: 2.2rem; font-weight: 800; color: var(--text);">0</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+          <div style="font-size: 0.85rem; text-transform: uppercase; color: var(--success); font-weight: 700; margin-bottom: 0.5rem;">🟢 Aprobados</div>
+          <div id="dash-aprobados" style="font-size: 2.2rem; font-weight: 800; color: var(--success);">0</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid rgba(251, 188, 5, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+          <div style="font-size: 0.85rem; text-transform: uppercase; color: #FBBC05; font-weight: 700; margin-bottom: 0.5rem;">⚠️ Por Ajustar</div>
+          <div id="dash-ajustes" style="font-size: 2.2rem; font-weight: 800; color: #FBBC05;">0</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 1.5rem; text-align: center;">
+          <div style="font-size: 0.85rem; text-transform: uppercase; color: var(--danger); font-weight: 700; margin-bottom: 0.5rem;">🔴 Rechazados</div>
+          <div id="dash-rechazados" style="font-size: 2.2rem; font-weight: 800; color: var(--danger);">0</div>
+        </div>
+        <div style="background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1.5rem; text-align: center;">
+          <div style="font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem;">⏳ Pendientes</div>
+          <div id="dash-pendientes" style="font-size: 2.2rem; font-weight: 800; color: var(--text-muted);">0</div>
+        </div>
+      </div>
+      
+      <!-- Tabla de Detalles -->
+      <div style="background: var(--card-bg); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem; overflow-x: auto;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center;">
+          Detalle de Decisiones del Cliente
+          <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">Actualizado en tiempo real</span>
+        </h3>
+        
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">
+              <th style="padding: 12px; font-weight: 700; width: 30%;">Nombre del Recurso</th>
+              <th style="padding: 12px; font-weight: 700; width: 10%;">Tipo</th>
+              <th style="padding: 12px; font-weight: 700; width: 15%; text-align: center;">Estado</th>
+              <th style="padding: 12px; font-weight: 700; width: 20%; text-align: center;">Fecha/Hora</th>
+              <th style="padding: 12px; font-weight: 700; width: 25%;">Comentarios / Ajustes</th>
+            </tr>
+          </thead>
+          <tbody id="dash-table-body">
+            <!-- Renderizado dinámicamente en tiempo real -->
+          </tbody>
+        </table>
+      </div>
     </div>
-    <button class="lightbox-nav lightbox-next" onclick="lightboxNav(1)">&#8250;</button>
   </div>
 
   <script>
@@ -813,10 +1731,76 @@
     }
 
     // ═══════════════════════════
+    // ACCORDIONS
+    // ═══════════════════════════
+    function toggleAccordion(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.classList.contains('expanded')) {
+        el.classList.remove('expanded');
+        el.classList.add('collapsed');
+      } else {
+        el.classList.remove('collapsed');
+        el.classList.add('expanded');
+      }
+    }
+
+    function updateAccordionBadges() {
+      // Badge de filtros activos para videos
+      const videoBadge = document.getElementById('video-active-filters-badge');
+      if (videoBadge) {
+        let activeFiltersText = [];
+        if (activeVideoStatus !== 'all') {
+          const statusNames = { 'approved': 'Aprobados', 'adjusting': 'Ajustes', 'rejected': 'Rechazados', 'pending': 'Pendientes' };
+          activeFiltersText.push(statusNames[activeVideoStatus] || activeVideoStatus);
+        }
+        if (activeVideoDateType !== 'all') {
+          activeFiltersText.push('Fecha');
+        }
+        if (activeFiltersText.length > 0) {
+          videoBadge.style.display = 'inline-block';
+          videoBadge.textContent = activeFiltersText.join(', ');
+        } else {
+          videoBadge.style.display = 'none';
+        }
+      }
+
+      // Badge de filtros activos para imágenes
+      const imageBadge = document.getElementById('image-active-filters-badge');
+      if (imageBadge) {
+        let activeFiltersText = [];
+        if (activeCategory !== 'all') {
+          activeFiltersText.push(activeCategory.toUpperCase());
+        }
+        if (activeStatus !== 'all') {
+          const statusNames = { 'approved': 'Aprobadas', 'adjusting': 'Ajustes', 'rejected': 'Rechazadas', 'pending': 'Pendientes' };
+          activeFiltersText.push(statusNames[activeStatus] || activeStatus);
+        }
+        if (activeImageDateType !== 'all') {
+          activeFiltersText.push('Fecha');
+        }
+        if (activeFiltersText.length > 0) {
+          imageBadge.style.display = 'inline-block';
+          imageBadge.textContent = activeFiltersText.join(', ');
+        } else {
+          imageBadge.style.display = 'none';
+        }
+      }
+    }
+
+    // ═══════════════════════════
+    // MULTITENANT CONFIGURATION
+    // ═══════════════════════════
+    const urlParams = new URLSearchParams(window.location.search);
+    const tenant = urlParams.get('tenant') || 'gestiones-electricas';
+    console.log(`[Revisor] Iniciando en modo Multitenant. Cliente: "${tenant}"`);
+
+    // ═══════════════════════════
     // VIDEOS
     // ═══════════════════════════
-    // Directorio de videos (vacío porque index.html ya está en 'publicidad ')
-    const BASE_VIDEO = "";
+    // Directorio de videos (vacío porque index.html ya está en 'publicidad')
+    // Se detecta dinámicamente la ruta base en Vercel cuando la ruta del navegador no termina en barra diagonal
+    const BASE_VIDEO = (window.location.protocol !== 'file:' && window.location.pathname === '/publicidad') ? 'publicidad/' : '';
 
     const videoFiles = [
       { filename: "01.mp4", name: "Anuncio 01 — Diagnóstico Térmico" },
@@ -845,27 +1829,154 @@
       { filename: "pro 11.mp4", name: "Anuncio 11 (Pro) — Dron Térmico Pro" },
       { filename: "pro 13.mp4", name: "Anuncio 13 (Pro) — Arco Eléctrico ETAP" },
       { filename: "pro 4.mp4", name: "Anuncio 04 (Pro) — Reportes Claude Pro" },
-      { filename: "pro 5.mp4", name: "Anuncio 05 (Pro) — Aislamiento Megger Pro" }
+      { filename: "pro 5.mp4", name: "Anuncio 05 (Pro) — Aislamiento Megger Pro" },
+      // Nuevos videos agregados para revisión
+      { filename: "final 1.mp4", name: "Anuncio Final 01" },
+      { filename: "final 2.mp4", name: "Anuncio Final 02" },
+      { filename: "final 03.mp4", name: "Anuncio Final 03" },
+      { filename: "final 4.mp4", name: "Anuncio Final 04" },
+      { filename: "final 05.mp4", name: "Anuncio Final 05" },
+      { filename: "final 6.mp4", name: "Anuncio Final 06" },
+      { filename: "final 7.mp4", name: "Anuncio Final 07" },
+      { filename: "final 8.mp4", name: "Anuncio Final 08" },
+      { filename: "final 9.mp4", name: "Anuncio Final 09" },
+      { filename: "final 10.mp4", name: "Anuncio Final 10" },
+      { filename: "final 11.mp4", name: "Anuncio Final 11" },
+      { filename: "final 12.mp4", name: "Anuncio Final 12" },
+      { filename: "final 13.mp4", name: "Anuncio Final 13" },
+      { filename: "final 14.mp4", name: "Anuncio Final 14" },
+      { filename: "final 15.mp4", name: "Anuncio Final 15" },
+      { filename: "final 16.mp4", name: "Anuncio Final 16" },
+      { filename: "final 17.mp4", name: "Anuncio Final 17" },
+      { filename: "final 18.mp4", name: "Anuncio Final 18" }
     ];
 
     let currentVideo = null;
     let reviews = {};
-    const API_BASE = `http://${window.location.hostname}:3001/api`;
+    let API_BASE;
+    const apiParam = urlParams.get('api');
+    if (apiParam) {
+      API_BASE = apiParam.endsWith('/') ? `${apiParam}api` : `${apiParam}/api`;
+    } else {
+      API_BASE = `http://${window.location.hostname}:3001/api`;
+    }
+    let activeVideoStatus = 'all'; // 'all', 'approved', 'adjusting', 'rejected', 'pending'
+    let activeVideoDateType = 'all';
+    let customVideoDateValue = '';
+
+    // ═══ Connection State & Toast System ═══
+    let isConnected = false;
+    let wasConnectedBefore = false;
+    let consecutiveFailures = 0;
+
+    function showToast(message, type = 'info', duration = 5000) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      const icons = { success: '✅', error: '🔴', info: 'ℹ️' };
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span>${message}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.remove('show');setTimeout(()=>this.parentElement.remove(),400)">&times;</button>
+      `;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+      if (duration > 0) {
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 400);
+        }, duration);
+      }
+    }
+
+    function updateConnectionUI(online) {
+      const el = document.getElementById('connStatus');
+      if (!el) return;
+      if (online) {
+        el.className = 'conn-status online';
+        el.querySelector('span:not(.conn-dot)').textContent = 'En línea';
+        el.title = 'Conectado a la API — sincronización activa';
+      } else {
+        el.className = 'conn-status offline';
+        el.querySelector('span:not(.conn-dot)').textContent = 'Sin conexión';
+        el.title = 'No se puede conectar a la API — modo offline (localStorage)';
+      }
+    }
 
     async function fetchReviewsFromAPI() {
+      const localReviews = JSON.parse(localStorage.getItem('ge_reviews_' + tenant) || '{}');
       try {
-        const res = await fetch(`${API_BASE}/reviews`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch(`${API_BASE}/reviews?tenant=${encodeURIComponent(tenant)}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (res.ok) {
           const data = await res.json();
-          // Convert array back to object format: { "01.mp4": { approved: true, comment: "" } }
+          const serverReviews = {};
           data.reviews.forEach(r => {
-            reviews[r.filename] = { approved: r.approved, comment: r.comment };
+            serverReviews[r.filename] = { approved: r.approved, comment: r.comment, updated_at: r.updated_at };
           });
+          
+          // Copy server reviews to our main in-memory reviews object
+          Object.assign(reviews, serverReviews);
+          
+          // Find reviews present in localStorage but not on the server database, to upload them
+          const filesToUpload = [];
+          for (const filename in localReviews) {
+            const hasStatus = localReviews[filename].approved !== null && localReviews[filename].approved !== undefined;
+            const hasComment = !!localReviews[filename].comment;
+            if (!serverReviews[filename] && (hasStatus || hasComment)) {
+              filesToUpload.push({
+                filename,
+                approved: localReviews[filename].approved,
+                comment: localReviews[filename].comment || ''
+              });
+              reviews[filename] = localReviews[filename];
+            }
+          }
+          
+          // Sequentially upload unsynced reviews to backend
+          for (const item of filesToUpload) {
+            try {
+              await fetch(`${API_BASE}/reviews/${encodeURIComponent(item.filename)}?tenant=${encodeURIComponent(tenant)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  approved: item.approved,
+                  comment: item.comment
+                })
+              });
+              console.log(`[Sync] Sincronizado local -> API para: ${item.filename}`);
+            } catch (err) {
+              console.error(`[Sync] Fallo al sincronizar ${item.filename}`, err);
+            }
+          }
+          
+          // Update localStorage with the consolidated reviews
+          localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
+
+          // Connection recovered
+          if (!isConnected && wasConnectedBefore) {
+            showToast('Conexión restaurada — sincronizando cambios', 'success', 4000);
+          } else if (!wasConnectedBefore) {
+            wasConnectedBefore = true;
+          }
+          isConnected = true;
+          consecutiveFailures = 0;
+          updateConnectionUI(true);
         }
       } catch (e) {
-        console.error("Error conectando con la API. Asegúrate de que el servidor en puerto 3001 esté corriendo.", e);
-        // Fallback
-        reviews = JSON.parse(localStorage.getItem('ge_reviews') || '{}');
+        console.error("Error conectando con la API. Usando localStorage como fallback.", e);
+        reviews = localReviews;
+        consecutiveFailures++;
+
+        // Only show toast on first failure or every 10 failures (avoid spam)
+        if (isConnected || consecutiveFailures === 1) {
+          showToast('Sin conexión a la API — los cambios se guardan localmente', 'error', 6000);
+        }
+        isConnected = false;
+        updateConnectionUI(false);
       }
     }
 
@@ -878,12 +1989,66 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const btnApprove = document.getElementById('btnApprove');
     const btnReject = document.getElementById('btnReject');
+    const btnAdjust = document.getElementById('btnAdjust');
+
+    function filterVideoStatus(status) {
+      activeVideoStatus = status;
+      document.querySelectorAll('[id^="btn-video-"]').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('btn-video-' + status);
+      if (activeBtn) activeBtn.classList.add('active');
+      loadPlaylist();
+    }
+
+    function updateVideoFilterBadges() {
+      let approvedCount = 0;
+      let adjustingCount = 0;
+      let rejectedCount = 0;
+      let pendingCount = 0;
+
+      videoFiles.forEach(video => {
+        const review = reviews[video.filename] || {};
+        if (!matchesDateFilter(review.updated_at, activeVideoDateType, customVideoDateValue)) return;
+        const approved = review.approved;
+        if (approved === 1 || approved === true) approvedCount++;
+        else if (approved === 2) adjustingCount++;
+        else if (approved === 0 || approved === false) rejectedCount++;
+        else pendingCount++;
+      });
+
+      const badgeAll = document.getElementById('badge-video-all');
+      const badgeApproved = document.getElementById('badge-video-approved');
+      const badgeAdjusting = document.getElementById('badge-video-adjusting');
+      const badgeRejected = document.getElementById('badge-video-rejected');
+      const badgePending = document.getElementById('badge-video-pending');
+
+      if (badgeAll) badgeAll.textContent = videoFiles.length;
+      if (badgeApproved) badgeApproved.textContent = approvedCount;
+      if (badgeAdjusting) badgeAdjusting.textContent = adjustingCount;
+      if (badgeRejected) badgeRejected.textContent = rejectedCount;
+      if (badgePending) badgePending.textContent = pendingCount;
+    }
 
     function loadPlaylist() {
       videoGrid.innerHTML = '';
-      videoCount.textContent = `${videoFiles.length} videos`;
 
-      videoFiles.forEach((video, index) => {
+      const filteredVideos = videoFiles.filter(video => {
+        const review = reviews[video.filename] || {};
+        const approved = review.approved;
+
+        if (activeVideoStatus === 'approved' && approved !== 1 && approved !== true) return false;
+        if (activeVideoStatus === 'adjusting' && approved !== 2) return false;
+        if (activeVideoStatus === 'rejected' && approved !== 0 && approved !== false) return false;
+        if (activeVideoStatus === 'pending' && approved !== null && approved !== undefined) return false;
+
+        if (!matchesDateFilter(review.updated_at, activeVideoDateType, customVideoDateValue)) return false;
+
+        return true;
+      });
+
+      videoCount.textContent = `${filteredVideos.length} de ${videoFiles.length} videos`;
+      updateVideoFilterBadges();
+
+      filteredVideos.forEach((video, index) => {
         const card = document.createElement('div');
         card.id = `card-${video.filename.replace(/[\s\/]+/g, '_')}`;
         card.className = 'video-card';
@@ -893,8 +2058,19 @@
 
         const status = reviews[video.filename];
         let statusHtml = '';
-        if (status && status.approved !== undefined) {
-          statusHtml = `<span class="status-dot ${status.approved ? 'approved' : 'rejected'}"></span>`;
+        let dateHtml = '';
+        if (status && status.approved !== undefined && status.approved !== null) {
+          let dotClass = 'rejected';
+          if (status.approved === 1 || status.approved === true) dotClass = 'approved';
+          else if (status.approved === 2) dotClass = 'adjusting';
+          statusHtml = `<span class="status-dot ${dotClass}"></span>`;
+
+          if (status.updated_at) {
+            dateHtml = `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; display: flex; align-items: center; gap: 0.3rem;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>${status.updated_at}</span>
+            </div>`;
+          }
         }
 
         card.innerHTML = `
@@ -903,24 +2079,42 @@
               <source src="${BASE_VIDEO}${encodeURIComponent(video.filename)}" type="video/mp4">
             </video>
           </div>
-          <div class="card-details">
+          <div class="card-details" style="display: flex; flex-direction: column; gap: 0.2rem;">
             <h3 class="card-title">${video.name}</h3>
-            <div class="card-meta">
+            <div class="card-meta" style="display: flex; justify-content: space-between; align-items: center;">
               <span>MP4</span>
               <span>${video.filename.split('/').pop()} ${statusHtml}</span>
             </div>
+            ${dateHtml}
           </div>
         `;
         videoGrid.appendChild(card);
       });
 
-      if (videoFiles.length > 0) selectVideo(videoFiles[0], videoGrid.children[0]);
+      // Maintain active state in playlist if currentVideo is in filtered playlist
+      const activeCard = currentVideo ? document.getElementById(`card-${currentVideo.filename.replace(/[\s\/]+/g, '_')}`) : null;
+      if (activeCard) {
+        activeCard.classList.add('active');
+      } else if (filteredVideos.length > 0) {
+        selectVideo(filteredVideos[0], videoGrid.children[0]);
+      } else {
+        // Clear player display if no videos match the filter
+        mainPlayer.src = "";
+        playerTitle.textContent = "Sin videos";
+        playerFilename.textContent = "—";
+        const playerDate = document.getElementById('playerDate');
+        if (playerDate) playerDate.textContent = "—";
+      }
+
+      // Apply search query filter if search input is filled
+      filterVideos();
+      updateAccordionBadges();
     }
 
     function selectVideo(video, cardElement) {
       currentVideo = video;
       document.querySelectorAll('.video-card').forEach(c => c.classList.remove('active'));
-      cardElement.classList.add('active');
+      if (cardElement) cardElement.classList.add('active');
       const videoUrl = BASE_VIDEO + encodeURIComponent(video.filename);
       mainPlayer.src = videoUrl;
       mainPlayer.load();
@@ -931,23 +2125,33 @@
       const review = reviews[video.filename] || {};
       videoComment.value = review.comment || '';
       updateButtonUI(review.approved);
+      
+      const playerDate = document.getElementById('playerDate');
+      if (playerDate) {
+        playerDate.textContent = review.updated_at || 'Sin revisar';
+      }
     }
 
     function updateButtonUI(approved) {
       btnApprove.classList.remove('selected');
       btnReject.classList.remove('selected');
-      if (approved === true) btnApprove.classList.add('selected');
-      else if (approved === false) btnReject.classList.add('selected');
+      if (btnAdjust) btnAdjust.classList.remove('selected');
+
+      if (approved === 1 || approved === true) btnApprove.classList.add('selected');
+      else if (approved === 0 || approved === false) btnReject.classList.add('selected');
+      else if (approved === 2) {
+        if (btnAdjust) btnAdjust.classList.add('selected');
+      }
     }
 
     async function saveCurrentComment() {
       if (!currentVideo) return;
       if (!reviews[currentVideo.filename]) reviews[currentVideo.filename] = {};
       reviews[currentVideo.filename].comment = videoComment.value;
-      localStorage.setItem('ge_reviews', JSON.stringify(reviews));
+      localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
 
       try {
-        await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}`, {
+        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -955,32 +2159,57 @@
             comment: reviews[currentVideo.filename].comment
           })
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.review) {
+            reviews[currentVideo.filename].updated_at = data.review.updated_at;
+          }
+        }
       } catch (e) { console.error("Error al guardar comentario en API", e); }
+      
+      updateDashboard();
+      loadPlaylist();
     }
 
     async function setApproval(isApproved) {
       if (!currentVideo) return;
       if (!reviews[currentVideo.filename]) reviews[currentVideo.filename] = {};
+      
       if (reviews[currentVideo.filename].approved === isApproved) {
         reviews[currentVideo.filename].approved = null;
       } else {
         reviews[currentVideo.filename].approved = isApproved;
       }
-      localStorage.setItem('ge_reviews', JSON.stringify(reviews));
+      
+      reviews[currentVideo.filename].updated_at = new Date().toLocaleString('es-CO');
+      
+      localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
       updateButtonUI(reviews[currentVideo.filename].approved);
+      
+      const playerDate = document.getElementById('playerDate');
+      if (playerDate) {
+        playerDate.textContent = reviews[currentVideo.filename].updated_at;
+      }
+
       const safeId = `card-${currentVideo.filename.replace(/[\s\/]+/g, '_')}`;
       const card = document.getElementById(safeId);
       if (card) {
         const metaSpan = card.querySelector('.card-meta span:last-child');
         const approved = reviews[currentVideo.filename].approved;
         const fname = currentVideo.filename.split('/').pop();
-        metaSpan.innerHTML = approved !== null && approved !== undefined
-          ? `${fname} <span class="status-dot ${approved ? 'approved' : 'rejected'}"></span>`
-          : fname;
+        
+        let statusHtml = '';
+        if (approved !== null && approved !== undefined) {
+          let dotClass = 'rejected';
+          if (approved === 1 || approved === true) dotClass = 'approved';
+          else if (approved === 2) dotClass = 'adjusting';
+          statusHtml = ` <span class="status-dot ${dotClass}"></span>`;
+        }
+        metaSpan.innerHTML = fname + statusHtml;
       }
 
       try {
-        await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}`, {
+        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(currentVideo.filename)}?tenant=${encodeURIComponent(tenant)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -988,7 +2217,21 @@
             comment: reviews[currentVideo.filename].comment || ''
           })
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.review) {
+            reviews[currentVideo.filename].updated_at = data.review.updated_at;
+            if (playerDate) {
+              playerDate.textContent = data.review.updated_at;
+            }
+            updateDashboard();
+            loadPlaylist();
+          }
+        }
       } catch (e) { console.error("Error al guardar estado en API", e); }
+      
+      updateDashboard();
+      loadPlaylist();
     }
 
     function filterVideos() {
@@ -1000,16 +2243,34 @@
     }
 
     function generateReportMarkdown() {
-      let md = `# Reporte de Revisión de Videos — Gestiones Eléctricas\n`;
+      let md = `# Reporte de Revisión [Cliente: ${tenant}] — Gestiones Eléctricas\n`;
       md += `Generado el: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}\n\n`;
-      md += `| Video / Archivo | Estado | Observación |\n| :--- | :---: | :--- |\n`;
+      
+      md += `## 🎬 Videos Publicitarios\n\n`;
+      md += `| Video / Archivo | Estado | Fecha/Hora | Observación |\n| :--- | :---: | :---: | :--- |\n`;
       videoFiles.forEach(video => {
         const r = reviews[video.filename] || {};
         let status = '⏳ Pendiente';
-        if (r.approved === true) status = '🟢 Aprobado';
-        if (r.approved === false) status = '🔴 Rechazado';
-        md += `| **${video.name}** | ${status} | ${(r.comment || '-').replace(/\n/g, ' ')} |\n`;
+        if (r.approved === 1 || r.approved === true) status = '🟢 Aprobado';
+        if (r.approved === 0 || r.approved === false) status = '🔴 Rechazado';
+        if (r.approved === 2) status = '⚠️ Requiere Ajustes';
+        const dateText = r.updated_at ? r.updated_at : '—';
+        md += `| **${video.name}** (\`${video.filename}\`) | ${status} | ${dateText} | ${(r.comment || '-').replace(/\n/g, ' ')} |\n`;
       });
+
+      md += `\n## 🖼️ Imágenes Entregables\n\n`;
+      md += `| Imagen / Archivo | Estado | Fecha/Hora | Observación |\n| :--- | :---: | :---: | :--- |\n`;
+      imageFiles.forEach(img => {
+        const r = reviews[img] || {};
+        const name = img.replace(/\.png$/i, '').replace(/_/g, ' ');
+        let status = '⏳ Pendiente';
+        if (r.approved === 1 || r.approved === true) status = '🟢 Aprobado';
+        if (r.approved === 0 || r.approved === false) status = '🔴 Rechazado';
+        if (r.approved === 2) status = '⚠️ Requiere Ajustes';
+        const dateText = r.updated_at ? r.updated_at : '—';
+        md += `| **${name}** (\`${img}\`) | ${status} | ${dateText} | ${(r.comment || '-').replace(/\n/g, ' ')} |\n`;
+      });
+      
       return md;
     }
 
@@ -1023,7 +2284,7 @@
       const blob = new Blob([generateReportMarkdown()], { type: 'text/markdown;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `Reporte_Revision_${new Date().toISOString().slice(0,10)}.md`;
+      link.download = `Reporte_Revision_${tenant}_${new Date().toISOString().slice(0,10)}.md`;
       link.click();
     }
 
@@ -1076,70 +2337,584 @@
 
     // RUTA CORREGIDA: index.html está en publicidad/ → las imágenes están en ../entregables_finales/imagenes/
     const BASE_IMG = "../entregables_finales/imagenes/";
-    let lightboxIndex = 0;
+    let activeCategory = 'all'; // 'all', 'cig', 'img'
+    let activeStatus = 'all'; // 'all', 'approved', 'adjusting', 'rejected', 'pending'
+    let activeImageDateType = 'all'; // 'all', 'today', 'yesterday', 'older', 'custom'
+    let customImageDateValue = '';
+    let filteredImages = [];
+    let featuredImage = null;
+
+    // Date filters functions for Videos
+    function onVideoDateFilterChange() {
+      const select = document.getElementById('videoDateFilter');
+      activeVideoDateType = select.value;
+      const customInput = document.getElementById('videoCustomDate');
+      if (activeVideoDateType === 'custom') {
+        customInput.style.display = 'inline-block';
+      } else {
+        customInput.style.display = 'none';
+        customInput.value = '';
+        customVideoDateValue = '';
+      }
+      loadPlaylist();
+    }
+
+    function onVideoCustomDateChange() {
+      const customInput = document.getElementById('videoCustomDate');
+      customVideoDateValue = customInput.value;
+      loadPlaylist();
+    }
+
+    // Date filters functions for Images
+    function onImageDateFilterChange() {
+      const select = document.getElementById('imageDateFilter');
+      activeImageDateType = select.value;
+      const customInput = document.getElementById('imageCustomDate');
+      if (activeImageDateType === 'custom') {
+        customInput.style.display = 'inline-block';
+      } else {
+        customInput.style.display = 'none';
+        customInput.value = '';
+        customImageDateValue = '';
+      }
+      loadImages();
+    }
+
+    function onImageCustomDateChange() {
+      const customInput = document.getElementById('imageCustomDate');
+      customImageDateValue = customInput.value;
+      loadImages();
+    }
+
+    // Date parsing and matching helpers
+    function parseDateStr(dateStr) {
+      if (!dateStr) return null;
+      // Format YYYY-MM-DD HH:MM:SS (SQLite localtime)
+      if (dateStr.includes('-')) {
+        const parts = dateStr.split(' ');
+        const dateParts = parts[0].split('-');
+        if (dateParts.length === 3) {
+          const year = parseInt(dateParts[0], 10);
+          const month = parseInt(dateParts[1], 10) - 1;
+          const day = parseInt(dateParts[2], 10);
+          let hours = 0, minutes = 0, seconds = 0;
+          if (parts[1]) {
+            const timeParts = parts[1].split(':');
+            hours = parseInt(timeParts[0] || 0, 10);
+            minutes = parseInt(timeParts[1] || 0, 10);
+            seconds = parseInt(timeParts[2] || 0, 10);
+          }
+          const d = new Date(year, month, day, hours, minutes, seconds);
+          if (!isNaN(d.getTime())) return d;
+        }
+      }
+      
+      // Locale string format: e.g., "25/6/2026, 1:08:44 a. m."
+      if (dateStr.includes('/')) {
+        const parts = dateStr.split(',');
+        const datePart = parts[0].trim();
+        const dateSplit = datePart.split('/');
+        if (dateSplit.length === 3) {
+          const day = parseInt(dateSplit[0], 10);
+          const month = parseInt(dateSplit[1], 10) - 1;
+          const year = parseInt(dateSplit[2], 10);
+          
+          let hours = 12, minutes = 0, seconds = 0;
+          if (parts[1]) {
+            const timePart = parts[1].trim();
+            const isPM = dateStr.toLowerCase().includes('p.m.') || dateStr.toLowerCase().includes('pm') || dateStr.toLowerCase().includes('p. m.');
+            const isAM = dateStr.toLowerCase().includes('a.m.') || dateStr.toLowerCase().includes('am') || dateStr.toLowerCase().includes('a. m.');
+            const cleanTime = timePart.replace(/[^\d:]/g, '');
+            const timeSplit = cleanTime.split(':');
+            if (timeSplit.length >= 2) {
+              hours = parseInt(timeSplit[0], 10);
+              minutes = parseInt(timeSplit[1], 10);
+              if (timeSplit[2]) {
+                seconds = parseInt(timeSplit[2], 10);
+              }
+              if (isPM && hours < 12) hours += 12;
+              if (isAM && hours === 12) hours = 0;
+            }
+          }
+          const d = new Date(year, month, day, hours, minutes, seconds);
+          if (!isNaN(d.getTime())) return d;
+        }
+      }
+
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) return d;
+      return null;
+    }
+
+    function matchesDateFilter(updatedAtStr, filterType, customDateVal) {
+      if (filterType === 'all') return true;
+      if (!updatedAtStr || updatedAtStr === 'Sin revisar' || updatedAtStr === '—') return false;
+
+      const d = parseDateStr(updatedAtStr);
+      if (!d) return false;
+
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      if (filterType === 'today') {
+        return d.getFullYear() === today.getFullYear() &&
+               d.getMonth() === today.getMonth() &&
+               d.getDate() === today.getDate();
+      }
+
+      if (filterType === 'yesterday') {
+        return d.getFullYear() === yesterday.getFullYear() &&
+               d.getMonth() === yesterday.getMonth() &&
+               d.getDate() === yesterday.getDate();
+      }
+
+      if (filterType === 'older') {
+        const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0, 0);
+        return d.getTime() < yesterdayStart.getTime();
+      }
+
+      if (filterType === 'custom') {
+        if (!customDateVal) return false;
+        const parts = customDateVal.split('-');
+        if (parts.length === 3) {
+          const cy = parseInt(parts[0], 10);
+          const cm = parseInt(parts[1], 10) - 1;
+          const cd = parseInt(parts[2], 10);
+          return d.getFullYear() === cy && d.getMonth() === cm && d.getDate() === cd;
+        }
+      }
+
+      return false;
+    }
+
+    function filterCategory(cat) {
+      activeCategory = cat;
+      document.querySelectorAll('[id^="btn-cat-"]').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn-cat-' + cat).classList.add('active');
+      loadImages();
+    }
+
+    function filterStatus(status) {
+      activeStatus = status;
+      document.querySelectorAll('[id^="btn-status-"]').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn-status-' + status).classList.add('active');
+      loadImages();
+    }
+
+    function updateFilterBadges() {
+      let totalCig = 0;
+      let totalImg = 0;
+      imageFiles.forEach(file => {
+        if (file.startsWith('CIG')) totalCig++;
+        if (file.startsWith('IMG')) totalImg++;
+      });
+
+      const badgeAll = document.getElementById('badge-cat-all');
+      const badgeCig = document.getElementById('badge-cat-cig');
+      const badgeImg = document.getElementById('badge-cat-img');
+      if (badgeAll) badgeAll.textContent = imageFiles.length;
+      if (badgeCig) badgeCig.textContent = totalCig;
+      if (badgeImg) badgeImg.textContent = totalImg;
+
+      let approvedCount = 0;
+      let adjustingCount = 0;
+      let rejectedCount = 0;
+      let pendingCount = 0;
+
+      imageFiles.forEach(file => {
+        const isCig = file.startsWith('CIG');
+        const isImg = file.startsWith('IMG');
+        if (activeCategory === 'cig' && !isCig) return;
+        if (activeCategory === 'img' && !isImg) return;
+
+        const review = reviews[file] || {};
+        if (!matchesDateFilter(review.updated_at, activeImageDateType, customImageDateValue)) return;
+
+        const approved = review.approved;
+        if (approved === 1 || approved === true) approvedCount++;
+        else if (approved === 2) adjustingCount++;
+        else if (approved === 0 || approved === false) rejectedCount++;
+        else pendingCount++;
+      });
+
+      const badgeStatusAll = document.getElementById('badge-status-all');
+      const badgeStatusApproved = document.getElementById('badge-status-approved');
+      const badgeStatusAdjusting = document.getElementById('badge-status-adjusting');
+      const badgeStatusRejected = document.getElementById('badge-status-rejected');
+      const badgeStatusPending = document.getElementById('badge-status-pending');
+
+      if (badgeStatusAll) badgeStatusAll.textContent = (activeCategory === 'cig' ? totalCig : activeCategory === 'img' ? totalImg : imageFiles.length);
+      if (badgeStatusApproved) badgeStatusApproved.textContent = approvedCount;
+      if (badgeStatusAdjusting) badgeStatusAdjusting.textContent = adjustingCount;
+      if (badgeStatusRejected) badgeStatusRejected.textContent = rejectedCount;
+      if (badgeStatusPending) badgeStatusPending.textContent = pendingCount;
+
+      const imgTabBadge = document.getElementById('img-tab-badge');
+      if (imgTabBadge) imgTabBadge.textContent = imageFiles.length;
+    }
 
     function loadImages() {
-      const grid = document.getElementById('imgGrid');
-      imageFiles.forEach((file, i) => {
-        const card = document.createElement('div');
-        card.className = 'img-card';
-        const name = file.replace(/\.png$/i, '').replace(/_/g, ' ');
-        card.innerHTML = `
-          <img src="${BASE_IMG}${encodeURIComponent(file)}" alt="${name}" loading="lazy" onclick="openLightbox(${i})">
-          <div class="img-card-info">
-            <span class="img-card-name">${name}</span>
-            <a class="img-download-btn" href="${BASE_IMG}${encodeURIComponent(file)}" download="${file}">
-              <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Descargar
-            </a>
-          </div>
-        `;
-        grid.appendChild(card);
+      filteredImages = imageFiles.filter(file => {
+        const isCig = file.startsWith('CIG');
+        const isImg = file.startsWith('IMG');
+        
+        if (activeCategory === 'cig' && !isCig) return false;
+        if (activeCategory === 'img' && !isImg) return false;
+
+        const review = reviews[file] || {};
+        const approved = review.approved;
+        
+        if (activeStatus === 'approved' && approved !== 1 && approved !== true) return false;
+        if (activeStatus === 'adjusting' && approved !== 2) return false;
+        if (activeStatus === 'rejected' && approved !== 0 && approved !== false) return false;
+        if (activeStatus === 'pending' && approved !== null && approved !== undefined) return false;
+
+        if (!matchesDateFilter(review.updated_at, activeImageDateType, customImageDateValue)) return false;
+
+        return true;
       });
+
+      updateFilterBadges();
+
+      const track = document.getElementById('carouselTrack');
+      track.innerHTML = '';
+
+      if (filteredImages.length === 0) {
+        featuredImage = null;
+        document.getElementById('featuredImg').src = "";
+        document.getElementById('featuredImg').style.opacity = "0";
+        document.getElementById('featuredImgName').textContent = "Sin imágenes";
+        document.getElementById('featuredImgFilename').textContent = "—";
+        document.getElementById('featuredImgDate').textContent = "—";
+        document.getElementById('featuredImgComment').value = "";
+        document.getElementById('featuredImgDownload').href = "";
+        updateFeaturedImgButtonUI(null);
+        return;
+      }
+
+      document.getElementById('featuredImg').style.opacity = "1";
+
+      if (!featuredImage || !filteredImages.includes(featuredImage)) {
+        featuredImage = filteredImages[0];
+      }
+
+      filteredImages.forEach(file => {
+        const card = document.createElement('div');
+        card.className = `carousel-thumb ${file === featuredImage ? 'active' : ''}`;
+        card.id = `thumb-${file.replace(/[\s\.]+/g, '_')}`;
+        card.onclick = () => selectFeaturedImage(file);
+
+        const review = reviews[file] || {};
+        const name = file.replace(/\.png$/i, '').replace(/_/g, ' ');
+
+        let statusHtml = '';
+        if (review.approved !== undefined && review.approved !== null) {
+          let dotClass = 'rejected';
+          if (review.approved === 1 || review.approved === true) dotClass = 'approved';
+          else if (review.approved === 2) dotClass = 'adjusting';
+          statusHtml = `<span class="status-dot ${dotClass}" style="position: absolute; top: 6px; right: 6px; margin: 0; width: 10px; height: 10px;"></span>`;
+        }
+
+        card.innerHTML = `
+          ${statusHtml}
+          <img src="${BASE_IMG}${encodeURIComponent(file)}" alt="${name}" loading="lazy">
+          <div class="carousel-thumb-info">${name}</div>
+        `;
+        track.appendChild(card);
+      });
+
+      selectFeaturedImage(featuredImage, false);
+      updateAccordionBadges();
     }
 
-    function openLightbox(index) {
-      lightboxIndex = index;
-      updateLightbox();
-      document.getElementById('lightbox').classList.add('open');
-    }
-
-    function closeLightbox() {
-      document.getElementById('lightbox').classList.remove('open');
-    }
-
-    function closeLightboxOnBg(e) {
-      if (e.target === document.getElementById('lightbox')) closeLightbox();
-    }
-
-    function updateLightbox() {
-      const file = imageFiles[lightboxIndex];
+    function selectFeaturedImage(file, updateActiveThumbnail = true) {
+      featuredImage = file;
       const src = `${BASE_IMG}${encodeURIComponent(file)}`;
-      document.getElementById('lightboxImg').src = src;
-      document.getElementById('lightboxName').textContent = file.replace(/\.png$/i,'').replace(/_/g,' ');
-      document.getElementById('lightboxDownload').href = src;
-      document.getElementById('lightboxDownload').download = file;
+
+      const imgEl = document.getElementById('featuredImg');
+      imgEl.style.opacity = "0.5";
+      setTimeout(() => {
+        imgEl.src = src;
+        imgEl.style.opacity = "1";
+      }, 100);
+
+      document.getElementById('featuredImgName').textContent = file.replace(/\.png$/i,'').replace(/_/g,' ');
+      document.getElementById('featuredImgFilename').textContent = file;
+      document.getElementById('featuredImgDownload').href = src;
+      document.getElementById('featuredImgDownload').download = file;
+
+      const review = reviews[file] || {};
+      document.getElementById('featuredImgComment').value = review.comment || '';
+      updateFeaturedImgButtonUI(review.approved);
+
+      const lbDate = document.getElementById('featuredImgDate');
+      if (lbDate) {
+        lbDate.textContent = review.updated_at || 'Sin revisar';
+      }
+
+      if (updateActiveThumbnail) {
+        document.querySelectorAll('.carousel-thumb').forEach(t => t.classList.remove('active'));
+        const activeThumb = document.getElementById(`thumb-${file.replace(/[\s\.]+/g, '_')}`);
+        if (activeThumb) {
+          activeThumb.classList.add('active');
+          activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }
     }
 
-    function lightboxNav(dir) {
-      lightboxIndex = (lightboxIndex + dir + imageFiles.length) % imageFiles.length;
-      updateLightbox();
+    function updateFeaturedImgButtonUI(approved) {
+      const btnApprove = document.getElementById('btnFeaturedApprove');
+      const btnReject = document.getElementById('btnFeaturedReject');
+      const btnAdjust = document.getElementById('btnFeaturedAdjust');
+      if (!btnApprove || !btnReject || !btnAdjust) return;
+
+      btnApprove.classList.remove('selected');
+      btnReject.classList.remove('selected');
+      btnAdjust.classList.remove('selected');
+
+      if (approved === 1 || approved === true) btnApprove.classList.add('selected');
+      else if (approved === 0 || approved === false) btnReject.classList.add('selected');
+      else if (approved === 2) btnAdjust.classList.add('selected');
+    }
+
+    async function saveFeaturedImageComment() {
+      if (!featuredImage) return;
+      const commentInput = document.getElementById('featuredImgComment');
+      if (!reviews[featuredImage]) reviews[featuredImage] = {};
+      reviews[featuredImage].comment = commentInput.value;
+      localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
+
+      try {
+        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approved: reviews[featuredImage].approved,
+            comment: reviews[featuredImage].comment
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.review) {
+            reviews[featuredImage].updated_at = data.review.updated_at;
+            const lbDate = document.getElementById('featuredImgDate');
+            if (lbDate) lbDate.textContent = data.review.updated_at;
+          }
+        }
+      } catch (e) { console.error("Error al guardar comentario de imagen en API", e); }
+
+      updateDashboard();
+    }
+
+    async function setFeaturedImageApproval(isApproved) {
+      if (!featuredImage) return;
+      if (!reviews[featuredImage]) reviews[featuredImage] = {};
+
+      if (reviews[featuredImage].approved === isApproved) {
+        reviews[featuredImage].approved = null;
+      } else {
+        reviews[featuredImage].approved = isApproved;
+      }
+
+      reviews[featuredImage].updated_at = new Date().toLocaleString('es-CO');
+
+      localStorage.setItem('ge_reviews_' + tenant, JSON.stringify(reviews));
+      updateFeaturedImgButtonUI(reviews[featuredImage].approved);
+      
+      const lbDate = document.getElementById('featuredImgDate');
+      if (lbDate) {
+        lbDate.textContent = reviews[featuredImage].updated_at;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/reviews/${encodeURIComponent(featuredImage)}?tenant=${encodeURIComponent(tenant)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            approved: reviews[featuredImage].approved,
+            comment: reviews[featuredImage].comment || ''
+          })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.review) {
+            reviews[featuredImage].updated_at = data.review.updated_at;
+            if (lbDate) lbDate.textContent = data.review.updated_at;
+            updateDashboard();
+            loadImages();
+          }
+        }
+      } catch (e) {
+        console.error("Error al guardar estado de aprobación de imagen en API", e);
+        updateDashboard();
+        loadImages();
+      }
+    }
+
+    function navigateImage(dir) {
+      if (filteredImages.length <= 1) return;
+      const currentIndex = filteredImages.indexOf(featuredImage);
+      if (currentIndex === -1) return;
+      const nextIndex = (currentIndex + dir + filteredImages.length) % filteredImages.length;
+      selectFeaturedImage(filteredImages[nextIndex]);
+    }
+
+    function scrollCarousel(dir) {
+      const container = document.querySelector('.carousel-track-container');
+      if (container) {
+        const scrollAmount = 300;
+        container.scrollBy({ left: dir * scrollAmount, behavior: 'smooth' });
+      }
+    }
+
+    function updateDashboard() {
+      let total = videoFiles.length + imageFiles.length;
+      let aprobados = 0;
+      let rechazados = 0;
+      let ajustes = 0;
+      let pendientes = 0;
+
+      const tableBody = document.getElementById('dash-table-body');
+      tableBody.innerHTML = '';
+
+      // Procesar videos
+      videoFiles.forEach(video => {
+        const r = reviews[video.filename] || {};
+        let statusText = '⏳ Pendiente';
+        let statusClass = 'color: var(--text-muted); font-weight: 600;';
+        
+        if (r.approved === 1 || r.approved === true) {
+          aprobados++;
+          statusText = '🟢 Aprobado';
+          statusClass = 'color: var(--success); font-weight: 700;';
+        } else if (r.approved === 0 || r.approved === false) {
+          rechazados++;
+          statusText = '🔴 Rechazado';
+          statusClass = 'color: var(--danger); font-weight: 700;';
+        } else if (r.approved === 2) {
+          ajustes++;
+          statusText = '⚠️ Por Ajustar';
+          statusClass = 'color: #FBBC05; font-weight: 700;';
+        } else {
+          pendientes++;
+        }
+
+        const dateText = r.updated_at ? r.updated_at : '—';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding: 12px; font-weight: 700; color: var(--text);">${video.name}</td>
+          <td style="padding: 12px; color: var(--text-muted); font-size: 0.85rem;">🎬 Video</td>
+          <td style="padding: 12px; text-align: center; ${statusClass}">${statusText}</td>
+          <td style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">${dateText}</td>
+          <td style="padding: 12px; color: var(--text-muted); font-style: italic;">${r.comment || '—'}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      // Procesar imágenes
+      imageFiles.forEach(img => {
+        const r = reviews[img] || {};
+        let statusText = '⏳ Pendiente';
+        let statusClass = 'color: var(--text-muted); font-weight: 600;';
+        const name = img.replace(/\.png$/i, '').replace(/_/g, ' ');
+
+        if (r.approved === 1 || r.approved === true) {
+          aprobados++;
+          statusText = '🟢 Aprobado';
+          statusClass = 'color: var(--success); font-weight: 700;';
+        } else if (r.approved === 0 || r.approved === false) {
+          rechazados++;
+          statusText = '🔴 Rechazado';
+          statusClass = 'color: var(--danger); font-weight: 700;';
+        } else if (r.approved === 2) {
+          ajustes++;
+          statusText = '⚠️ Por Ajustar';
+          statusClass = 'color: #FBBC05; font-weight: 700;';
+        } else {
+          pendientes++;
+        }
+
+        const dateText = r.updated_at ? r.updated_at : '—';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding: 12px; font-weight: 700; color: var(--text);">${name}</td>
+          <td style="padding: 12px; color: var(--text-muted); font-size: 0.85rem;">🖼️ Imagen</td>
+          <td style="padding: 12px; text-align: center; ${statusClass}">${statusText}</td>
+          <td style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">${dateText}</td>
+          <td style="padding: 12px; color: var(--text-muted); font-style: italic;">${r.comment || '—'}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      // Actualizar contadores
+      document.getElementById('dash-total').textContent = total;
+      document.getElementById('dash-aprobados').textContent = aprobados;
+      document.getElementById('dash-rechazados').textContent = rechazados;
+      document.getElementById('dash-ajustes').textContent = ajustes;
+      document.getElementById('dash-pendientes').textContent = pendientes;
     }
 
     document.addEventListener('keydown', e => {
-      if (!document.getElementById('lightbox').classList.contains('open')) return;
-      if (e.key === 'ArrowLeft') lightboxNav(-1);
-      if (e.key === 'ArrowRight') lightboxNav(1);
-      if (e.key === 'Escape') closeLightbox();
+      // If we are in the Images tab:
+      const activeTab = document.querySelector('.nav-tab.active');
+      if (activeTab && activeTab.id === 'tab-imagenes') {
+        if (document.activeElement && (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT')) {
+          return; // Avoid intercepting inputs/textareas
+        }
+        if (e.key === 'ArrowLeft') navigateImage(-1);
+        if (e.key === 'ArrowRight') navigateImage(1);
+      }
     });
 
     // ═══════════════════════════
     // INIT
     // ═══════════════════════════
+    async function startPolling() {
+      setInterval(async () => {
+        await fetchReviewsFromAPI();
+        loadPlaylist();
+        loadImages();
+        updateDashboard();
+        
+        if (currentVideo) {
+          const review = reviews[currentVideo.filename] || {};
+          updateButtonUI(review.approved);
+          if (document.activeElement !== videoComment) {
+            videoComment.value = review.comment || '';
+          }
+          const playerDate = document.getElementById('playerDate');
+          if (playerDate) {
+            playerDate.textContent = review.updated_at || 'Sin revisar';
+          }
+        }
+        
+        if (featuredImage) {
+          const review = reviews[featuredImage] || {};
+          updateFeaturedImgButtonUI(review.approved);
+          const imgComment = document.getElementById('featuredImgComment');
+          if (imgComment && document.activeElement !== imgComment) {
+            imgComment.value = review.comment || '';
+          }
+          const featuredImgDate = document.getElementById('featuredImgDate');
+          if (featuredImgDate) {
+            featuredImgDate.textContent = review.updated_at || 'Sin revisar';
+          }
+        }
+      }, 3000);
+    }
+
     window.onload = async function() {
+      // Colapsar acordeones en móviles/tabletas por defecto
+      if (window.innerWidth <= 768) {
+        document.getElementById('accordion-video-filters')?.classList.replace('expanded', 'collapsed');
+        document.getElementById('accordion-image-filters')?.classList.replace('expanded', 'collapsed');
+      }
       await fetchReviewsFromAPI();
       loadPlaylist();
       loadImages();
+      updateDashboard();
+      startPolling();
     };
   </script>
 </body>
