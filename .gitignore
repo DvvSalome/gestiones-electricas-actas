@@ -1,0 +1,7 @@
+.vercel
+node_modules/
+*.db
+*.db-shm
+*.db-wal
+*.mp4
+.DS_Store

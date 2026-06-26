@@ -154,99 +154,66 @@ function validateFormForExport(actionName = "exportar") {
   return true;
 }
 
-// --- Generación programática de PDF Blob usando html2pdf ---
-function generatePdfBlob(fileName) {
+// --- Generación de PDF usando html2canvas + jsPDF directamente ---
+// (sin html2pdf, cuyo container interno overflow:hidden recortaba el contenido)
+async function generatePdfBlob(fileName) {
   const overlay = document.getElementById("loading-overlay");
-  const loadingContent = document.getElementById("overlay-loading-content");
-  const actionContent = document.getElementById("overlay-action-content");
-
-  if (overlay) overlay.style.display = "flex";
-  if (loadingContent) {
-    loadingContent.style.display = "flex";
-    const textEl = loadingContent.querySelector("div:nth-child(2)");
-    if (textEl) textEl.textContent = "Compilando reporte digital en PDF...";
-  }
-  if (actionContent) actionContent.style.display = "none";
-
-  const scrollY = window.scrollY || window.pageYOffset;
-  const scrollX = window.scrollX || window.pageXOffset;
-  window.scrollTo(0, 0);
+  if (overlay) overlay.style.display = "none";
 
   preparePrintableTemplate();
 
   const originalTemplate = document.getElementById("pdf-printable-template");
-  // Ocultar el overlay durante la captura: si queda visible (position:fixed, z-index alto)
-  // html2canvas lo pinta encima del template y el PDF sale en blanco.
-  if (overlay) overlay.style.visibility = "hidden";
+  const clone = originalTemplate.cloneNode(true);
+  clone.style.display = "block";
 
-  originalTemplate.style.display = "block";
-  originalTemplate.style.position = "absolute";
-  originalTemplate.style.top = "0";
-  originalTemplate.style.left = "0";
-  originalTemplate.style.width = "794px";
-  originalTemplate.style.zIndex = "1";
-  originalTemplate.style.background = "white";
+  // Wrapper off-screen: html2canvas captura desde x=-9999 donde no hay nada
+  // más en la página, así que el overlay (en x=0) no interfiere.
+  const wrapper = document.createElement("div");
+  wrapper.style.cssText = "position:absolute; left:-9999px; top:0; width:794px; background:white;";
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
-  // En móvil el meta viewport limita el contexto de renderizado a ~390px.
-  // Forzamos 794px solo en móvil para que html2canvas capture el template completo.
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  let viewportMeta = null, origViewport = null;
-  if (isMobile) {
-    viewportMeta = document.querySelector('meta[name="viewport"]');
-    origViewport = viewportMeta ? viewportMeta.content : null;
-    if (viewportMeta) viewportMeta.content = "width=794, initial-scale=1, maximum-scale=1";
-  }
-
-  const opt = {
-    margin:       [10, 10, 10, 10],
-    filename:     fileName,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  {
+  try {
+    const canvas = await html2canvas(wrapper, {
       scale: 2,
       useCORS: true,
       logging: false,
-      scrollY: 0,
-      scrollX: 0,
-      // windowWidth: le dice a html2canvas que el "viewport" tiene 794px de ancho.
-      // Sin esto, en móvil usa el viewport real (~390px) y el canvas queda en blanco.
-      windowWidth: 794,
-      windowHeight: 1123
-    },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  return html2pdf()
-    .set(opt)
-    .from(originalTemplate)
-    .outputPdf('blob')
-    .then(blob => {
-      originalTemplate.style.display = "none";
-      originalTemplate.style.position = "";
-      originalTemplate.style.top = "";
-      originalTemplate.style.left = "";
-      originalTemplate.style.width = "";
-      originalTemplate.style.zIndex = "";
-      originalTemplate.style.background = "";
-      if (viewportMeta && origViewport !== null) viewportMeta.content = origViewport;
-      if (overlay) overlay.style.visibility = "";
-      window.scrollTo(scrollX, scrollY);
-      return blob;
-    })
-    .catch(err => {
-      console.error("Error al generar PDF:", err);
-      originalTemplate.style.display = "none";
-      originalTemplate.style.position = "";
-      originalTemplate.style.top = "";
-      originalTemplate.style.left = "";
-      originalTemplate.style.width = "";
-      originalTemplate.style.zIndex = "";
-      originalTemplate.style.background = "";
-      if (viewportMeta && origViewport !== null) viewportMeta.content = origViewport;
-      if (overlay) overlay.style.visibility = "";
-      if (overlay) overlay.style.display = "none";
-      window.scrollTo(scrollX, scrollY);
-      throw err;
+      windowWidth: 794
     });
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+
+    const pageW   = pdf.internal.pageSize.getWidth();   // 210 mm
+    const pageH   = pdf.internal.pageSize.getHeight();  // 297 mm
+    const pxPerMm = canvas.width / pageW;
+    const pageHpx = pageH * pxPerMm;
+
+    let srcY = 0;
+    let page = 0;
+
+    while (srcY < canvas.height) {
+      const sliceH = Math.min(pageHpx, canvas.height - srcY);
+
+      const pageCanvas = document.createElement("canvas");
+      pageCanvas.width  = canvas.width;
+      pageCanvas.height = sliceH;
+      pageCanvas.getContext("2d").drawImage(
+        canvas, 0, srcY, canvas.width, sliceH, 0, 0, canvas.width, sliceH
+      );
+
+      if (page > 0) pdf.addPage();
+      pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.95), "JPEG",
+        0, 0, pageW, sliceH / pxPerMm);
+
+      srcY += pageHpx;
+      page++;
+    }
+
+    return pdf.output("blob");
+  } finally {
+    document.body.removeChild(wrapper);
+  }
 }
 
 // Variables globales para almacenar el PDF compilado
@@ -261,30 +228,33 @@ function startPdfProcess() {
   const otNum = window.otBadgeNum.textContent;
   const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
-  
+
   window.lastGeneratedPdfFileName = fileName;
   window.lastGeneratedPdfBlob = null;
 
-  const overlay = document.getElementById("loading-overlay");
-  const loadingContent = document.getElementById("overlay-loading-content");
-  const actionContent = document.getElementById("overlay-action-content");
-
-  if (overlay) overlay.style.display = "flex";
-  if (loadingContent) loadingContent.style.display = "flex";
-  if (actionContent) actionContent.style.display = "none";
+  // El overlay NO se muestra antes de generatePdfBlob: si estuviera visible
+  // (position:fixed; z-index:10000), html2canvas lo capturaría encima del
+  // template y el PDF saldría en blanco. generatePdfBlob lo oculta internamente.
+  document.body.style.cursor = "wait";
 
   generatePdfBlob(fileName)
     .then(blob => {
       window.lastGeneratedPdfBlob = blob;
-      
-      // Transición al Estado 2 (Acciones Disponibles)
+      document.body.style.cursor = "";
+
+      // Mostrar directamente el Estado 2 (Acciones Disponibles)
+      const overlay = document.getElementById("loading-overlay");
+      const loadingContent = document.getElementById("overlay-loading-content");
+      const actionContent = document.getElementById("overlay-action-content");
+
+      if (overlay) overlay.style.display = "flex";
       if (loadingContent) loadingContent.style.display = "none";
       if (actionContent) actionContent.style.display = "flex";
     })
     .catch(err => {
+      document.body.style.cursor = "";
       console.error("Error al generar PDF:", err);
       alert("❌ Ocurrió un error al compilar el reporte PDF.");
-      if (overlay) overlay.style.display = "none";
     });
 }
 

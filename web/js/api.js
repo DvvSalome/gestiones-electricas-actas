@@ -1,11 +1,18 @@
 // --- Sincronización con la API ---
 async function saveActaToAPI() {
-  // La API local (puerto 3001) solo existe en desarrollo; en producción se omite
-  // para evitar errores de Mixed Content en HTTPS.
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  if (!isLocal) return;
+  const urlParams = new URLSearchParams(window.location.search);
+  const apiParam = urlParams.get('api');
 
-  const API_BASE = `http://${window.location.hostname}:3001/api`;
+  let API_BASE;
+  if (apiParam) {
+    API_BASE = apiParam.endsWith('/') ? `${apiParam}api` : `${apiParam}/api`;
+  } else {
+    // La API local (puerto 3001) solo existe en desarrollo; en producción se omite
+    // para evitar errores de Mixed Content en HTTPS.
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!isLocal) return;
+    API_BASE = `http://${window.location.hostname}:3001/api`;
+  }
   const otElement = document.getElementById("header-ot");
   const otText = otElement ? otElement.textContent.replace('OT-', '') : '0000';
   const dateElement = document.getElementById("header-date");

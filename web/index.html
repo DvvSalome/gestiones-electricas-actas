@@ -4,14 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acta Técnica Digital — Gestiones Eléctricas</title>
+  <link rel="icon" href="data:,">
   
   <!-- Font Google: Outfit para look premium y moderno -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   
-  <!-- html2pdf library for PDF generation (local) -->
-  <script src="html2pdf.bundle.min.js"></script>
+  <!-- PDF generation: html2canvas + jsPDF (sin intermediario html2pdf) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     /* ════════════════════════════════════════════

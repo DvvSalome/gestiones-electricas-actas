@@ -26,17 +26,55 @@ function initDB() {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
 
+  // Migración de la tabla reviews a multitenant si es necesario
+  try {
+    const tableInfo = db.pragma("table_info(reviews)");
+    if (tableInfo && tableInfo.length > 0) {
+      const hasTenant = tableInfo.some(col => col.name === 'tenant');
+      if (!hasTenant) {
+        console.log('[DB] Migrando tabla "reviews" para soporte multitenant...');
+        db.transaction(() => {
+          db.prepare('ALTER TABLE reviews RENAME TO reviews_old').run();
+          db.prepare(`
+            CREATE TABLE reviews (
+              id          INTEGER PRIMARY KEY AUTOINCREMENT,
+              tenant      TEXT    NOT NULL DEFAULT 'gestiones-electricas',
+              filename    TEXT    NOT NULL,
+              approved    INTEGER,
+              comment     TEXT    DEFAULT '',
+              reviewer    TEXT    DEFAULT 'compañero',
+              created_at  TEXT    DEFAULT (datetime('now', 'localtime')),
+              updated_at  TEXT    DEFAULT (datetime('now', 'localtime')),
+              UNIQUE(tenant, filename)
+            )
+          `).run();
+          db.prepare(`
+            INSERT INTO reviews (filename, approved, comment, reviewer, created_at, updated_at, tenant)
+            SELECT filename, approved, comment, reviewer, created_at, updated_at, 'gestiones-electricas'
+            FROM reviews_old
+          `).run();
+          db.prepare('DROP TABLE reviews_old').run();
+        })();
+        console.log('[DB] Migración de "reviews" completada con éxito.');
+      }
+    }
+  } catch (err) {
+    console.error('[DB] Error durante la migración de reviews:', err.message);
+  }
+
   // ── Schema ──────────────────────────────────────────────
   db.exec(`
-    -- Revisiones de videos
+    -- Revisiones de videos y fotos (multitenant)
     CREATE TABLE IF NOT EXISTS reviews (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      filename    TEXT    NOT NULL UNIQUE,
-      approved    INTEGER,           -- 1=aprobado, 0=rechazado, NULL=pendiente
+      tenant      TEXT    NOT NULL DEFAULT 'gestiones-electricas',
+      filename    TEXT    NOT NULL,
+      approved    INTEGER,           -- 1=aprobado, 0=rechazado, 2=requiere ajustes (intermedio), NULL=pendiente
       comment     TEXT    DEFAULT '',
       reviewer    TEXT    DEFAULT 'compañero',
       created_at  TEXT    DEFAULT (datetime('now', 'localtime')),
-      updated_at  TEXT    DEFAULT (datetime('now', 'localtime'))
+      updated_at  TEXT    DEFAULT (datetime('now', 'localtime')),
+      UNIQUE(tenant, filename)
     );
 
     -- Actas técnicas de visita
