@@ -1,5 +1,9 @@
 .vercel
+.env.local
+.env
 node_modules/
+api-local/node_modules/
+mcp/node_modules/
 *.db
 *.db-shm
 *.db-wal

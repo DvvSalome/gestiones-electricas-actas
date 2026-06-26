@@ -1793,7 +1793,16 @@
     // ═══════════════════════════
     const urlParams = new URLSearchParams(window.location.search);
     const tenant = urlParams.get('tenant') || 'gestiones-electricas';
+    
+    let API_BASE = '/api';
+    const apiParam = urlParams.get('api');
+    if (apiParam) {
+      API_BASE = apiParam.endsWith('/') ? `${apiParam}api` : `${apiParam}/api`;
+    }
+    
     console.log(`[Revisor] Iniciando en modo Multitenant. Cliente: "${tenant}"`);
+    console.log('[API] Base URL:', API_BASE);
+    let lastReviewsHash = '';
 
     // ═══════════════════════════
     // VIDEOS
@@ -1853,13 +1862,6 @@
 
     let currentVideo = null;
     let reviews = {};
-    let API_BASE;
-    const apiParam = urlParams.get('api');
-    if (apiParam) {
-      API_BASE = apiParam.endsWith('/') ? `${apiParam}api` : `${apiParam}/api`;
-    } else {
-      API_BASE = `http://${window.location.hostname}:3001/api`;
-    }
     let activeVideoStatus = 'all'; // 'all', 'approved', 'adjusting', 'rejected', 'pending'
     let activeVideoDateType = 'all';
     let customVideoDateValue = '';
@@ -2879,11 +2881,18 @@
     // ═══════════════════════════
     async function startPolling() {
       setInterval(async () => {
+        const prevHash = lastReviewsHash;
         await fetchReviewsFromAPI();
-        loadPlaylist();
-        loadImages();
-        updateDashboard();
+        const newHash = JSON.stringify(reviews);
+        // Solo re-renderizar listas si los datos cambiaron (evita parpadeo)
+        if (newHash !== prevHash) {
+          lastReviewsHash = newHash;
+          loadPlaylist();
+          loadImages();
+          updateDashboard();
+        }
         
+        // Siempre actualizar UI del video/imagen activo (ligero, sin parpadeo)
         if (currentVideo) {
           const review = reviews[currentVideo.filename] || {};
           updateButtonUI(review.approved);
@@ -2918,6 +2927,7 @@
         document.getElementById('accordion-image-filters')?.classList.replace('expanded', 'collapsed');
       }
       await fetchReviewsFromAPI();
+      lastReviewsHash = JSON.stringify(reviews);
       loadPlaylist();
       loadImages();
       updateDashboard();

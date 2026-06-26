@@ -1,0 +1,27 @@
+{
+  "name": "ge-plataforma",
+  "version": "1.0.0",
+  "description": "> Plataforma interna para **Gestiones Eléctricas SAS** que centraliza la gestión de actas técnicas, revisión de contenido multimedia y exposición de datos vía API REST + servidor MCP para integraciones con Claude AI.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FOURGSOLUTIONS-FGS/visualizador-de-anuncios.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FOURGSOLUTIONS-FGS/visualizador-de-anuncios/issues"
+  },
+  "homepage": "https://github.com/FOURGSOLUTIONS-FGS/visualizador-de-anuncios#readme",
+  "dependencies": {
+    "@vercel/blob": "^2.5.0"
+  }
+}
