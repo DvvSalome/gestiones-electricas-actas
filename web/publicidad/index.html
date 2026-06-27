@@ -2252,7 +2252,8 @@
             videoEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; opacity: 0; transition: opacity 0.2s ease;';
             
             const sourceEl = document.createElement('source');
-            sourceEl.src = (video.url && video.url.startsWith('http')) ? video.url : BASE_VIDEO + encodeURIComponent(video.filename);
+            const rawSrc = (video.url && video.url.startsWith('http')) ? video.url : BASE_VIDEO + encodeURIComponent(video.filename);
+            sourceEl.src = toProxyUrl(rawSrc) || rawSrc;
             sourceEl.type = "video/mp4";
             videoEl.appendChild(sourceEl);
             
@@ -2315,11 +2316,19 @@
       if (link) { link.href = videoUrl || '#'; link.style.display = videoUrl ? 'flex' : 'none'; }
     }
 
+    function toProxyUrl(url) {
+      // Convierte URLs de Supabase Storage a /api/media?path=... para evitar ad blockers
+      if (!url || !url.includes('supabase.co/storage/v1/object/public/publicidad/')) return url;
+      const path = url.split('/storage/v1/object/public/publicidad/')[1];
+      return `/api/media?path=${encodeURIComponent(path)}`;
+    }
+
     function selectVideo(video, cardElement) {
       currentVideo = video;
       document.querySelectorAll('.video-card').forEach(c => c.classList.remove('active'));
       if (cardElement) cardElement.classList.add('active');
-      const videoUrl = (video.url && video.url.startsWith('http')) ? video.url : BASE_VIDEO + encodeURIComponent(video.filename);
+      const rawUrl = (video.url && video.url.startsWith('http')) ? video.url : BASE_VIDEO + encodeURIComponent(video.filename);
+      const videoUrl = toProxyUrl(rawUrl) || rawUrl;
 
       // Reset overlays
       hidePlayerLoading();
@@ -2344,36 +2353,35 @@
         mainPlayer.play().catch(() => {});
       };
 
+      const isProxied = rawUrl !== videoUrl;
+
       mainPlayer.onerror = () => {
-        const isSupabaseUrl = videoUrl && videoUrl.includes('supabase.co');
-        const errMsg = isSupabaseUrl
-          ? 'Error al cargar desde Supabase Storage. El bucket "publicidad" puede no ser público.'
+        const errMsg = isProxied
+          ? 'Error al cargar el video desde el servidor. Intenta refrescar la página.'
           : 'No se pudo cargar el video. Verifica que el archivo existe en el servidor.';
         document.getElementById('playerErrorMsg').textContent = errMsg;
-        showPlayerError(videoUrl);
+        showPlayerError(rawUrl);
         showToast(errMsg, 'error', 8000);
       };
 
-      // Fallback stall detector: Supabase videos sin faststart necesitan descargar el archivo
-      // completo antes de reproducir — se les da 90s. Videos locales estáticos: 15s.
-      const isSupabaseUrl = videoUrl && videoUrl.includes('supabase.co');
-      const stallTimeout = isSupabaseUrl ? 90000 : 15000;
-      if (isSupabaseUrl) {
+      // Supabase videos sin faststart necesitan descargar el archivo completo antes de reproducir
+      const stallTimeout = isProxied ? 90000 : 15000;
+      if (isProxied) {
         document.getElementById('playerLoadingMsg').textContent = 'Descargando video… puede tardar unos segundos';
       }
       mainPlayer._stallTimer = setTimeout(() => {
         if (mainPlayer.readyState < 3) {
-          document.getElementById('playerErrorMsg').textContent = isSupabaseUrl
-            ? 'El video tardó demasiado en cargar. Verifica tu conexión o abre el URL directo.'
+          document.getElementById('playerErrorMsg').textContent = isProxied
+            ? 'El video tardó demasiado. Abre el URL directo o verifica tu conexión.'
             : 'El video tarda demasiado en cargar. Verifica la conexión o el archivo.';
-          showPlayerError(videoUrl);
+          showPlayerError(rawUrl);
           showToast('Tiempo de espera agotado al cargar el video', 'error', 6000);
         }
       }, stallTimeout);
 
       playerTitle.textContent = video.name;
       playerFilename.textContent = video.filename;
-      downloadBtn.href = videoUrl;
+      downloadBtn.href = rawUrl;
       const review = reviews[video.filename] || {};
       videoComment.value = review.comment || '';
       updateButtonUI(review.approved);
@@ -3392,9 +3400,8 @@
         progressCount.textContent = `${completed}/${total}`;
 
         try {
-          const fileExt = item.file.name.split('.').pop();
-          const filename = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-          const path = `${tenant}/${filename}`;
+          const safeName = item.file.name.replace(/[^a-zA-Z0-9._\-]/g, '_');
+          const path = `${tenant}/${safeName}`;
 
           const mimeType = item.file.type || (item.file.name.endsWith('.mp4') ? 'video/mp4' : item.file.name.endsWith('.mov') ? 'video/quicktime' : 'application/octet-stream');
           const { data: uploadData, error: uploadError } = await sbClient.storage
