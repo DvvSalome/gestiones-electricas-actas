@@ -1,0 +1,8 @@
+{
+  "name": "ge-plataforma-api",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@vercel/blob": "^2.5.0"
+  }
+}
