@@ -7,7 +7,8 @@
   "rewrites": [
     { "source": "/publicidad", "destination": "/web/publicidad/index.html" },
     { "source": "/publicidad/:path*", "destination": "/web/publicidad/:path*" },
-    { "source": "/actas", "destination": "/web/actas/index.html" },
-    { "source": "/actas/:path*", "destination": "/web/actas/:path*" }
+    { "source": "/actas", "destination": "/web/index.html" },
+    { "source": "/actas/:path*", "destination": "/web/:path*" },
+    { "source": "/admin", "destination": "/web/admin.html" }
   ]
 }
