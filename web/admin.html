@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Gestiones Eléctricas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-dark: #0D1100;
+      --brand-dark-card: #1C2203;
+      --brand-neon: #C6FF00;
+      --brand-white: #FFFFFF;
+      --brand-gray: #A3A3A3;
+      --brand-danger: #FF3B30;
+      --brand-success: #34C759;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--brand-dark);
+      color: var(--brand-white);
+      -webkit-font-smoothing: antialiased;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(198, 255, 0, 0.2);
+      padding-bottom: 1rem;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      color: var(--brand-neon);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .metric-card {
+      background: var(--brand-dark-card);
+      border: 1px solid rgba(198, 255, 0, 0.1);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--brand-neon);
+    }
+    .metric-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--brand-neon);
+      margin-bottom: 0.5rem;
+    }
+    .metric-label {
+      font-size: 0.9rem;
+      color: var(--brand-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .table-container {
+      background: var(--brand-dark-card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    th {
+      font-weight: 600;
+      color: var(--brand-gray);
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+    }
+    td {
+      font-size: 0.95rem;
+    }
+    tr:hover {
+      background: rgba(198, 255, 0, 0.03);
+    }
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-ok { background: rgba(52, 199, 89, 0.15); color: var(--brand-success); }
+    .status-warn { background: rgba(255, 204, 0, 0.15); color: #FFCC00; }
+    .status-fail { background: rgba(255, 59, 48, 0.15); color: var(--brand-danger); }
+
+    /* Login Modal */
+    #login-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(13, 17, 0, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .login-box {
+      background: var(--brand-dark-card);
+      padding: 2.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--brand-neon);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    .login-box h2 {
+      margin-top: 0;
+      color: var(--brand-neon);
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px;
+      margin: 1rem 0;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      color: white;
+      font-size: 1.1rem;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .login-box button {
+      background: var(--brand-neon);
+      color: var(--brand-dark);
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      text-transform: uppercase;
+    }
+    .login-box button:hover {
+      background: #a9db00;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Modal -->
+  <div id="login-overlay">
+    <div class="login-box">
+      <h2>Acceso Restringido</h2>
+      <p style="color: var(--brand-gray); font-size: 0.9rem;">Ingrese el PIN de administrador para ver los registros.</p>
+      <input type="password" id="pin-input" placeholder="••••" maxlength="6">
+      <button onclick="checkPin()">Acceder</button>
+      <p id="login-error" style="color: var(--brand-danger); display: none; margin-top: 1rem; font-size: 0.85rem;">PIN incorrecto</p>
+    </div>
+  </div>
+
+  <div class="container" id="main-content" style="display: none;">
+    <header>
+      <h1>Gestiones Eléctricas | Admin</h1>
+      <button onclick="logout()" style="background: transparent; border: 1px solid var(--brand-gray); color: var(--brand-gray); padding: 6px 12px; border-radius: 4px; cursor: pointer;">Salir</button>
+    </header>
+
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="metric-value" id="metric-total">-</div>
+        <div class="metric-label">Actas Totales</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metric-today">-</div>
+        <div class="metric-label">Actas de Hoy</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metric-ok">-</div>
+        <div class="metric-label">Operación Conforme</div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>OT</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Técnico</th>
+            <th>Tensión</th>
+            <th>Corriente</th>
+            <th>Estado Final</th>
+          </tr>
+        </thead>
+        <tbody id="table-body">
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--brand-gray);">Cargando registros...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

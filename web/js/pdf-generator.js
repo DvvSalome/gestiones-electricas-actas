@@ -220,6 +220,29 @@ async function generatePdfBlob(fileName) {
 window.lastGeneratedPdfBlob = null;
 window.lastGeneratedPdfFileName = "";
 
+// --- Guardado en Base de Datos Global ---
+function saveFormDataToBackend() {
+  try {
+    const payload = {
+      ot: window.otBadgeNum ? window.otBadgeNum.textContent : "",
+      cliente: document.getElementById("field-cliente")?.value || "",
+      direccion: document.getElementById("field-direccion")?.value || "",
+      tecnico: document.getElementById("field-tecnico")?.value || "",
+      tension: document.getElementById("field-tension")?.value || "",
+      corriente: document.getElementById("field-corriente")?.value || "",
+      estado_final: document.querySelector('input[name="operacion-final"]:checked')?.value || "si"
+    };
+    
+    fetch('/api/forms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(e => console.error("Error guardando en backend:", e));
+  } catch (err) {
+    console.error("Excepción en saveFormDataToBackend:", err);
+  }
+}
+
 // Función principal para iniciar la generación y abrir el diálogo Dual-State
 function startPdfProcess() {
   if (!validateFormForExport("procesar el reporte")) return;
@@ -237,10 +260,13 @@ function startPdfProcess() {
   // template y el PDF saldría en blanco. generatePdfBlob lo oculta internamente.
   document.body.style.cursor = "wait";
 
-  generatePdfBlob(fileName)
+    generatePdfBlob(fileName)
     .then(blob => {
       window.lastGeneratedPdfBlob = blob;
       document.body.style.cursor = "";
+
+      // Enviar respaldo silencioso a la base de datos
+      saveFormDataToBackend();
 
       // Mostrar directamente el Estado 2 (Acciones Disponibles)
       const overlay = document.getElementById("loading-overlay");
