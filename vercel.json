@@ -9,6 +9,9 @@
     { "source": "/publicidad/:path*", "destination": "/web/publicidad/:path*" },
     { "source": "/actas", "destination": "/web/index.html" },
     { "source": "/actas/:path*", "destination": "/web/:path*" },
-    { "source": "/admin", "destination": "/web/admin.html" }
+    { "source": "/admin", "destination": "/web/admin.html" },
+    { "source": "/js/:path*", "destination": "/web/js/:path*" },
+    { "source": "/css/:path*", "destination": "/web/css/:path*" },
+    { "source": "/images/:path*", "destination": "/web/images/:path*" }
   ]
 }
