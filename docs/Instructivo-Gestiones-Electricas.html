@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Instructivo de uso · Sistema de Actas Digitales · Gestiones Eléctricas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" />
+<style>
+:root {
+  --olive: #2f3a06; --olive-2: #46561a;
+  --lime: #c7e52f; --lime-deep: #9bb81f;
+  --ink: #23280f; --ink-2: #474b34; --muted: #7c8265;
+  --paper: #ffffff; --paper-2: #f6f4ea;
+  --line: #e6e2d3; --line-2: #f0ecdf;
+  --ok: #2f8f5b; --warn: #b47a12; --danger: #c0402f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { background: #e7e3d5; color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 13px; line-height: 1.6; }
+.page { width: 210mm; height: 297mm; overflow: hidden; padding: 0 0 12mm; margin: 14px auto; position: relative; display: flex; flex-direction: column; background: var(--paper); box-shadow: 0 6px 24px rgba(0,0,0,0.10); page-break-after: always; }
+.page:last-of-type { page-break-after: auto; }
+.pad { padding: 0 17mm; }
+
+/* Cabecera olivo */
+.masthead { background: linear-gradient(120deg, #2f3a06, #1c2404); color: #fff; padding: 12mm 17mm 9mm; }
+.mast-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 13px; }
+.brand .logo { width: 46px; height: 46px; border-radius: 12px; background: rgba(199,229,47,0.14); border: 1px solid rgba(199,229,47,0.4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.brand .logo svg { width: 24px; height: 24px; }
+.brand .name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 21px; letter-spacing: -0.01em; }
+.brand .sub { font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--lime); font-weight: 600; margin-top: 2px; }
+.mast-meta { text-align: right; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+.mast-meta strong { color: var(--lime); display: block; font-family: 'Fraunces', serif; font-style: italic; font-size: 13px; letter-spacing: 0; text-transform: none; }
+
+/* Hero */
+.eyebrow { font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; color: var(--lime-deep); font-weight: 700; margin-bottom: 8px; }
+h1 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 34px; line-height: 1.06; letter-spacing: -0.015em; color: var(--ink); }
+h1 em { font-style: italic; color: var(--olive-2); }
+.lede { font-size: 13.5px; color: var(--ink-2); margin-top: 10px; max-width: 96%; }
+
+/* Secciones */
+.sec-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.sec-title .bar { width: 4px; height: 22px; background: var(--lime); border-radius: 3px; }
+.sec-title h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px; color: var(--ink); letter-spacing: -0.008em; }
+.sec-eyebrow { font-size: 9.5px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--lime-deep); font-weight: 700; }
+
+/* Tarjetas "qué se entrega" */
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.card { border: 1px solid var(--line); background: var(--paper-2); border-radius: 12px; padding: 14px 15px; position: relative; }
+.card::before { content: ""; position: absolute; left: 0; top: 13px; bottom: 13px; width: 3px; background: var(--lime); border-radius: 0 3px 3px 0; }
+.card h3 { font-size: 13px; font-weight: 700; color: var(--olive); margin-bottom: 4px; }
+.card p { font-size: 11.5px; color: var(--ink-2); line-height: 1.5; }
+
+/* Bloque URLs */
+.urls { border: 1px solid var(--line); border-left: 3px solid var(--olive); background: #fbfaf4; border-radius: 10px; padding: 14px 16px; }
+.urls .u { display: flex; align-items: baseline; gap: 10px; padding: 4px 0; }
+.urls .u .lab { font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 700; min-width: 88px; }
+.urls .u .val { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; color: var(--olive-2); font-weight: 600; word-break: break-all; }
+
+/* Pasos numerados */
+.steps { display: flex; flex-direction: column; gap: 12px; }
+.step { display: grid; grid-template-columns: 30px 1fr; gap: 13px; align-items: start; }
+.step .n { width: 30px; height: 30px; border-radius: 50%; background: var(--olive); color: var(--lime); font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.step .body h4 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+.step .body p { font-size: 11.8px; color: var(--ink-2); line-height: 1.5; }
+.step .body em { color: var(--olive-2); font-style: normal; font-weight: 600; }
+
+/* Callout */
+.note { border: 1px solid var(--line); border-left: 3px solid var(--lime-deep); background: var(--paper-2); border-radius: 10px; padding: 12px 15px; }
+.note .t { font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--lime-deep); font-weight: 700; margin-bottom: 5px; }
+.note p { font-size: 11.5px; color: var(--ink-2); line-height: 1.55; }
+.note strong { color: var(--ink); }
+
+.spacer { flex: 1; }
+.foot { margin-top: auto; padding: 8mm 17mm 0; display: flex; justify-content: space-between; align-items: center; font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); border-top: 1px solid var(--line); padding-top: 5mm; }
+.foot strong { color: var(--ink-2); }
+.foot .pg { color: var(--olive-2); font-weight: 700; }
+.mt-6 { margin-top: 18px; } .mt-5 { margin-top: 15px; } .mt-4 { margin-top: 12px; }
+@media print {
+  html, body { background: #fff; }
+  .page { margin: 0; box-shadow: none; }
+  @page { size: A4; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ PÁGINA 1 · Portada + Qué se entrega ============ -->
+<section class="page">
+  <div class="masthead">
+    <div class="mast-row">
+      <div class="brand">
+        <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#c7e52f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
+        <div>
+          <div class="name">Gestiones Eléctricas</div>
+          <div class="sub">Sistema de Actas Digitales</div>
+        </div>
+      </div>
+      <div class="mast-meta">
+        Documento<strong>Instructivo</strong>
+        Versión 1.0
+      </div>
+    </div>
+  </div>
+
+  <div class="pad mt-6">
+    <div class="eyebrow">Instructivo de uso</div>
+    <h1>Cómo funciona su sistema de <em>actas y trazabilidad</em></h1>
+    <p class="lede">Este documento describe lo que se entrega y explica, paso a paso, cómo levantar un acta desde el celular y cómo consultar los registros desde el panel de administración.</p>
+  </div>
+
+  <div class="pad mt-6">
+    <div class="sec-title"><span class="bar"></span><h2>Qué se entrega</h2></div>
+    <div class="cards">
+      <div class="card">
+        <h3>Formulario de acta digital</h3>
+        <p>Se llena desde el celular: datos del servicio, mediciones, diagnóstico, GPS, firma del cliente y hasta 10 fotos de evidencia. Genera el acta en PDF al instante.</p>
+      </div>
+      <div class="card">
+        <h3>Panel de trazabilidad</h3>
+        <p>Cada acta queda registrada en la nube. El panel muestra todos los servicios con métricas, búsqueda y filtros por fecha, técnico o estado.</p>
+      </div>
+      <div class="card">
+        <h3>Descarga de actas en PDF</h3>
+        <p>Desde el panel, cada acta puede descargarse en PDF con la identidad de Gestiones Eléctricas, y todo el listado puede exportarse a Excel (CSV).</p>
+      </div>
+      <div class="card">
+        <h3>Acceso seguro y usuarios</h3>
+        <p>El panel exige usuario y contraseña. El administrador puede crear cuentas para delegar el acceso y cambiar su contraseña cuando lo necesite.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pad mt-6">
+    <div class="sec-title"><span class="bar"></span><h2>Direcciones de acceso</h2></div>
+    <div class="urls">
+      <div class="u"><span class="lab">Formulario</span><span class="val">https://gestiones-electricas.vercel.app/</span></div>
+      <div class="u"><span class="lab">Panel admin</span><span class="val">https://gestiones-electricas.vercel.app/admin.html</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><strong>Gestiones Eléctricas SAS</strong> · Soporte digital de servicio</span>
+    <span class="pg">Página 1 / 3</span>
+  </div>
+</section>
+
+<!-- ============ PÁGINA 2 · Cómo levantar un acta ============ -->
+<section class="page">
+  <div class="pad" style="padding-top: 15mm;">
+    <div class="sec-eyebrow">Para el técnico en terreno</div>
+    <div class="sec-title" style="margin-top:6px;"><span class="bar"></span><h2>Cómo levantar un acta</h2></div>
+    <p class="lede" style="margin-bottom:20px;">Abra la dirección del formulario en el celular. No requiere instalar nada.</p>
+
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="body">
+        <h4>Complete los datos del servicio</h4>
+        <p>Cliente, dirección, contacto, técnico y matrícula. La ubicación <em>GPS</em> se toma automáticamente del dispositivo.</p>
+      </div></div>
+      <div class="step"><div class="n">2</div><div class="body">
+        <h4>Registre la valoración técnica</h4>
+        <p>Mediciones de tensión y corriente, diagnóstico, acciones realizadas y el estado final del servicio (conforme, parcial o en riesgo).</p>
+      </div></div>
+      <div class="step"><div class="n">3</div><div class="body">
+        <h4>Agregue las fotos de evidencia</h4>
+        <p>Toque cada recuadro para tomar o elegir una foto. Con el botón <em>Agregar evidencia</em> puede sumar fotos extra, hasta un total de 10.</p>
+      </div></div>
+      <div class="step"><div class="n">4</div><div class="body">
+        <h4>Recoja la firma del cliente</h4>
+        <p>El cliente firma en pantalla y escribe su nombre y documento. La firma queda incrustada en el acta.</p>
+      </div></div>
+      <div class="step"><div class="n">5</div><div class="body">
+        <h4>Genere el acta y descárguela</h4>
+        <p>Al procesar el acta se crea el <em>PDF</em> con las fotos incluidas. El botón <em>Descargar</em> baja el archivo directo al dispositivo; también puede enviarse por WhatsApp o correo.</p>
+      </div></div>
+    </div>
+
+    <div class="note mt-6">
+      <div class="t">Importante</div>
+      <p>El registro en la nube (para el panel) se guarda <strong>en el momento de generar el PDF</strong>. Si solo se llena el formulario pero no se genera el acta, no queda registro. Complete siempre el flujo hasta descargar o compartir.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><strong>Gestiones Eléctricas SAS</strong> · Soporte digital de servicio</span>
+    <span class="pg">Página 2 / 3</span>
+  </div>
+</section>
+
+<!-- ============ PÁGINA 3 · Cómo usar el panel ============ -->
+<section class="page">
+  <div class="pad" style="padding-top: 15mm;">
+    <div class="sec-eyebrow">Para el administrador</div>
+    <div class="sec-title" style="margin-top:6px;"><span class="bar"></span><h2>Cómo usar el panel</h2></div>
+    <p class="lede" style="margin-bottom:20px;">Abra la dirección del panel e inicie sesión con su usuario y contraseña.</p>
+
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="body">
+        <h4>Consulte los servicios</h4>
+        <p>La tabla lista cada acta con fecha, cliente, contacto, técnico, fotos y estado. Arriba, las tarjetas resumen el total, las de hoy, la semana, el mes y el porcentaje conforme. Se actualiza sola cada pocos segundos.</p>
+      </div></div>
+      <div class="step"><div class="n">2</div><div class="body">
+        <h4>Busque y filtre</h4>
+        <p>Use el buscador (cliente, OT, técnico, dirección o teléfono) y los filtros por <em>rango de fechas</em> y <em>estado</em> para encontrar un servicio.</p>
+      </div></div>
+      <div class="step"><div class="n">3</div><div class="body">
+        <h4>Descargue actas y exporte</h4>
+        <p>El botón <em>PDF</em> de cada fila descarga esa acta. El botón <em>Exportar CSV</em> baja todo el listado (filtrado) para abrirlo en Excel.</p>
+      </div></div>
+      <div class="step"><div class="n">4</div><div class="body">
+        <h4>Cree usuarios para delegar</h4>
+        <p>En <em>Usuarios</em> puede crear cuentas para otras personas (usuario y contraseña) y eliminarlas. Cada persona entra con su propia cuenta.</p>
+      </div></div>
+      <div class="step"><div class="n">5</div><div class="body">
+        <h4>Cambie su contraseña</h4>
+        <p>En <em>Cambiar contraseña</em> defina una clave propia (mínimo 8 caracteres). Hágalo la primera vez que ingrese.</p>
+      </div></div>
+    </div>
+
+    <div class="note mt-6">
+      <div class="t">Acceso</div>
+      <p>Las <strong>credenciales de administrador</strong> se entregan por separado, por seguridad. Al ingresar por primera vez, cambie la contraseña desde el panel. Si la olvida, el proveedor puede regenerarla.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span><strong>Gestiones Eléctricas SAS</strong> · Entregado por FourG Solutions</span>
+    <span class="pg">Página 3 / 3</span>
+  </div>
+</section>
+
+</body>
+</html>
