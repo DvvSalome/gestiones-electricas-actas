@@ -3,7 +3,7 @@
 // - Contraseñas: scrypt + salt aleatoria (nunca en texto plano).
 // - Sesión: token firmado con HMAC-SHA256 usando BLOB_READ_WRITE_TOKEN como
 //   clave (secreto que solo existe en el servidor); expira a las 12 h.
-const { put, list } = require('@vercel/blob');
+const { put, list, del } = require('@vercel/blob');
 const crypto = require('crypto');
 
 const CORS = {
@@ -45,22 +45,32 @@ function safeEq(a, b) {
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
 }
 
-function usersKey(tenant) { return `admin_auth/${tenant}.json`; }
+// Prefijo que agrupa todas las versiones del blob de usuarios de un tenant.
+// Cada guardado escribe un blob NUEVO con sufijo aleatorio (URL única); así las
+// lecturas nunca traen una versión cacheada por el CDN. Al leer se toma la más
+// reciente; al guardar se borran las versiones anteriores.
+function usersPrefix(tenant) { return `admin_auth/${tenant}`; }
+
 async function getUsers(tenant) {
   try {
-    const { blobs } = await list({ prefix: usersKey(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
-    if (!blobs.length) return { users: [] };
-    const res = await fetch(blobs[0].url + '?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) return { users: [] };
-    return await res.json();
-  } catch (e) { console.error('[getUsers]', e); return { users: [] }; }
+    const { blobs } = await list({ prefix: usersPrefix(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
+    if (!blobs.length) return { users: [], _prev: [] };
+    blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    const res = await fetch(blobs[0].url, { cache: 'no-store' });
+    const data = res.ok ? await res.json() : { users: [] };
+    data._prev = blobs.map(b => b.url); // versiones existentes al leer (a borrar en el save)
+    return data;
+  } catch (e) { console.error('[getUsers]', e); return { users: [], _prev: [] }; }
 }
+
 async function saveUsers(tenant, data) {
-  await put(usersKey(tenant), JSON.stringify(data), {
-    access: 'public', addRandomSuffix: false, allowOverwrite: true,
-    cacheControlMaxAge: 0, // sin caché en el CDN: las lecturas ven el cambio de inmediato
+  const prev = data._prev || [];
+  await put(`admin_auth/${tenant}.json`, JSON.stringify({ users: data.users || [] }), {
+    access: 'public', addRandomSuffix: true,
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
+  // Borrar las versiones anteriores (incluida la que acabamos de reemplazar).
+  for (const url of prev) { try { await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN }); } catch (e) { /* ya borrada */ } }
 }
 
 module.exports = async function handler(req, res) {

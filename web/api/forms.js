@@ -1,4 +1,4 @@
-const { put, list } = require('@vercel/blob');
+const { put, list, del } = require('@vercel/blob');
 const crypto = require('crypto');
 
 const CORS_HEADERS = {
@@ -28,32 +28,38 @@ function tokenFromReq(req) {
   return h.startsWith('Bearer ') ? h.slice(7) : '';
 }
 
-// Clave del blob por "tenant" (cliente). Compartida con el proyecto ge-plataforma.
-function blobKey(tenant) {
-  return `forms/${tenant}.json`;
+// Prefijo del blob por "tenant" (cliente). Cada guardado escribe una versión
+// nueva con sufijo aleatorio (URL única) → lecturas siempre frescas (sin caché
+// stale del CDN). Al leer se toma la más reciente; al guardar se borran las
+// versiones anteriores. Evita perder actas por lecturas desactualizadas.
+function formsPrefix(tenant) {
+  return `forms/${tenant}`;
 }
 
 async function getForms(tenant) {
   try {
-    const { blobs } = await list({ prefix: blobKey(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
-    if (blobs.length === 0) return [];
-    const res = await fetch(blobs[0].url + '?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) return [];
-    return await res.json();
+    const { blobs } = await list({ prefix: formsPrefix(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
+    if (blobs.length === 0) { const empty = []; empty._prev = []; return empty; }
+    blobs.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    const res = await fetch(blobs[0].url, { cache: 'no-store' });
+    const data = res.ok ? await res.json() : [];
+    const arr = Array.isArray(data) ? data : [];
+    arr._prev = blobs.map(b => b.url);
+    return arr;
   } catch (e) {
     console.error('[getForms]', e);
-    return [];
+    const empty = []; empty._prev = []; return empty;
   }
 }
 
 async function saveForms(tenant, formsArray) {
-  await put(blobKey(tenant), JSON.stringify(formsArray), {
+  const prev = formsArray._prev || [];
+  await put(`forms/${tenant}.json`, JSON.stringify(formsArray), {
     access: 'public',
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    cacheControlMaxAge: 0, // sin caché en el CDN: el panel ve las actas nuevas al instante
+    addRandomSuffix: true,
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
+  for (const url of prev) { try { await del(url, { token: process.env.BLOB_READ_WRITE_TOKEN }); } catch (e) { /* ya borrada */ } }
 }
 
 module.exports = async function handler(req, res) {
