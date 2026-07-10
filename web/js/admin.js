@@ -5,9 +5,38 @@ let VIEW_FORMS = [];  // subconjunto tras aplicar filtros
 
 function getToken() { return sessionStorage.getItem(TOKEN_KEY) || ""; }
 
+// Extrae el usuario en sesión del propio token (payload firmado). No necesita
+// llamar al servidor y funciona también al recargar la página.
+function getUsername() {
+  const t = getToken();
+  if (!t || t.indexOf(".") < 0) return "";
+  try {
+    const payload = t.split(".")[0].replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(payload);
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    const data = JSON.parse(new TextDecoder().decode(bytes));
+    return data.u || "";
+  } catch (e) { return ""; }
+}
+
+function showUserBadge() {
+  const name = getUsername();
+  const chip = document.getElementById("panel-user");
+  if (!chip) return;
+  if (name) {
+    document.getElementById("panel-user-name").textContent = name;
+    document.getElementById("pu-avatar").textContent = name.charAt(0).toUpperCase();
+    chip.style.display = "inline-flex";
+    document.title = `Panel de ${name} · Gestiones Eléctricas`;
+  } else {
+    chip.style.display = "none";
+  }
+}
+
 function showPanel() {
   document.getElementById("login-overlay").style.display = "none";
   document.getElementById("main-content").style.display = "block";
+  showUserBadge();
 }
 function showLogin(msg) {
   document.getElementById("login-overlay").style.display = "flex";

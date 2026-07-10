@@ -69,6 +69,21 @@
     .btn-ghost:hover { border-color: var(--olive-soft); color: var(--ink); background: var(--cream-2); }
     .btn:disabled { opacity: .55; cursor: not-allowed; }
 
+    /* Indicador del usuario en sesión */
+    .user-chip {
+      display: inline-flex; align-items: center; gap: 9px;
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 999px; padding: 5px 15px 5px 5px;
+    }
+    .user-chip .pu-avatar {
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      background: var(--olive); color: var(--lime);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px;
+    }
+    .user-chip .pu-text { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .user-chip .pu-text strong { color: var(--ink); font-weight: 700; }
+
     /* Metrics */
     .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; margin-bottom: 22px; }
     .metric-card {
@@ -223,6 +238,10 @@
         </div>
       </div>
       <div class="header-actions">
+        <div class="user-chip" id="panel-user" style="display:none;">
+          <span class="pu-avatar" id="pu-avatar">A</span>
+          <span class="pu-text">Panel de <strong id="panel-user-name"></strong></span>
+        </div>
         <button class="btn btn-ghost" onclick="openUsers()">Usuarios</button>
         <button class="btn btn-ghost" onclick="openChangePassword()">Cambiar contraseña</button>
         <button class="btn btn-ghost" onclick="logout()">Salir</button>
