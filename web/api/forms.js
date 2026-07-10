@@ -37,7 +37,7 @@ async function getForms(tenant) {
   try {
     const { blobs } = await list({ prefix: blobKey(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
     if (blobs.length === 0) return [];
-    const res = await fetch(blobs[0].url + '?t=' + Date.now()); // evitar caché del blob
+    const res = await fetch(blobs[0].url + '?t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -51,6 +51,7 @@ async function saveForms(tenant, formsArray) {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
+    cacheControlMaxAge: 0, // sin caché en el CDN: el panel ve las actas nuevas al instante
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
 }

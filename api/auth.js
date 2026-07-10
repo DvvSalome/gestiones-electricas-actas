@@ -50,7 +50,7 @@ async function getUsers(tenant) {
   try {
     const { blobs } = await list({ prefix: usersKey(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
     if (!blobs.length) return { users: [] };
-    const res = await fetch(blobs[0].url + '?t=' + Date.now());
+    const res = await fetch(blobs[0].url + '?t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) return { users: [] };
     return await res.json();
   } catch (e) { console.error('[getUsers]', e); return { users: [] }; }
@@ -58,6 +58,7 @@ async function getUsers(tenant) {
 async function saveUsers(tenant, data) {
   await put(usersKey(tenant), JSON.stringify(data), {
     access: 'public', addRandomSuffix: false, allowOverwrite: true,
+    cacheControlMaxAge: 0, // sin caché en el CDN: las lecturas ven el cambio de inmediato
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
 }

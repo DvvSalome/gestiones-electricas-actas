@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, bypass-tunnel-reminder',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
 // Verificación del token de sesión (mismo secreto/algoritmo que /api/auth).
@@ -22,23 +22,22 @@ function verifyToken(token) {
     return data;
   } catch { return null; }
 }
+
 function tokenFromReq(req) {
   const h = req.headers['authorization'] || req.headers['Authorization'] || '';
   return h.startsWith('Bearer ') ? h.slice(7) : '';
 }
 
-// Blob key for forms
+// Clave del blob por "tenant" (cliente). Compartida con el proyecto ge-plataforma.
 function blobKey(tenant) {
   return `forms/${tenant}.json`;
 }
 
-// Read all forms from Blob
 async function getForms(tenant) {
   try {
     const { blobs } = await list({ prefix: blobKey(tenant), token: process.env.BLOB_READ_WRITE_TOKEN });
     if (blobs.length === 0) return [];
-    
-    const res = await fetch(blobs[0].url);
+    const res = await fetch(blobs[0].url + '?t=' + Date.now(), { cache: 'no-store' });
     if (!res.ok) return [];
     return await res.json();
   } catch (e) {
@@ -47,61 +46,46 @@ async function getForms(tenant) {
   }
 }
 
-// Write all forms to Blob
 async function saveForms(tenant, formsArray) {
   await put(blobKey(tenant), JSON.stringify(formsArray), {
     access: 'public',
     addRandomSuffix: false,
     allowOverwrite: true,
+    cacheControlMaxAge: 0, // sin caché en el CDN: el panel ve las actas nuevas al instante
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
 }
 
 module.exports = async function handler(req, res) {
-  // CORS
   Object.entries(CORS_HEADERS).forEach(([k, v]) => res.setHeader(k, v));
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const tenant = req.query.tenant || 'gestiones-electricas';
+  const tenant = (req.query && req.query.tenant) || 'gestiones-electricas';
 
-  // ── GET: List forms (protegido: requiere sesión de admin) ──
+  // ── GET: listar actas (protegido: solo con sesión de admin válida) ──
   if (req.method === 'GET') {
     if (!verifyToken(tokenFromReq(req))) {
       return res.status(401).json({ error: 'No autorizado. Inicie sesión en el panel.' });
     }
     const forms = await getForms(tenant);
-    // Sort by created_at descending (newest first)
     forms.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    return res.json({
-      total: forms.length,
-      forms: forms,
-    });
+    return res.json({ total: forms.length, forms });
   }
 
-  // ── POST: Save a new form ──
+  // ── POST: guardar/actualizar un acta por OT ──
   if (req.method === 'POST') {
     const formData = req.body || {};
-    
     if (!formData.ot) {
       return res.status(400).json({ error: '"ot" es requerido en el body' });
     }
 
     const forms = await getForms(tenant);
     const now = new Date().toISOString();
-    
-    const newRecord = {
-      ...formData,
-      created_at: now,
-    };
+    const newRecord = { ...formData, created_at: now };
 
-    // Check if OT already exists to update it, or just push a new one
-    // For traceability, it's better to update if OT exists, or just allow multiple versions?
-    // Let's update by OT
     const existingIndex = forms.findIndex(f => f.ot === formData.ot);
     if (existingIndex >= 0) {
-      // Preserve original created_at if updating
-      newRecord.created_at = forms[existingIndex].created_at;
+      newRecord.created_at = forms[existingIndex].created_at; // preservar alta original
       newRecord.updated_at = now;
       forms[existingIndex] = newRecord;
     } else {
@@ -109,11 +93,7 @@ module.exports = async function handler(req, res) {
     }
 
     await saveForms(tenant, forms);
-
-    return res.json({
-      success: true,
-      form: newRecord,
-    });
+    return res.json({ success: true, form: newRecord });
   }
 
   res.status(405).json({ error: 'Método no permitido' });
