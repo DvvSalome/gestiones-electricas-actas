@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Anexo Técnico · Arquitectura · Gestiones Eléctricas · FourG Solutions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+<style>
+:root {
+  --paper: #fcfaf6; --paper-2: #f6f1e7;
+  --ink: #2a2622; --ink-2: #4a4239; --muted: #8a8073;
+  --gold: #b8923f; --gold-soft: #c9a85a;
+  --hairline: rgba(184, 146, 63, 0.22);
+  --hairline-2: rgba(74, 66, 57, 0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { background: #ede4d2; color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 13.5px; line-height: 1.65; }
+.page { width: 210mm; min-height: 297mm; height: 297mm; overflow: hidden; padding: 15mm 18mm 13mm; margin: 14px auto; position: relative; display: flex; flex-direction: column; background: var(--paper); box-shadow: 0 6px 24px rgba(0,0,0,0.08); page-break-after: always; }
+.page:last-of-type { page-break-after: auto; }
+.doc-header { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; padding-bottom: 8mm; border-bottom: 1px solid var(--hairline); }
+.doc-header .brand { display: flex; align-items: center; gap: 12px; }
+.doc-header .brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.doc-header .brand-name { font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+.doc-header .brand-tag { font-family: 'Inter', sans-serif; font-size: 8.5px; letter-spacing: 0.34em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-top: 3px; }
+.doc-header .meta { text-align: right; display: flex; flex-direction: column; gap: 3px; }
+.doc-header .meta .num { font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600; font-style: italic; color: var(--gold); }
+.doc-header .meta .date { font-family: 'Inter', sans-serif; font-size: 8.5px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.hero { padding: 8mm 0 6mm; border-bottom: 1px solid var(--hairline); }
+.eyebrow { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.42em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+h1.title { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 38px; line-height: 1.05; letter-spacing: -0.014em; color: var(--ink); margin-bottom: 6px; }
+h1.title em { font-style: italic; font-weight: 500; color: var(--gold); }
+.client-line { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 10px; font-family: 'Inter', sans-serif; font-size: 11px; color: var(--ink-2); }
+.client-line .label { letter-spacing: 0.34em; text-transform: uppercase; font-size: 8.5px; color: var(--muted); }
+.client-line strong { color: var(--ink); font-weight: 600; }
+.client-line .sep { color: var(--gold-soft); }
+.intro { padding: 6mm 0 5mm; border-bottom: 1px solid var(--hairline); }
+.intro .lede { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 500; font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 96%; }
+.intro .lede em { color: var(--gold); }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 6mm 0 0; }
+.metric { padding: 8px 12px; border: 1px solid var(--hairline); border-left: 2px solid var(--gold); border-radius: 3px; background: rgba(184, 146, 63, 0.03); }
+.metric .n { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-style: italic; font-size: 22px; color: var(--gold); line-height: 1; }
+.metric .l { font-family: 'Inter', sans-serif; font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.section { padding: 6mm 0 4mm; }
+.section + .section { border-top: 1px solid var(--hairline-2); padding-top: 5mm; }
+.section-head { display: grid; grid-template-columns: 36px 1fr auto; gap: 12px; align-items: baseline; margin-bottom: 5mm; padding-bottom: 3mm; border-bottom: 1px solid var(--hairline); }
+.section-num { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 600; font-size: 34px; line-height: 1; color: var(--gold); }
+.section-title { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 22px; line-height: 1.1; letter-spacing: -0.008em; color: var(--ink); }
+.section-title em { font-style: italic; color: var(--gold); font-weight: 600; }
+.section-eyebrow { display: block; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 8.5px; letter-spacing: 0.42em; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
+.item { display: grid; grid-template-columns: 16px 1fr; gap: 10px; margin-bottom: 4mm; }
+.item .bullet { color: var(--gold); font-family: 'Cormorant Garamond', serif; font-weight: 600; font-style: italic; font-size: 14px; line-height: 1.4; }
+.item h4 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 12px; color: var(--ink); margin-bottom: 3px; line-height: 1.3; }
+.item p { font-size: 11px; line-height: 1.6; color: var(--ink-2); }
+.item ul { list-style: none; padding-left: 0; margin-top: 4px; }
+.item ul li { font-size: 10.5px; color: var(--ink-2); padding-left: 12px; position: relative; line-height: 1.6; margin-bottom: 2px; }
+.item ul li::before { content: "·"; position: absolute; left: 4px; color: var(--gold); font-weight: 700; }
+.callout { margin: 5mm 0; padding: 5mm 6mm; background: var(--paper-2); border: 1px solid var(--hairline); border-left: 3px solid var(--gold); border-radius: 3px; }
+.callout .label { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 8.5px; letter-spacing: 0.42em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.callout h3 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 18px; line-height: 1.15; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.005em; }
+.callout h3 em { font-style: italic; color: var(--gold); }
+.callout p { font-size: 11px; line-height: 1.6; color: var(--ink-2); }
+.table { width: 100%; border-collapse: collapse; margin: 4mm 0; font-size: 10.5px; }
+.table th, .table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--hairline-2); vertical-align: top; }
+.table th { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 8.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--hairline); background: rgba(184, 146, 63, 0.04); }
+.table td { color: var(--ink-2); }
+.table tr:last-child td { border-bottom: none; }
+.table td strong { color: var(--ink); font-weight: 600; }
+code, .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; background: var(--paper-2); padding: 1px 5px; border-radius: 2px; color: var(--ink); border: 1px solid var(--hairline-2); }
+.url { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--gold); word-break: break-all; }
+.doc-footer { margin-top: auto; padding-top: 6mm; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; font-family: 'Inter', sans-serif; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.doc-footer .left strong { color: var(--ink-2); font-weight: 600; }
+.doc-footer .right { color: var(--gold); font-weight: 500; }
+@media print {
+  html, body { background: #fff; }
+  .page { margin: 0; box-shadow: none; }
+  @page { size: A4; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ PÁGINA 1 · Portada + Componentes ============ -->
+<section class="page">
+
+  <header class="doc-header">
+    <div class="brand">
+      <div class="brand-text">
+        <span class="brand-name">FourG Solutions</span>
+        <span class="brand-tag">Software · Sistemas · Forensia</span>
+      </div>
+    </div>
+    <div></div>
+    <div class="meta">
+      <span class="num">FGS-2026-074</span>
+      <span class="date">2026 · 07 · 09</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">ANEXO TÉCNICO</div>
+    <h1 class="title">Arquitectura del sistema de <em>actas y trazabilidad</em></h1>
+    <div class="client-line">
+      <span class="label">Cliente</span>
+      <strong>Gestiones Eléctricas SAS</strong>
+      <span class="sep">·</span>
+      <span class="label">Alcance</span>
+      <strong>Acta técnica digital y panel</strong>
+    </div>
+  </section>
+
+  <section class="intro">
+    <p class="lede">
+      Aplicación web en la nube para levantar actas técnicas de servicio y dar trazabilidad de cada visita.
+      El formulario corre en el navegador y genera el PDF ahí mismo; un registro de cada servicio se guarda
+      de forma segura en la nube y se consulta desde un <em>panel con usuario y contraseña</em>.
+    </p>
+  </section>
+
+  <div class="metrics">
+    <div class="metric"><div class="n">0</div><div class="l">Servidores propios</div></div>
+    <div class="metric"><div class="n">2</div><div class="l">Accesos web</div></div>
+    <div class="metric"><div class="n">100%</div><div class="l">En la nube</div></div>
+    <div class="metric"><div class="n">12 h</div><div class="l">Sesión del panel</div></div>
+  </div>
+
+  <section class="section">
+    <header class="section-head">
+      <div class="section-num">01</div>
+      <div>
+        <span class="section-eyebrow">Componentes</span>
+        <h2 class="section-title">De qué está hecho <em>el sistema</em></h2>
+      </div>
+    </header>
+
+    <table class="table">
+      <thead>
+        <tr><th>Capa</th><th>Qué es</th><th>Dónde corre</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Frontend</strong></td>
+          <td>Formulario del acta y panel de administración (HTML, CSS y JavaScript). El PDF se arma en el propio navegador.</td>
+          <td>Vercel (red global de distribución)</td>
+        </tr>
+        <tr>
+          <td><strong>Backend</strong></td>
+          <td>Funciones serverless en Node.js: guardar y listar actas, e inicio de sesión del panel.</td>
+          <td>Vercel (se ejecutan bajo demanda)</td>
+        </tr>
+        <tr>
+          <td><strong>Base de datos</strong></td>
+          <td>Vercel Blob (almacenamiento en la nube tipo archivo). Los datos viven en un archivo JSON.</td>
+          <td>Vercel (región EE. UU.)</td>
+        </tr>
+        <tr>
+          <td><strong>Código fuente</strong></td>
+          <td>Repositorio del proyecto, versionado.</td>
+          <td>GitHub (cuenta de FourG)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="label">En términos simples</div>
+      <h3>No hay un servidor propio que <em>encender ni mantener</em></h3>
+      <p>Todo corre sobre la infraestructura de Vercel y escala solo. No hay una máquina física ni una base de datos SQL tradicional que administrar, lo que reduce costo y mantenimiento.</p>
+    </div>
+  </section>
+
+  <footer class="doc-footer">
+    <span class="left"><strong>FourG Solutions</strong> · four4gsolutions@gmail.com · fourgsolutions.com</span>
+    <span class="right">Página 1 / 3</span>
+  </footer>
+
+</section>
+
+<!-- ============ PÁGINA 2 · Datos + Accesos ============ -->
+<section class="page">
+
+  <header class="doc-header">
+    <div class="brand">
+      <div class="brand-text">
+        <span class="brand-name">FourG Solutions</span>
+        <span class="brand-tag">Software · Sistemas · Forensia</span>
+      </div>
+    </div>
+    <div></div>
+    <div class="meta">
+      <span class="num">FGS-2026-074</span>
+      <span class="date">2026 · 07 · 09</span>
+    </div>
+  </header>
+
+  <section class="section">
+    <header class="section-head">
+      <div class="section-num">02</div>
+      <div>
+        <span class="section-eyebrow">Datos</span>
+        <h2 class="section-title">Dónde se guardan <em>los registros</em></h2>
+      </div>
+    </header>
+
+    <div class="item">
+      <div class="bullet">·</div>
+      <div>
+        <h4>Registro de cada acta</h4>
+        <p>Se guarda en Vercel Blob, en el archivo <code>forms/gestiones-electricas.json</code>. Contiene los datos del servicio:</p>
+        <ul>
+          <li>Cliente, contacto, dirección y coordenadas GPS</li>
+          <li>Técnico, matrícula, mediciones (tensión y corriente), diagnóstico y estado</li>
+          <li>Firmante, número de fotos, y fecha y hora</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="bullet">·</div>
+      <div>
+        <h4>Usuarios del panel</h4>
+        <p>En el archivo <code>admin_auth/gestiones-electricas.json</code>, con la contraseña siempre <strong>cifrada (hasheada)</strong>, nunca en texto plano.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="label">Importante</div>
+      <h3>Qué NO se almacena <em>en la nube</em></h3>
+      <p>El PDF y las fotos de evidencia se generan y quedan en el dispositivo del usuario (se incrustan en el PDF que luego se descarga o comparte por WhatsApp o correo). En la nube solo queda el registro en texto y el número de fotos. Si en el futuro se desea archivar también las fotos en la nube, es un cambio que se puede agregar.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <header class="section-head">
+      <div class="section-num">03</div>
+      <div>
+        <span class="section-eyebrow">Accesos</span>
+        <h2 class="section-title">Direcciones web <em>del sistema</em></h2>
+      </div>
+    </header>
+
+    <table class="table">
+      <thead>
+        <tr><th>Acceso</th><th>Para qué</th><th>Dirección</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Formulario</strong></td>
+          <td>Levantar el acta de servicio (público).</td>
+          <td><span class="url">https://gestiones-electricas.vercel.app/</span></td>
+        </tr>
+        <tr>
+          <td><strong>Panel admin</strong></td>
+          <td>Ver la trazabilidad (requiere usuario y contraseña).</td>
+          <td><span class="url">https://gestiones-electricas.vercel.app/admin.html</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="doc-footer">
+    <span class="left"><strong>FourG Solutions</strong> · four4gsolutions@gmail.com · fourgsolutions.com</span>
+    <span class="right">Página 2 / 3</span>
+  </footer>
+
+</section>
+
+<!-- ============ PÁGINA 3 · Seguridad + Flujo ============ -->
+<section class="page">
+
+  <header class="doc-header">
+    <div class="brand">
+      <div class="brand-text">
+        <span class="brand-name">FourG Solutions</span>
+        <span class="brand-tag">Software · Sistemas · Forensia</span>
+      </div>
+    </div>
+    <div></div>
+    <div class="meta">
+      <span class="num">FGS-2026-074</span>
+      <span class="date">2026 · 07 · 09</span>
+    </div>
+  </header>
+
+  <section class="section">
+    <header class="section-head">
+      <div class="section-num">04</div>
+      <div>
+        <span class="section-eyebrow">Seguridad</span>
+        <h2 class="section-title">Cómo se protege <em>la información</em></h2>
+      </div>
+    </header>
+
+    <div class="item">
+      <div class="bullet">·</div>
+      <div>
+        <h4>Inicio de sesión real en el panel</h4>
+        <p>Acceso con usuario y contraseña. Las contraseñas se guardan cifradas con scrypt más una sal aleatoria. El panel permite cambiar la contraseña.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="bullet">·</div>
+      <div>
+        <h4>Sesión con token firmado</h4>
+        <p>Cada ingreso genera un token firmado (HMAC SHA-256) que expira a las 12 horas. La clave de firma vive solo en el servidor.</p>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="bullet">·</div>
+      <div>
+        <h4>Datos cerrados al público</h4>
+        <p>La consulta de registros exige una sesión válida. Sin iniciar sesión, la petición se rechaza. El envío de actas queda abierto para que cualquier cliente pueda registrar su servicio, lo que no expone ningún dato.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <header class="section-head">
+      <div class="section-num">05</div>
+      <div>
+        <span class="section-eyebrow">Flujo</span>
+        <h2 class="section-title">Recorrido de <em>una acta</em></h2>
+      </div>
+    </header>
+
+    <div class="item">
+      <div class="bullet">·</div>
+      <div><h4>1. Se llena el formulario en el navegador</h4><p>El usuario abre la dirección del formulario y captura los datos, la firma y las fotos.</p></div>
+    </div>
+    <div class="item">
+      <div class="bullet">·</div>
+      <div><h4>2. Se genera el PDF en el dispositivo</h4><p>El acta se arma con las fotos incrustadas y se descarga o comparte por WhatsApp o correo.</p></div>
+    </div>
+    <div class="item">
+      <div class="bullet">·</div>
+      <div><h4>3. Se guarda el registro en la nube</h4><p>En paralelo, un resumen en texto del servicio se envía y se guarda en Vercel Blob.</p></div>
+    </div>
+    <div class="item">
+      <div class="bullet">·</div>
+      <div><h4>4. El encargado consulta el panel</h4><p>Inicia sesión y ve todos los servicios, con filtros por fecha, técnico o estado, y exportación a CSV (Excel).</p></div>
+    </div>
+  </section>
+
+  <footer class="doc-footer">
+    <span class="left"><strong>FourG Solutions</strong> · four4gsolutions@gmail.com · fourgsolutions.com</span>
+    <span class="right">Página 3 / 3</span>
+  </footer>
+
+</section>
+
+</body>
+</html>
