@@ -109,10 +109,26 @@ async function doChangePassword() {
 }
 
 /* ── Gestión de usuarios del panel ── */
+let PANEL_USERS = [];
+
+function nuMsg(t, ok) {
+  const msg = document.getElementById("nu-msg");
+  msg.textContent = t; msg.className = "msg " + (ok ? "msg-ok" : "msg-error"); msg.style.display = "block";
+}
+
+function renderUsersList() {
+  const cont = document.getElementById("users-list");
+  cont.innerHTML = PANEL_USERS.map(u => `
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--cream); border:1px solid var(--line); border-radius:9px; margin-bottom:7px;">
+      <span style="font-weight:600; color:var(--ink); font-size:13.5px;">${esc(u.username)}</span>
+      <button class="btn btn-ghost" style="padding:4px 11px; font-size:11.5px;" onclick="deleteUser('${esc(u.username).replace(/'/g, "\\'")}')">Eliminar</button>
+    </div>`).join('') || `<p style="font-size:13px; color:var(--muted);">Sin usuarios.</p>`;
+}
+
 function openUsers() {
   document.getElementById("nu-user").value = "";
   document.getElementById("nu-pass").value = "";
-  const m = document.getElementById("nu-msg"); m.style.display = "none";
+  document.getElementById("nu-msg").style.display = "none";
   document.getElementById("users-overlay").style.display = "flex";
   loadUsers();
 }
@@ -127,12 +143,8 @@ async function loadUsers() {
     });
     if (res.status === 401) { document.getElementById("users-overlay").style.display = "none"; logoutToLogin("Su sesión expiró. Ingrese de nuevo."); return; }
     const data = await res.json();
-    const users = data.users || [];
-    cont.innerHTML = users.map(u => `
-      <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--cream); border:1px solid var(--line); border-radius:9px; margin-bottom:7px;">
-        <span style="font-weight:600; color:var(--ink); font-size:13.5px;">${esc(u.username)}</span>
-        <button class="btn btn-ghost" style="padding:4px 11px; font-size:11.5px;" onclick="deleteUser('${esc(u.username).replace(/'/g, "\\'")}')">Eliminar</button>
-      </div>`).join('') || `<p style="font-size:13px; color:var(--muted);">Sin usuarios.</p>`;
+    PANEL_USERS = data.users || [];
+    renderUsersList();
   } catch (e) {
     cont.innerHTML = `<p style="font-size:13px; color:var(--danger);">No se pudo cargar la lista de usuarios.</p>`;
   }
@@ -141,10 +153,8 @@ async function loadUsers() {
 async function createUser() {
   const username = document.getElementById("nu-user").value.trim();
   const password = document.getElementById("nu-pass").value;
-  const msg = document.getElementById("nu-msg");
-  const setMsg = (t, ok) => { msg.textContent = t; msg.className = "msg " + (ok ? "msg-ok" : "msg-error"); msg.style.display = "block"; };
-  if (!username) return setMsg("Ingrese un nombre de usuario.", false);
-  if (password.length < 8) return setMsg("La contraseña debe tener al menos 8 caracteres.", false);
+  if (!username) return nuMsg("Ingrese un nombre de usuario.", false);
+  if (password.length < 8) return nuMsg("La contraseña debe tener al menos 8 caracteres.", false);
   try {
     const res = await fetch('/api/auth', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -152,17 +162,17 @@ async function createUser() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "No se pudo crear el usuario");
-    setMsg(`✓ Usuario "${username}" creado.`, true);
+    // Optimista: reflejar de inmediato (la lista en la nube tarda unos segundos en refrescar).
+    if (!PANEL_USERS.some(u => u.username.toLowerCase() === username.toLowerCase())) PANEL_USERS.push({ username });
+    renderUsersList();
+    nuMsg(`✓ Usuario "${username}" creado. Ya puede iniciar sesión.`, true);
     document.getElementById("nu-user").value = "";
     document.getElementById("nu-pass").value = "";
-    loadUsers();
-  } catch (e) { setMsg(e.message || "Error", false); }
+  } catch (e) { nuMsg(e.message || "Error", false); }
 }
 
 async function deleteUser(username) {
   if (!confirm(`¿Eliminar el usuario "${username}"? Esta acción no se puede deshacer.`)) return;
-  const msg = document.getElementById("nu-msg");
-  const setMsg = (t, ok) => { msg.textContent = t; msg.className = "msg " + (ok ? "msg-ok" : "msg-error"); msg.style.display = "block"; };
   try {
     const res = await fetch('/api/auth', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -170,9 +180,10 @@ async function deleteUser(username) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "No se pudo eliminar el usuario");
-    setMsg("Usuario eliminado.", true);
-    loadUsers();
-  } catch (e) { setMsg(e.message || "Error", false); }
+    PANEL_USERS = PANEL_USERS.filter(u => u.username.toLowerCase() !== username.toLowerCase());
+    renderUsersList();
+    nuMsg(`Usuario "${username}" eliminado.`, true);
+  } catch (e) { nuMsg(e.message || "Error", false); }
 }
 
 document.getElementById("login-pass")?.addEventListener("keypress", (e) => {
