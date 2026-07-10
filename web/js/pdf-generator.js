@@ -238,19 +238,38 @@ async function generatePdfBlob(fileName) {
 window.lastGeneratedPdfBlob = null;
 window.lastGeneratedPdfFileName = "";
 
-// --- Guardado en Base de Datos Global ---
+// --- Guardado en Base de Datos Global (trazabilidad para el panel) ---
 function saveFormDataToBackend() {
   try {
+    const g = (id) => (document.getElementById(id)?.value || "").trim();
+    const countImgs = () => {
+      let n = 0;
+      ["antes", "despues", "detalle", "adicional"].forEach(k => { if (window.imagesInMemory[k]) n++; });
+      (window.extraSlots || []).forEach(k => { if (window.imagesInMemory[k]) n++; });
+      return n;
+    };
+
     const payload = {
       ot: window.otBadgeNum ? window.otBadgeNum.textContent : "",
-      cliente: document.getElementById("field-cliente")?.value || "",
-      direccion: document.getElementById("field-direccion")?.value || "",
-      tecnico: document.getElementById("field-tecnico")?.value || "",
-      tension: document.getElementById("field-tension")?.value || "",
-      corriente: document.getElementById("field-corriente")?.value || "",
+      cliente: g("field-cliente"),
+      direccion: g("field-direccion"),
+      telefono: g("field-telefono"),
+      email: g("field-email"),
+      tipo_servicio: g("field-servicio-tipo"),
+      tecnico: g("field-tecnico"),
+      matricula: g("field-matricula"),
+      tension: g("field-tension"),
+      corriente: g("field-corriente"),
+      diagnostico: g("field-diagnostico"),
+      acciones: g("field-acciones"),
+      firmante_nombre: g("field-firmante-nombre"),
+      firmante_documento: g("field-firmante-documento"),
+      firmado: !!window.signatureConfirmed,
+      num_fotos: countImgs(),
+      gps: window.gpsCoordsDisplay ? window.gpsCoordsDisplay.textContent : "",
       estado_final: document.querySelector('input[name="operacion-final"]:checked')?.value || "si"
     };
-    
+
     fetch('/api/forms', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

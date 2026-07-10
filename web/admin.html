@@ -113,6 +113,47 @@
     .status-warn { background: rgba(255, 204, 0, 0.15); color: #FFCC00; }
     .status-fail { background: rgba(255, 59, 48, 0.15); color: var(--brand-danger); }
 
+    /* Toolbar de filtros */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      background: var(--brand-dark-card);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+    .toolbar input, .toolbar select {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: var(--brand-white);
+      padding: 9px 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .toolbar input:focus, .toolbar select:focus { border-color: var(--brand-neon); }
+    .toolbar input::placeholder { color: var(--brand-gray); }
+    .toolbar .grow { flex: 1 1 220px; min-width: 160px; }
+    .toolbar label { font-size: 0.72rem; color: var(--brand-gray); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px; }
+    .btn {
+      background: var(--brand-neon); color: var(--brand-dark);
+      border: none; padding: 10px 16px; border-radius: 8px;
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      font-family: 'Outfit', sans-serif; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .btn:hover { background: #a9db00; }
+    .btn-ghost {
+      background: transparent; color: var(--brand-gray);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-ghost:hover { color: var(--brand-white); border-color: var(--brand-neon); }
+    .muted-cell { color: var(--brand-gray); font-size: 0.85rem; }
+    .result-count { color: var(--brand-gray); font-size: 0.85rem; margin: 0 0 0.75rem; }
+
     /* Login Modal */
     #login-overlay {
       position: fixed;
@@ -194,10 +235,49 @@
         <div class="metric-label">Actas de Hoy</div>
       </div>
       <div class="metric-card">
+        <div class="metric-value" id="metric-week">-</div>
+        <div class="metric-label">Últimos 7 días</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metric-month">-</div>
+        <div class="metric-label">Este mes</div>
+      </div>
+      <div class="metric-card">
         <div class="metric-value" id="metric-ok">-</div>
-        <div class="metric-label">Operación Conforme</div>
+        <div class="metric-label">% Conforme</div>
       </div>
     </div>
+
+    <!-- Filtros de trazabilidad -->
+    <div class="toolbar">
+      <div class="grow">
+        <label for="filter-search">Buscar</label>
+        <input type="text" id="filter-search" class="grow" placeholder="Cliente, OT, técnico, dirección o teléfono…" style="width:100%; box-sizing:border-box;">
+      </div>
+      <div>
+        <label for="filter-from">Desde</label>
+        <input type="date" id="filter-from">
+      </div>
+      <div>
+        <label for="filter-to">Hasta</label>
+        <input type="date" id="filter-to">
+      </div>
+      <div>
+        <label for="filter-status">Estado</label>
+        <select id="filter-status">
+          <option value="">Todos</option>
+          <option value="si">Conforme</option>
+          <option value="parcial">Parcial</option>
+          <option value="no">Riesgo</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:0.5rem; align-self:flex-end;">
+        <button class="btn" onclick="exportCSV()">⬇ Exportar CSV</button>
+        <button class="btn-ghost btn" onclick="loadData()">↻ Actualizar</button>
+      </div>
+    </div>
+
+    <p class="result-count" id="result-count"></p>
 
     <div class="table-container">
       <table>
@@ -206,10 +286,10 @@
             <th>Fecha</th>
             <th>OT</th>
             <th>Cliente</th>
+            <th>Contacto</th>
             <th>Dirección</th>
             <th>Técnico</th>
-            <th>Tensión</th>
-            <th>Corriente</th>
+            <th>Fotos</th>
             <th>Estado Final</th>
           </tr>
         </thead>

@@ -31,6 +31,7 @@ async function saveForms(tenant, formsArray) {
   await put(blobKey(tenant), JSON.stringify(formsArray), {
     access: 'public',
     addRandomSuffix: false,
+    allowOverwrite: true,
     token: process.env.BLOB_READ_WRITE_TOKEN,
   });
 }
