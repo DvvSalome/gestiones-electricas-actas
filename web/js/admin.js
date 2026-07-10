@@ -48,13 +48,31 @@ async function doLogin() {
 }
 
 function logout() {
+  stopAutoRefresh();
   sessionStorage.removeItem(TOKEN_KEY);
   location.reload();
 }
 
 function logoutToLogin(msg) {
+  stopAutoRefresh();
   sessionStorage.removeItem(TOKEN_KEY);
   showLogin(msg);
+}
+
+/* ── Auto-actualización del panel (cada 25 s, sin recargar la página) ── */
+let AUTO_REFRESH_ID = null;
+function startAutoRefresh() {
+  if (AUTO_REFRESH_ID) return; // ya está corriendo
+  AUTO_REFRESH_ID = setInterval(() => loadData(true), 25000);
+}
+function stopAutoRefresh() {
+  if (AUTO_REFRESH_ID) { clearInterval(AUTO_REFRESH_ID); AUTO_REFRESH_ID = null; }
+}
+function updateRefreshStamp() {
+  const el = document.getElementById("refresh-stamp");
+  if (!el) return;
+  const t = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  el.textContent = "Actualizado " + t;
 }
 
 /* ── Cambio de contraseña ── */
@@ -104,9 +122,11 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-async function loadData() {
+async function loadData(silent) {
   const tbody = document.getElementById("table-body");
-  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--brand-gray);">Cargando registros…</td></tr>`;
+  if (!silent) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--brand-gray);">Cargando registros…</td></tr>`;
+  }
   try {
     const res = await fetch('/api/forms?t=' + Date.now(), {
       headers: { 'Authorization': 'Bearer ' + getToken() },
@@ -117,6 +137,8 @@ async function loadData() {
     ALL_FORMS = Array.isArray(data.forms) ? data.forms : [];
     renderMetrics(ALL_FORMS);
     applyFilters();
+    updateRefreshStamp();
+    startAutoRefresh();
   } catch (e) {
     console.error("Error loading forms:", e);
     ALL_FORMS = [];

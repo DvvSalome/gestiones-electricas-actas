@@ -290,9 +290,10 @@
           <option value="no">Riesgo</option>
         </select>
       </div>
-      <div style="display:flex; gap:0.5rem; align-self:flex-end;">
+      <div style="display:flex; gap:0.5rem; align-self:flex-end; align-items:center;">
         <button class="btn" onclick="exportCSV()">⬇ Exportar CSV</button>
         <button class="btn-ghost btn" onclick="loadData()">↻ Actualizar</button>
+        <span id="refresh-stamp" style="font-size:0.72rem; color:var(--brand-gray); white-space:nowrap;"></span>
       </div>
     </div>
 
