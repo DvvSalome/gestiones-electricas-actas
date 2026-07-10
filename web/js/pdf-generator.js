@@ -388,35 +388,28 @@ function closeOverlay() {
   if (overlay) overlay.style.display = "none";
 }
 
-// Descarga adaptada y optimizada para PC y Celulares
+// Descarga DIRECTA del PDF (botón "Descargar"): un enlace <a download> con el
+// blob. En Android (Chrome/Brave) y en escritorio la descarga inicia de una vez,
+// sin abrir la hoja de compartir ni el gestor de archivos. iOS Safari no permite
+// descargar blobs, así que allí se abre el PDF en una pestaña para guardarlo.
 function downloadBlobFile(blob, fileName) {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  if (isMobile) {
-    // En móviles, el compartir de archivos es la forma oficial y más robusta de "guardar"
-    // evitando bloqueos de descarga de blob o aperturas de páginas en blanco en Safari / Chrome
-    const file = new File([blob], fileName, { type: "application/pdf" });
-    const shareData = {
-      files: [file],
-      title: fileName,
-      text: "Acta Técnica Digital"
-    };
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const blobUrl = URL.createObjectURL(blob);
 
-    if (navigator.canShare && navigator.canShare(shareData)) {
-      navigator.share(shareData)
-        .then(() => console.log("Guardado mediante API Share móvil con éxito"))
-        .catch(err => {
-          if (err.name !== "AbortError") {
-            console.error("Error al descargar con API Share:", err);
-            fallbackDownload(blob, fileName);
-          }
-        });
-      return;
-    }
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.rel = "noopener";
+  if (isIOS) {
+    a.target = "_blank"; // iOS: abrir para que el usuario lo guarde (no soporta download de blob)
+  } else {
+    a.download = fileName; // Android + escritorio: descarga directa e inmediata
   }
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-  // Descarga tradicional en PC o si el celular no soporta API Share con archivos
-  fallbackDownload(blob, fileName);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 12000);
 }
 
 function fallbackDownload(blob, fileName) {

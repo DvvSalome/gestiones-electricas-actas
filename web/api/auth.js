@@ -107,6 +107,49 @@ module.exports = async function handler(req, res) {
     return res.json({ success: true });
   }
 
+  // Listar usuarios (solo nombres, nunca hashes) — requiere sesión
+  if (action === 'list-users') {
+    if (!verifyToken(body.token)) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+    const data = await getUsers(tenant);
+    return res.json({ users: (data.users || []).map(u => ({ username: u.username })) });
+  }
+
+  // Crear un nuevo usuario del panel — requiere sesión
+  if (action === 'create-user') {
+    if (!verifyToken(body.token)) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+    const username = String(body.username || '').trim();
+    const password = String(body.password || '');
+    if (!username) return res.status(400).json({ error: 'El usuario es obligatorio' });
+    if (username.length > 40) return res.status(400).json({ error: 'El usuario es demasiado largo' });
+    if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+    const data = await getUsers(tenant);
+    if (!data.users) data.users = [];
+    if (data.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+      return res.status(409).json({ error: 'Ya existe un usuario con ese nombre' });
+    }
+    const salt = crypto.randomBytes(16).toString('hex');
+    data.users.push({ username, salt, hash: hashPw(password, salt) });
+    await saveUsers(tenant, data);
+    return res.json({ success: true, username });
+  }
+
+  // Eliminar un usuario — requiere sesión; no se puede borrar a sí mismo ni el último
+  if (action === 'delete-user') {
+    const sess = verifyToken(body.token);
+    if (!sess) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+    const username = String(body.username || '').trim();
+    const data = await getUsers(tenant);
+    const users = data.users || [];
+    if (users.length <= 1) return res.status(400).json({ error: 'Debe quedar al menos un usuario' });
+    if (username.toLowerCase() === sess.u.toLowerCase()) return res.status(400).json({ error: 'No puede eliminar su propio usuario' });
+    const idx = users.findIndex(u => u.username.toLowerCase() === username.toLowerCase());
+    if (idx < 0) return res.status(404).json({ error: 'Usuario no encontrado' });
+    users.splice(idx, 1);
+    data.users = users;
+    await saveUsers(tenant, data);
+    return res.json({ success: true });
+  }
+
   return res.status(400).json({ error: 'Acción no válida' });
 };
 

@@ -191,6 +191,27 @@
     </div>
   </div>
 
+  <!-- Gestión de usuarios -->
+  <div class="modal-over" id="users-overlay">
+    <div class="card-box" style="max-width:440px;">
+      <h2 style="font-size:19px; margin-bottom:4px;">Usuarios del panel</h2>
+      <p class="hint" style="margin-bottom:14px;">Cree cuentas para delegar el acceso al panel.</p>
+
+      <div id="users-list" style="margin-bottom:16px;"></div>
+
+      <div style="border-top:1px solid var(--line); padding-top:14px;">
+        <p style="font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:700; margin-bottom:9px;">Crear nuevo usuario</p>
+        <input type="text" id="nu-user" placeholder="Usuario" autocomplete="off">
+        <input type="password" id="nu-pass" placeholder="Contraseña (mín. 8)" autocomplete="new-password">
+        <div style="display:flex; gap:9px; margin-top:4px;">
+          <button class="btn btn-primary" style="flex:1; justify-content:center;" onclick="createUser()">Crear usuario</button>
+          <button class="btn btn-ghost" style="flex:1; justify-content:center;" onclick="document.getElementById('users-overlay').style.display='none'">Cerrar</button>
+        </div>
+        <p class="msg" id="nu-msg"></p>
+      </div>
+    </div>
+  </div>
+
   <!-- Panel -->
   <div class="container" id="main-content" style="display:none;">
     <header class="topbar">
@@ -202,6 +223,7 @@
         </div>
       </div>
       <div class="header-actions">
+        <button class="btn btn-ghost" onclick="openUsers()">Usuarios</button>
         <button class="btn btn-ghost" onclick="openChangePassword()">Cambiar contraseña</button>
         <button class="btn btn-ghost" onclick="logout()">Salir</button>
       </div>
