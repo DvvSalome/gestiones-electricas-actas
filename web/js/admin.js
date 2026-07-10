@@ -125,7 +125,7 @@ window.addEventListener("DOMContentLoaded", () => {
 async function loadData(silent) {
   const tbody = document.getElementById("table-body");
   if (!silent) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--brand-gray);">Cargando registros…</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--muted);">Cargando registros…</td></tr>`;
   }
   try {
     const res = await fetch('/api/forms?t=' + Date.now(), {
@@ -142,7 +142,7 @@ async function loadData(silent) {
   } catch (e) {
     console.error("Error loading forms:", e);
     ALL_FORMS = [];
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--brand-danger);">No se pudo conectar con la base de datos (/api/forms). Verifique que el backend esté desplegado.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--danger);">No se pudo conectar con la base de datos (/api/forms). Verifique que el backend esté desplegado.</td></tr>`;
   }
 }
 
@@ -219,7 +219,7 @@ function renderTable(forms) {
 
   tbody.innerHTML = "";
   if (forms.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--brand-gray);">${ALL_FORMS.length === 0 ? "No hay registros de actas todavía." : "Ningún acta coincide con los filtros."}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color: var(--muted); padding:34px;">${ALL_FORMS.length === 0 ? "No hay registros de actas todavía." : "Ningún acta coincide con los filtros."}</td></tr>`;
     return;
   }
 
@@ -229,22 +229,113 @@ function renderTable(forms) {
       const d = new Date(f.created_at);
       dateStr = d.toLocaleDateString('es-CO') + " " + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
     }
-    const contacto = [f.telefono, f.email].filter(Boolean).join("<br>") || "—";
+    const contacto = [f.telefono, f.email].filter(Boolean).map(esc).join("<br>") || "—";
     const fotos = (typeof f.num_fotos === "number") ? f.num_fotos : "—";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td class="muted-cell">${esc(dateStr)}</td>
-      <td style="font-weight:600; color: var(--brand-neon);">${esc(f.ot || "—")}</td>
-      <td>${esc(f.cliente || "—")}</td>
-      <td class="muted-cell">${contacto}</td>
-      <td class="muted-cell">${esc(f.direccion || "—")}</td>
+      <td class="cell-muted">${esc(dateStr)}</td>
+      <td class="cell-ot">${esc(f.ot || "—")}</td>
+      <td class="cell-strong">${esc(f.cliente || "—")}</td>
+      <td class="cell-muted">${contacto}</td>
+      <td class="cell-muted">${esc(f.direccion || "—")}</td>
       <td>${esc(f.tecnico || "—")}</td>
-      <td style="text-align:center;">${fotos}</td>
+      <td class="cell-center">${fotos}</td>
       <td>${statusBadge(f.estado_final)}</td>
+      <td>
+        <button class="pdf-btn" onclick="downloadActaPDF('${esc(f.ot || "").replace(/'/g, "\\'")}')" title="Descargar acta en PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          PDF
+        </button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+/* ── Descargar un acta como PDF (resumen desde el registro) ── */
+function downloadActaPDF(ot) {
+  const f = ALL_FORMS.find(x => x.ot === ot);
+  if (!f) { alert("No se encontró el acta."); return; }
+  if (!window.jspdf || !window.jspdf.jsPDF) { alert("No se pudo cargar el generador de PDF. Reintente."); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const M = 44;
+  const OLIVE = [47, 58, 6], LIME = [199, 229, 47], INK = [35, 40, 15], INK2 = [74, 77, 56], MUT = [139, 138, 116], LINE = [231, 225, 208];
+
+  const estadoTxt = f.estado_final === "no" ? "No conforme (riesgo)"
+    : f.estado_final === "parcial" ? "Parcial (requiere adecuación)" : "Conforme";
+  let fechaTxt = "—";
+  if (f.created_at) { const d = new Date(f.created_at); fechaTxt = d.toLocaleDateString("es-CO") + " · " + d.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" }); }
+
+  // Banda de encabezado
+  doc.setFillColor.apply(doc, OLIVE); doc.rect(0, 0, W, 86, "F");
+  doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+  doc.text("GESTIONES ELÉCTRICAS", M, 40);
+  doc.setTextColor.apply(doc, LIME); doc.setFont("helvetica", "normal"); doc.setFontSize(9.5);
+  doc.text("ACTA TÉCNICA DE SERVICIO", M, 57);
+  doc.setTextColor.apply(doc, LIME); doc.setFont("helvetica", "bold"); doc.setFontSize(15);
+  doc.text(String(f.ot || "—"), W - M, 40, { align: "right" });
+  doc.setTextColor(228, 234, 210); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  doc.text(fechaTxt, W - M, 57, { align: "right" });
+
+  let y = 118;
+  const colL = M, colR = W / 2 + 6, colW = (W - 2 * M) / 2 - 6;
+
+  function sectionTitle(t) {
+    y += 4;
+    doc.setTextColor.apply(doc, OLIVE); doc.setFont("helvetica", "bold"); doc.setFontSize(10.5);
+    doc.text(t.toUpperCase(), M, y);
+    y += 7; doc.setDrawColor.apply(doc, LINE); doc.setLineWidth(0.8); doc.line(M, y, W - M, y);
+    y += 17;
+  }
+  function pair(x, w, label, value) {
+    doc.setTextColor.apply(doc, MUT); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    doc.text(String(label).toUpperCase(), x, y);
+    doc.setTextColor.apply(doc, INK); doc.setFont("helvetica", "normal"); doc.setFontSize(10.5);
+    const lines = doc.splitTextToSize(String(value || "—"), w);
+    doc.text(lines, x, y + 13);
+    return 13 + lines.length * 12 + 9;
+  }
+  function row(l1, v1, l2, v2) {
+    const h1 = pair(colL, colW, l1, v1);
+    const h2 = (l2 != null) ? pair(colR, colW, l2, v2) : 0;
+    y += Math.max(h1, h2);
+  }
+  function full(label, value) { y += pair(colL, W - 2 * M, label, value); }
+
+  sectionTitle("Identificación");
+  row("Cliente", f.cliente, "Técnico", f.tecnico);
+  row("Dirección", f.direccion, "Matrícula", f.matricula);
+  row("Teléfono", f.telefono, "Correo", f.email);
+  row("Tipo de servicio", f.tipo_servicio, "Ubicación GPS", f.gps);
+
+  sectionTitle("Diagnóstico y mediciones");
+  row("Tensión", f.tension ? f.tension + " V" : "—", "Corriente", f.corriente ? f.corriente + " A" : "—");
+  full("Diagnóstico", f.diagnostico);
+  full("Acciones realizadas", f.acciones);
+
+  sectionTitle("Cierre y conformidad");
+  row("Estado final", estadoTxt, "Fotos de evidencia", (typeof f.num_fotos === "number") ? f.num_fotos + " foto(s)" : "—");
+  row("Recibido por", f.firmante_nombre, "Documento", f.firmante_documento);
+
+  // Nota aclaratoria
+  y += 8;
+  const noteLines = doc.splitTextToSize("Nota: este documento es un resumen del acta generado desde el panel de trazabilidad. La evidencia fotográfica y la firma quedan en el PDF original del acta que se compartió al momento del servicio.", W - 2 * M - 20);
+  const noteH = noteLines.length * 11 + 18;
+  doc.setFillColor(246, 242, 233); doc.setDrawColor.apply(doc, LINE); doc.setLineWidth(0.8);
+  doc.rect(M, y, W - 2 * M, noteH, "FD");
+  doc.setTextColor.apply(doc, INK2); doc.setFont("helvetica", "italic"); doc.setFontSize(8.5);
+  doc.text(noteLines, M + 10, y + 14);
+
+  doc.setTextColor.apply(doc, MUT); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+  doc.text("Gestiones Eléctricas SAS · Soporte digital de servicio", M, H - 30);
+
+  const safe = String(f.cliente || "").replace(/[^a-z0-9]/gi, "_").toLowerCase().slice(0, 24);
+  doc.save(`Acta_${f.ot || "SN"}_${safe}.pdf`);
 }
 
 /* ── Exportar el conjunto filtrado a CSV ── */
