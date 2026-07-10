@@ -208,21 +208,40 @@
 </head>
 <body>
 
-  <!-- Login Modal -->
+  <!-- Login -->
   <div id="login-overlay">
     <div class="login-box">
-      <h2>Acceso Restringido</h2>
-      <p style="color: var(--brand-gray); font-size: 0.9rem;">Ingrese el PIN de administrador para ver los registros.</p>
-      <input type="password" id="pin-input" placeholder="••••" maxlength="6">
-      <button onclick="checkPin()">Acceder</button>
-      <p id="login-error" style="color: var(--brand-danger); display: none; margin-top: 1rem; font-size: 0.85rem;">PIN incorrecto</p>
+      <h2>Panel de Trazabilidad</h2>
+      <p style="color: var(--brand-gray); font-size: 0.9rem;">Acceso restringido. Ingrese sus credenciales de administrador.</p>
+      <input type="text" id="login-user" placeholder="Usuario" autocomplete="username" style="text-align:left;">
+      <input type="password" id="login-pass" placeholder="Contraseña" autocomplete="current-password" style="text-align:left;">
+      <button onclick="doLogin()" id="login-btn">Ingresar</button>
+      <p id="login-error" style="color: var(--brand-danger); display: none; margin-top: 1rem; font-size: 0.85rem;"></p>
+    </div>
+  </div>
+
+  <!-- Modal cambiar contraseña -->
+  <div id="pw-overlay" style="display:none; position:fixed; inset:0; background:rgba(13,17,0,0.9); z-index:10000; align-items:center; justify-content:center;">
+    <div class="login-box">
+      <h2 style="font-size:1.3rem;">Cambiar contraseña</h2>
+      <input type="password" id="pw-current" placeholder="Contraseña actual" autocomplete="current-password" style="text-align:left;">
+      <input type="password" id="pw-new" placeholder="Nueva contraseña (mín. 8)" autocomplete="new-password" style="text-align:left;">
+      <input type="password" id="pw-new2" placeholder="Repetir nueva contraseña" autocomplete="new-password" style="text-align:left;">
+      <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+        <button onclick="doChangePassword()" style="flex:1;">Guardar</button>
+        <button onclick="document.getElementById('pw-overlay').style.display='none'" class="btn-ghost" style="flex:1; background:transparent; color:var(--brand-gray); border:1px solid rgba(255,255,255,0.2);">Cancelar</button>
+      </div>
+      <p id="pw-msg" style="display:none; margin-top:1rem; font-size:0.85rem;"></p>
     </div>
   </div>
 
   <div class="container" id="main-content" style="display: none;">
     <header>
       <h1>Gestiones Eléctricas | Admin</h1>
-      <button onclick="logout()" style="background: transparent; border: 1px solid var(--brand-gray); color: var(--brand-gray); padding: 6px 12px; border-radius: 4px; cursor: pointer;">Salir</button>
+      <div style="display:flex; gap:0.5rem;">
+        <button onclick="openChangePassword()" style="background: transparent; border: 1px solid var(--brand-gray); color: var(--brand-gray); padding: 6px 12px; border-radius: 4px; cursor: pointer;">Cambiar contraseña</button>
+        <button onclick="logout()" style="background: transparent; border: 1px solid var(--brand-gray); color: var(--brand-gray); padding: 6px 12px; border-radius: 4px; cursor: pointer;">Salir</button>
+      </div>
     </header>
 
     <div class="metrics">

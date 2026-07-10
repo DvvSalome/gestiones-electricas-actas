@@ -1,35 +1,102 @@
-const VALID_PIN = "4321"; // PIN de acceso al panel
+const TOKEN_KEY = "ge_admin_token";
 
 let ALL_FORMS = [];   // todas las actas cargadas de la nube
 let VIEW_FORMS = [];  // subconjunto tras aplicar filtros
 
-function checkPin() {
-  const input = document.getElementById("pin-input").value;
-  if (input === VALID_PIN) {
-    document.getElementById("login-overlay").style.display = "none";
-    document.getElementById("main-content").style.display = "block";
-    sessionStorage.setItem("ge_admin_auth", "true");
+function getToken() { return sessionStorage.getItem(TOKEN_KEY) || ""; }
+
+function showPanel() {
+  document.getElementById("login-overlay").style.display = "none";
+  document.getElementById("main-content").style.display = "block";
+}
+function showLogin(msg) {
+  document.getElementById("login-overlay").style.display = "flex";
+  document.getElementById("main-content").style.display = "none";
+  if (msg) {
+    const e = document.getElementById("login-error");
+    e.textContent = msg; e.style.display = "block";
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById("login-user").value.trim();
+  const password = document.getElementById("login-pass").value;
+  const errEl = document.getElementById("login-error");
+  const btn = document.getElementById("login-btn");
+  errEl.style.display = "none";
+  if (!username || !password) { errEl.textContent = "Ingrese usuario y contraseña."; errEl.style.display = "block"; return; }
+
+  btn.disabled = true; btn.textContent = "Ingresando…";
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login', username, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'No se pudo iniciar sesión');
+    sessionStorage.setItem(TOKEN_KEY, data.token);
+    document.getElementById("login-pass").value = "";
+    showPanel();
     loadData();
-  } else {
-    document.getElementById("login-error").style.display = "block";
+  } catch (e) {
+    errEl.textContent = e.message || 'Error de conexión';
+    errEl.style.display = "block";
+  } finally {
+    btn.disabled = false; btn.textContent = "Ingresar";
   }
 }
 
 function logout() {
-  sessionStorage.removeItem("ge_admin_auth");
+  sessionStorage.removeItem(TOKEN_KEY);
   location.reload();
 }
 
-document.getElementById("pin-input")?.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") checkPin();
+function logoutToLogin(msg) {
+  sessionStorage.removeItem(TOKEN_KEY);
+  showLogin(msg);
+}
+
+/* ── Cambio de contraseña ── */
+function openChangePassword() {
+  document.getElementById("pw-current").value = "";
+  document.getElementById("pw-new").value = "";
+  document.getElementById("pw-new2").value = "";
+  const m = document.getElementById("pw-msg"); m.style.display = "none";
+  document.getElementById("pw-overlay").style.display = "flex";
+}
+async function doChangePassword() {
+  const currentPassword = document.getElementById("pw-current").value;
+  const newPassword = document.getElementById("pw-new").value;
+  const rep = document.getElementById("pw-new2").value;
+  const msg = document.getElementById("pw-msg");
+  const setMsg = (t, ok) => { msg.textContent = t; msg.style.color = ok ? "var(--brand-success)" : "var(--brand-danger)"; msg.style.display = "block"; };
+
+  if (newPassword.length < 8) return setMsg("La nueva contraseña debe tener al menos 8 caracteres.", false);
+  if (newPassword !== rep) return setMsg("Las contraseñas no coinciden.", false);
+
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'change-password', token: getToken(), currentPassword, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'No se pudo cambiar la contraseña');
+    setMsg("✓ Contraseña actualizada. Vuelva a iniciar sesión.", true);
+    setTimeout(logout, 1500);
+  } catch (e) {
+    setMsg(e.message || 'Error', false);
+  }
+}
+
+document.getElementById("login-pass")?.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") doLogin();
 });
 
 window.addEventListener("DOMContentLoaded", () => {
-  if (sessionStorage.getItem("ge_admin_auth") === "true") {
-    document.getElementById("login-overlay").style.display = "none";
-    document.getElementById("main-content").style.display = "block";
-    loadData();
-  }
+  if (getToken()) { showPanel(); loadData(); }
+  else showLogin();
   // Los filtros se aplican en vivo
   ["filter-search", "filter-from", "filter-to", "filter-status"].forEach(id => {
     const el = document.getElementById(id);
@@ -41,7 +108,10 @@ async function loadData() {
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--brand-gray);">Cargando registros…</td></tr>`;
   try {
-    const res = await fetch('/api/forms?t=' + Date.now());
+    const res = await fetch('/api/forms?t=' + Date.now(), {
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+    });
+    if (res.status === 401) { logoutToLogin("Su sesión expiró. Ingrese de nuevo."); return; }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     ALL_FORMS = Array.isArray(data.forms) ? data.forms : [];

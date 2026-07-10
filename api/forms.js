@@ -1,10 +1,31 @@
 const { put, list } = require('@vercel/blob');
+const crypto = require('crypto');
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, bypass-tunnel-reminder',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, bypass-tunnel-reminder',
 };
+
+// Verificación del token de sesión (mismo secreto/algoritmo que /api/auth).
+function verifyToken(token) {
+  if (!token || token.indexOf('.') < 0) return null;
+  const secret = process.env.BLOB_READ_WRITE_TOKEN || 'clave-insegura-de-respaldo';
+  const [payload, sig] = token.split('.');
+  const expected = crypto.createHmac('sha256', secret).update(payload).digest()
+    .toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const a = Buffer.from(sig), b = Buffer.from(expected);
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+  try {
+    const data = JSON.parse(Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString());
+    if (!data.exp || Date.now() > data.exp) return null;
+    return data;
+  } catch { return null; }
+}
+function tokenFromReq(req) {
+  const h = req.headers['authorization'] || req.headers['Authorization'] || '';
+  return h.startsWith('Bearer ') ? h.slice(7) : '';
+}
 
 // Blob key for forms
 function blobKey(tenant) {
@@ -43,12 +64,15 @@ module.exports = async function handler(req, res) {
 
   const tenant = req.query.tenant || 'gestiones-electricas';
 
-  // ── GET: List forms ──
+  // ── GET: List forms (protegido: requiere sesión de admin) ──
   if (req.method === 'GET') {
+    if (!verifyToken(tokenFromReq(req))) {
+      return res.status(401).json({ error: 'No autorizado. Inicie sesión en el panel.' });
+    }
     const forms = await getForms(tenant);
     // Sort by created_at descending (newest first)
     forms.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    
+
     return res.json({
       total: forms.length,
       forms: forms,
