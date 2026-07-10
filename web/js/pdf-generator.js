@@ -93,18 +93,36 @@ function preparePrintableTemplate() {
     pdfMaterialsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #9CA3AF;">Ningún material o insumo registrado para esta intervención.</td></tr>`;
   }
 
-  // Cargar imágenes en PDF
-  const slots = ["antes", "despues", "detalle", "adicional"];
-  slots.forEach(slot => {
-    const box = document.getElementById(`pdf-img-${slot}-box`);
-    box.innerHTML = "";
-    
-    if (window.imagesInMemory[slot]) {
-      box.innerHTML = `<img src="${window.imagesInMemory[slot]}" class="pdf-photo-img">`;
-    } else {
-      box.innerHTML = `<div class="pdf-photo-placeholder">Sin Imagen Adjunta</div>`;
-    }
-  });
+  // Cargar imágenes en PDF: 4 fijas (con placeholder si faltan) + evidencias
+  // adicionales dinámicas (solo las que tengan foto). Se reconstruye todo el grid.
+  const pdfGrid = document.getElementById("pdf-photo-grid");
+  if (pdfGrid) {
+    const fixed = [
+      { key: "antes",     label: "Foto Antes de la Intervención" },
+      { key: "despues",   label: "Foto Después de la Normalización" },
+      { key: "detalle",   label: "Detalle Técnico (Tablero / Equipo)" },
+      { key: "adicional", label: "Evidencia Adicional / Reporte" },
+    ];
+
+    let html = "";
+    fixed.forEach(s => {
+      const img = window.imagesInMemory[s.key];
+      const inner = img
+        ? `<img src="${img}" class="pdf-photo-img">`
+        : `<div class="pdf-photo-placeholder">Sin Imagen Adjunta</div>`;
+      html += `<div class="pdf-photo-container">${inner}<span class="pdf-photo-label">${s.label}</span></div>`;
+    });
+
+    let n = 0;
+    (window.extraSlots || []).forEach(key => {
+      const img = window.imagesInMemory[key];
+      if (!img) return;
+      n++;
+      html += `<div class="pdf-photo-container"><img src="${img}" class="pdf-photo-img"><span class="pdf-photo-label">Evidencia Complementaria ${n}</span></div>`;
+    });
+
+    pdfGrid.innerHTML = html;
+  }
 
   // Firmas en PDF
   const pdfTecnicoNombre = document.getElementById("pdf-firmante-tecnico-nombre");

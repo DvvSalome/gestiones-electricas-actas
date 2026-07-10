@@ -567,6 +567,25 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
+    #extra-photo-grid:empty { display: none; }
+
+    .add-photo-btn {
+      background-color: var(--brand-bg);
+      border: 1.5px dashed var(--brand-olive);
+      color: var(--brand-olive);
+      font-weight: 800;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .add-photo-btn:hover:not(:disabled) {
+      background-color: #EDF1E7;
+      border-style: solid;
+    }
 
     .photo-slot {
       border: 2px dashed var(--brand-border);
@@ -1202,14 +1221,23 @@
       border-radius: 4px;
       padding: 6px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
     }
 
+    /* La foto conserva su relación de aspecto real (no se estira/deforma).
+       Se usa width/height:auto acotado por max-*, porque html2canvas —motor
+       del PDF— ignora object-fit y estiraría una caja de tamaño fijo. */
     .pdf-photo-img {
-      width: 100%;
-      height: 130px;
-      object-fit: cover;
+      max-width: 100%;
+      max-height: 150px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
       border-radius: 2px;
-      margin-bottom: 6px;
+      margin: 0 auto 6px;
       display: block;
     }
 
@@ -1685,6 +1713,13 @@
             <div id="preview-adicional"></div>
           </div>
         </div>
+
+        <!-- Evidencias adicionales dinámicas (hasta 10 imágenes en total) -->
+        <div class="photo-grid" id="extra-photo-grid" style="margin-top: 12px;"></div>
+        <div style="margin-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="add-photo-btn" id="btn-add-photo" onclick="addExtraPhotoSlot()">+ Agregar evidencia</button>
+          <span id="photo-counter" style="font-size: 11px; color: var(--brand-muted); font-weight: 700;">4 / 10 espacios</span>
+        </div>
       </section>
 
       <!-- BLOQUE 5: FIRMA DIGITAL -->
@@ -1915,7 +1950,7 @@
 
       <!-- Evidencia Fotográfica en PDF -->
       <div class="pdf-section-title">4. Evidencia Fotográfica Registrada</div>
-      <div class="pdf-photo-grid">
+      <div class="pdf-photo-grid" id="pdf-photo-grid">
         <div class="pdf-photo-container">
           <div id="pdf-img-antes-box"></div>
           <span class="pdf-photo-label">Foto Antes de la Intervención</span>

@@ -10,6 +10,13 @@ window.imagesInMemory = {
   adicional: ""
 };
 
+// Evidencias adicionales (más allá de las 4 fijas). Cada entrada es una clave
+// dinámica ("extra-1", "extra-2", ...) cuya imagen vive también en imagesInMemory.
+window.extraSlots = [];
+window.extraSlotCounter = 0;
+// Tope total de imágenes en el acta/PDF (4 fijas + hasta 6 adicionales).
+window.MAX_TOTAL_IMAGES = 10;
+
 window.checklistItems = [
   { id: "tablero", label: "Tablero eléctrico principal", state: "" },
   { id: "breakers", label: "Protecciones termomagnéticas (Breakers)", state: "" },
