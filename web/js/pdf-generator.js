@@ -334,6 +334,41 @@ function shareByWhatsApp() {
   startPdfProcess();
 }
 
+// --- Enviar el link de reseña de Google al WhatsApp del CLIENTE ---
+// Así la reseña la deja el cliente desde su propio celular (con su cuenta),
+// no el técnico. Toma el número del campo dedicado (o el teléfono del cliente).
+function enviarResenaCliente() {
+  const REVIEW_LINK = "https://g.page/r/CZfA-gPNaf91EBM/review";
+  const hint = document.getElementById("resena-hint");
+  const showHint = (t, ok) => {
+    if (!hint) return;
+    hint.style.display = "block";
+    hint.style.color = ok ? "#1a8a4f" : "#c0402f";
+    hint.textContent = t;
+  };
+
+  let raw = (document.getElementById("field-resena-tel")?.value || "").trim();
+  if (!raw) raw = (document.getElementById("field-telefono")?.value || "").trim();
+
+  let num = raw.replace(/\D/g, "");
+  if (num.startsWith("00")) num = num.slice(2);
+  // Colombia: 10 dígitos que empiezan por 3 (celular) -> anteponer indicativo 57
+  if (num.length === 10 && num[0] === "3") num = "57" + num;
+
+  if (num.length < 10) {
+    showHint("Ingresa el número de WhatsApp del cliente (ej. 300 000 0000).", false);
+    return;
+  }
+
+  const msg =
+    "¡Hola! Gracias por confiar en Gestiones Eléctricas ⚡\n\n" +
+    "Si quedaste satisfecho con el servicio, nos ayudarías muchísimo dejando tu reseña en Google (te toma 30 segundos):\n" +
+    REVIEW_LINK;
+
+  window.open("https://wa.me/" + num + "?text=" + encodeURIComponent(msg), "_blank");
+  showHint("✓ Se abrió WhatsApp para enviarle la reseña al cliente.", true);
+}
+
 // Acciones sincrónicas disparadas desde los botones del Overlay
 function executeOverlayDownload() {
   if (!window.lastGeneratedPdfBlob || !window.lastGeneratedPdfFileName) {
