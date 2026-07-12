@@ -17,7 +17,7 @@ function ensureMap(lat, lng, zoom) {
   geoMap = L.map(el, { zoomControl: true, attributionControl: true, scrollWheelZoom: false })
     .setView([lat, lng], zoom || 13);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: "© OpenStreetMap",
+    maxZoom: 19, attribution: "© OpenStreetMap", crossOrigin: true,
   }).addTo(geoMap);
   setTimeout(() => { if (geoMap) geoMap.invalidateSize(); }, 250);
 }

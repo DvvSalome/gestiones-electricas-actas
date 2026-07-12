@@ -192,6 +192,28 @@ async function generatePdfBlob(fileName) {
   document.body.appendChild(wrapper);
 
   try {
+    // ── Incrustar el minimapa en la ficha (si hay ubicación real captada) ──
+    try {
+      const mapEl = document.getElementById("mini-map");
+      const tieneMarcador = mapEl && mapEl.querySelector(".leaflet-marker-icon");
+      if (mapEl && window.gpsLat != null && tieneMarcador) {
+        const zc = mapEl.querySelector(".leaflet-control-zoom");
+        const prevZc = zc ? zc.style.display : null;
+        if (zc) zc.style.display = "none"; // ocultar botones +/- en la captura
+        const mapCanvas = await html2canvas(mapEl, { useCORS: true, logging: false, scale: 2, backgroundColor: "#e6ebe1" });
+        if (zc) zc.style.display = prevZc || "";
+        const mapUrl = mapCanvas.toDataURL("image/jpeg", 0.85);
+        const cloneImg = clone.querySelector("#pdf-map-img");
+        const cloneBox = clone.querySelector("#pdf-map-box");
+        if (cloneImg && cloneBox) {
+          await new Promise((res) => { cloneImg.onload = res; cloneImg.onerror = res; cloneImg.src = mapUrl; });
+          cloneBox.style.display = "block";
+        }
+      }
+    } catch (e) {
+      console.warn("No se pudo incrustar el minimapa en el PDF:", e);
+    }
+
     const canvas = await html2canvas(wrapper, {
       scale: 2,
       useCORS: true,
@@ -207,11 +229,37 @@ async function generatePdfBlob(fileName) {
     const pxPerMm = canvas.width / pageW;
     const pageHpx = pageH * pxPerMm;
 
+    // ── Zonas que NO se deben partir en un salto de página (imágenes + mapa) ──
+    // Se miden en px del canvas para ajustar cada corte y no cortar una foto.
+    const sf = canvas.width / wrapper.offsetWidth; // factor px CSS -> px canvas
+    const wrapTop = wrapper.getBoundingClientRect().top;
+    const avoidZones = [];
+    clone.querySelectorAll(".pdf-photo-container, #pdf-map-box").forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.height < 5) return;
+      avoidZones.push({ top: (r.top - wrapTop) * sf, bottom: (r.bottom - wrapTop) * sf });
+    });
+    avoidZones.sort((a, b) => a.top - b.top);
+
     let srcY = 0;
     let page = 0;
 
     while (srcY < canvas.height) {
-      const sliceH = Math.min(pageHpx, canvas.height - srcY);
+      let pageEnd = Math.min(srcY + pageHpx, canvas.height);
+
+      // Si el corte de página cae DENTRO de una imagen, subir el corte al inicio
+      // de esa imagen para que pase entera a la página siguiente.
+      if (pageEnd < canvas.height) {
+        for (const z of avoidZones) {
+          if (z.top < pageEnd - 1 && z.bottom > pageEnd + 1) {
+            if (z.top > srcY + 120) pageEnd = Math.floor(z.top); // no dejar la página casi vacía
+            break;
+          }
+        }
+      }
+
+      const sliceH = pageEnd - srcY;
+      if (sliceH <= 0) break; // seguridad anti-bucle
 
       const pageCanvas = document.createElement("canvas");
       pageCanvas.width  = canvas.width;
@@ -224,7 +272,7 @@ async function generatePdfBlob(fileName) {
       pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.95), "JPEG",
         0, 0, pageW, sliceH / pxPerMm);
 
-      srcY += pageHpx;
+      srcY = pageEnd;
       page++;
     }
 

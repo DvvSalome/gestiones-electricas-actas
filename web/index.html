@@ -1896,6 +1896,12 @@
         </div>
       </div>
 
+      <!-- Minimapa de ubicación (se rellena al generar el PDF) -->
+      <div id="pdf-map-box" style="display:none; margin: 4px 0 14px; page-break-inside: avoid;">
+        <div class="pdf-data-label" style="margin-bottom:5px;">Ubicación del servicio (mapa):</div>
+        <img id="pdf-map-img" alt="Ubicación del servicio" style="display:block; width:100%; height:auto; border:1px solid #E5E7EB; border-radius:6px;">
+      </div>
+
       <!-- Checklist de Inspección -->
       <div class="pdf-section-title">2. Checklist de Inspección Técnica de Seguridad</div>
       <table class="pdf-checklist-table" id="pdf-checklist-tbody">
