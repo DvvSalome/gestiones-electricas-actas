@@ -9,3 +9,4 @@ mcp/node_modules/
 *.db-wal
 *.mp4
 .DS_Store
+.claude/
