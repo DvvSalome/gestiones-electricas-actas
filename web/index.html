@@ -1600,14 +1600,14 @@
             <span class="label">Tensión Operación (V)</span>
             <div style="position: relative; display: flex; align-items: center;">
               <svg style="position: absolute; left: 12px; color: #64ffda; pointer-events: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              <input type="number" class="input" id="field-tension" placeholder="Ej. 120 / 208 / 220" min="0" oninput="if(this.value < 0) this.value = Math.abs(this.value)" onkeydown="if(['-', 'e', 'E', '+'].includes(event.key)) event.preventDefault()" style="padding-left: 38px;">
+              <input type="text" inputmode="text" class="input" id="field-tension" placeholder="Ej. 120 / 208 / 220" oninput="this.value = this.value.replace(/[^0-9.,\/ \-]/g, '')" style="padding-left: 38px;">
             </div>
           </div>
           <div class="field">
             <span class="label">Corriente Medida (A)</span>
             <div style="position: relative; display: flex; align-items: center;">
               <svg style="position: absolute; left: 12px; color: #64ffda; pointer-events: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-              <input type="number" class="input" id="field-corriente" placeholder="Ej. 15 / 32 / 40" min="0" oninput="if(this.value < 0) this.value = Math.abs(this.value)" onkeydown="if(['-', 'e', 'E', '+'].includes(event.key)) event.preventDefault()" style="padding-left: 38px;">
+              <input type="text" inputmode="text" class="input" id="field-corriente" placeholder="Ej. 15 / 32 / 40" oninput="this.value = this.value.replace(/[^0-9.,\/ \-]/g, '')" style="padding-left: 38px;">
             </div>
           </div>
         </div>
