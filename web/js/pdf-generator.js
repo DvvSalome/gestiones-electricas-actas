@@ -332,10 +332,11 @@ function saveFormDataToBackend() {
 function startPdfProcess() {
   if (!validateFormForExport("procesar el reporte")) return;
 
-  const cliente = document.getElementById("field-cliente").value.trim();
-  const otNum = window.otBadgeNum.textContent;
-  const safeCliente = cliente.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const fileName = `Acta_${otNum}_${safeCliente}.pdf`;
+  const otNum = (window.otBadgeNum.textContent || "SN").trim().replace(/[^a-z0-9\-]/gi, "");
+  const now = new Date();
+  const fechaArch = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
+  // Nombre del archivo: número de orden + marca del cliente (Gestiones Eléctricas) + fecha de creación.
+  const fileName = `Acta_${otNum}_Gestiones_Electricas_${fechaArch}.pdf`;
 
   window.lastGeneratedPdfFileName = fileName;
   window.lastGeneratedPdfBlob = null;

@@ -441,8 +441,11 @@ function downloadActaPDF(ot) {
   doc.setTextColor.apply(doc, MUT); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
   doc.text("Gestiones Eléctricas SAS · Soporte digital de servicio", M, H - 30);
 
-  const safe = String(f.cliente || "").replace(/[^a-z0-9]/gi, "_").toLowerCase().slice(0, 24);
-  doc.save(`Acta_${f.ot || "SN"}_${safe}.pdf`);
+  const dArch = f.created_at ? new Date(f.created_at) : new Date();
+  const fechaArch = `${String(dArch.getDate()).padStart(2, "0")}-${String(dArch.getMonth() + 1).padStart(2, "0")}-${dArch.getFullYear()}`;
+  const otArch = String(f.ot || "SN").replace(/[^a-z0-9\-]/gi, "");
+  // Nombre del archivo: número de orden + Gestiones Eléctricas + fecha de creación del acta.
+  doc.save(`Acta_${otArch}_Gestiones_Electricas_${fechaArch}.pdf`);
 }
 
 /* ── Exportar el conjunto filtrado a CSV ── */
