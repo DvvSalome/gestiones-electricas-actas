@@ -1,16 +1,10 @@
-# mp4 de publicidad (341MB) — se sirven vía /api/media (proxy Supabase)
-web/publicidad/*.mp4
-
 # no van a la imagen
 node_modules
 **/node_modules
 .git
 docs
-api-local
-mcp
 api
 web/api
-web/entregables_finales
 .agents
 *.md
 tunnel-keep-alive.sh

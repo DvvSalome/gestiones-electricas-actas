@@ -2,8 +2,6 @@
 
 ## ✅ v0.x — MVP Actual (Completado)
 - [x] Acta Técnica Digital (HTML, firma canvas, GPS)
-- [x] Revisor de Videos (reproductor, aprobar/rechazar, comentarios)
-- [x] Galería de Imágenes (39 imágenes, lightbox, descarga)
 - [x] Servidor HTTP local para compartir por LAN
 
 ---
@@ -19,15 +17,11 @@
 ---
 
 ## 📋 v1.1 — Dashboard & Estadísticas
-- [ ] Panel de estadísticas en el revisor (cuántos aprobados, %)
-- [ ] Historial de cambios por video (quién aprobó, cuándo)
-- [ ] Filtros avanzados en la galería de imágenes
 - [ ] Exportar reporte en PDF
 
 ---
 
 ## 📱 v1.2 — Notificaciones
-- [ ] Notificación WhatsApp al aprobar/rechazar un video
 - [ ] Alerta cuando se registra una nueva acta técnica
 - [ ] Resumen semanal automático por WhatsApp
 
@@ -35,7 +29,7 @@
 
 ## 🔒 v2.0 — Autenticación & Multi-usuario
 - [ ] Login con PIN o contraseña simple
-- [ ] Roles: Técnico / Revisor / Admin
+- [ ] Roles: Técnico / Admin
 - [ ] Cada revisión queda asociada a un usuario
 - [ ] Historial de auditoría
 
@@ -44,7 +38,6 @@
 ## 📊 v2.1 — Métricas de Negocio
 - [ ] Dashboard de calificaciones de clientes por técnico
 - [ ] Mapa de visitas técnicas (GPS de actas)
-- [ ] Tiempo promedio de aprobación de contenido
 - [ ] Reporte mensual automático
 
 ---

@@ -29,15 +29,3 @@ CREATE TABLE IF NOT EXISTS actas.actas (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS actas_tenant_ot_uq ON actas.actas (tenant, ot);
 CREATE INDEX IF NOT EXISTS actas_tenant_created_idx ON actas.actas (tenant, created_at DESC);
-
--- Revisiones de anuncios (página /publicidad). Una fila por archivo.
-CREATE TABLE IF NOT EXISTS actas.reviews (
-  tenant      text NOT NULL,
-  filename    text NOT NULL,
-  approved    smallint,           -- null=pendiente · 1=aprobado · 0=rechazado · 2=ajustes
-  comment     text NOT NULL DEFAULT '',
-  reviewer    text NOT NULL DEFAULT 'compañero',
-  created_at  text NOT NULL,      -- formato es-CO legacy (se preserva el shape de la API)
-  updated_at  text NOT NULL,
-  PRIMARY KEY (tenant, filename)
-);

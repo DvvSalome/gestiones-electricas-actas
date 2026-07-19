@@ -14,8 +14,6 @@ if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 16) {
 
 const authRoute = require('./src/routes/auth');
 const formsRoute = require('./src/routes/forms');
-const reviewsRoute = require('./src/routes/reviews');
-const mediaRoute = require('./src/routes/media');
 const actasRoute = require('./src/routes/actas');
 
 const app = express();
@@ -47,8 +45,6 @@ app.all('/api/auth', authRoute);
 app.get('/api/forms', formsRoute);            // ya exigía sesión admin adentro
 app.post('/api/forms', requireAuth, formsRoute);
 app.options('/api/forms', formsRoute);
-app.all('/api/reviews', reviewsRoute);
-app.get('/api/media', mediaRoute);
 // acta completa (F2) — TODA la superficie requiere sesión
 app.post('/api/actas', requireAuth, actasRoute.crear);
 app.options('/api/actas', actasRoute.crear);
@@ -77,11 +73,10 @@ app.get('/api/health', async (_req, res) => {
 
 // ---- Rutas estáticas (equivalentes a los rewrites de vercel.json) ----
 const WEB = path.join(__dirname, '..', '..', 'web');
-app.get('/', (_req, res) => res.redirect(302, '/publicidad'));
+app.get('/', (_req, res) => res.redirect(302, '/actas'));
 app.get('/actas', (_req, res) => res.sendFile(path.join(WEB, 'index.html')));
 app.get('/admin', (_req, res) => res.sendFile(path.join(WEB, 'admin.html')));
-app.get('/publicidad', (_req, res) => res.sendFile(path.join(WEB, 'publicidad', 'index.html')));
-// /js /css /images /favicon.svg /publicidad/* y refs relativas bajo /actas/*
+// /js /css /images /favicon.svg y refs relativas bajo /actas/*
 app.use(express.static(WEB, { index: false }));
 app.use('/actas', express.static(WEB, { index: false }));
 

@@ -1,110 +1,59 @@
-# Gestiones Eléctricas — Plataforma Digital
+# Gestiones Eléctricas — Actas Técnicas
 
-> Plataforma interna para **Gestiones Eléctricas SAS** que centraliza la gestión de actas técnicas, revisión de contenido multimedia y exposición de datos vía API REST + servidor MCP para integraciones con Claude AI.
+> Formulario digital de **actas técnicas** + panel administrativo de trazabilidad para **Gestiones Eléctricas SAS**. Los técnicos levantan el acta en campo (mobile-first) y el administrador revisa el historial desde el panel.
+>
+> Producción: **https://actas.gestioneselectricas.com** (`/` = formulario · `/admin` = panel).
 
-## 📦 Módulos
+## 📦 Estructura
 
-| Módulo | Puerto | Descripción |
-|--------|--------|-------------|
-| `api/` | 3001 | Backend REST (Express + SQLite) |
-| `mcp/` | stdio | Servidor MCP para Claude |
-| `web/` | 8080 | Frontend (revisor de contenido) |
-| `web/acta.html` | 8081 | Acta técnica digital |
+| Ruta | Qué es |
+|------|--------|
+| `web/index.html` | Formulario del acta técnica (mobile-first, GPS + minimapa, firma, checklist, fotos, PDF client-side) |
+| `web/admin.html` | Panel de trazabilidad (login, listado y descarga de actas, gestión de usuarios) |
+| `web/js/` | Lógica del formulario y del panel |
+| `web/api/` · `api/` | Funciones serverless de Vercel (`forms`, `auth`) que persisten en Vercel Blob |
+| `apps/actas/` | Backend Express + Postgres (evolución para VPS: mismo contrato de API, persistencia real de fotos/firma/checklist) |
 
-## 🚀 Setup rápido
+## 🚀 Ejecución
 
-### Prerequisitos
-- Node.js 20+
-- npm 9+
+### Modo Vercel (producción actual)
+Sitio estático en `web/` + funciones serverless en `api/`. Requiere la env var `BLOB_READ_WRITE_TOKEN` (Vercel Blob). Deploy con `vercel deploy --prod` desde la raíz.
 
-### Instalar y ejecutar
-
+### Modo Express + Postgres (`apps/actas/`)
 ```bash
-# 1. API REST
-cd api && npm install && npm start
-# → http://localhost:3001
-
-# 2. MCP Server (configurar en Claude Desktop)
-cd mcp && npm install
-
-# 3. Servidor web de contenido
-cd ..
-python3 -m http.server 8080 --bind 0.0.0.0
-# → http://TU_IP:8080/web/revisor/index.html
+cd apps/actas
+npm install
+# requiere DATABASE_URL (Postgres) + BLOB/almacenamiento de fotos
+npm start          # → http://localhost:3000  (/ redirige a /actas, /admin = panel)
 ```
 
-## 🤖 Integración con Claude (MCP)
-
-Agrega esto en `~/Library/Application Support/Claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "gestiones-electricas": {
-      "command": "node",
-      "args": ["/ruta/absoluta/al/proyecto/mcp/src/index.js"],
-      "env": {
-        "GE_API_URL": "http://localhost:3001"
-      }
-    }
-  }
-}
-```
-
-Luego reinicia Claude Desktop y podrás decirle:
-- *"¿Qué videos faltan por revisar?"*
-- *"Aprueba el anuncio 06 con comentario: perfecto"*
-- *"Muéstrame el reporte de revisiones"*
-- *"Cuántas actas técnicas se han registrado"*
-
-## 📋 API Reference
-
-### Reviews
-```
-GET    /api/reviews              Lista todas las revisiones
-GET    /api/reviews/:filename    Revisión de un video
-POST   /api/reviews/:filename    Crear/actualizar revisión
-DELETE /api/reviews/:filename    Borrar revisión
-GET    /api/reviews/report       Reporte completo en JSON
-```
-
-### Assets
-```
-GET    /api/assets/videos        Lista de videos
-GET    /api/assets/images        Lista de imágenes por categoría
-```
-
-### Actas
-```
-GET    /api/actas                Lista de actas
-POST   /api/actas                Crear acta
-GET    /api/actas/:id            Acta específica
-PATCH  /api/actas/:id/status     Actualizar estado
-```
-
-## 🗂️ Estructura del proyecto
+## 🔌 API (contrato)
 
 ```
-ge-plataforma/
-├── api/                  ← REST API (Express + SQLite)
-├── mcp/                  ← MCP Server para Claude
-├── web/                  ← Frontend HTML
-│   ├── revisor/          ← Revisor de videos/imágenes
-│   └── acta.html         ← Acta técnica digital
-├── .github/
-│   └── ISSUE_TEMPLATE/   ← Templates de tickets
-├── README.md
-└── ROADMAP.md
+POST   /api/auth                 login / cambio de contraseña / gestión de usuarios (panel)
+GET    /api/forms                lista de actas (requiere sesión admin)
+POST   /api/forms                registrar/actualizar resumen de acta
+POST   /api/actas                acta completa (fotos, firma, checklist) — apps/actas
+GET    /api/actas-full           evidencia por OT (panel)
+GET    /api/health               estado del servicio
+```
+
+## 🗂️ Rutas del sitio
+
+```
+/          → formulario del acta
+/actas     → formulario del acta
+/admin     → panel de trazabilidad
 ```
 
 ## 🎯 Roadmap
 
-Ver [ROADMAP.md](./ROADMAP.md)
+Ver [ROADMAP.md](./ROADMAP.md) y `docs/integracion/`.
 
 ## 👥 Equipo
 
 - **Isaias** — Desarrollo & IA
-- **Wilmar** — Producción & Coordinación
+- **Adrián** — Desarrollo backend / integración
 
 ---
 
