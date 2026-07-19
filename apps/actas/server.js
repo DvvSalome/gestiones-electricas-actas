@@ -43,6 +43,10 @@ app.put('/api/actas/:uuid/draft', actasRoute.draft);
 app.post('/api/actas/:uuid/fotos', actasRoute.uploadMw, actasRoute.fotoSubir);
 app.get('/api/actas/:uuid/fotos/:slot', actasRoute.fotoVer);
 app.delete('/api/actas/:uuid/fotos/:slot', actasRoute.fotoBorrar);
+app.post('/api/actas/:uuid/firma', express.json({ limit: '1mb' }), actasRoute.firma);
+app.get('/api/actas/:uuid/firma', actasRoute.firmaVer);
+app.post('/api/actas/:uuid/pdf', actasRoute.uploadPdfMw, actasRoute.pdfSubir);
+app.get('/api/actas/:uuid/pdf', actasRoute.pdfVer);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

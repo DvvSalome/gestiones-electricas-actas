@@ -101,8 +101,22 @@ function lockSignatureAndPrompt() {
   localStorage.setItem("ge_signature", window.signatureDataURL);
   updateTimelineProgress();
 
-  // Guardar en la API (en segundo plano)
-  saveActaToAPI();
+  // F2.3: la firma viaja al servidor en el momento de confirmarla (PNG +
+  // timestamp + gps) — fire-and-forget: sin señal, el PDF local la conserva.
+  uploadFirmaToServer();
+}
+
+function uploadFirmaToServer() {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine || !window.signatureDataURL) return;
+  fetch(`/api/actas/${uuid}/firma`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      firma: window.signatureDataURL,
+      gps: window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : "",
+    }),
+  }).catch(() => { /* offline o server viejo — la firma sigue en el PDF local */ });
 
   alert("✅ Firma confirmada con éxito. Recuerda descargar el reporte PDF y compartirlo.");
 }

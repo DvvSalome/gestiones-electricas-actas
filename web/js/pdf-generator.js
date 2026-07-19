@@ -353,6 +353,9 @@ function startPdfProcess() {
 
       // Enviar respaldo silencioso a la base de datos
       saveFormDataToBackend();
+      // F2.3: archivar el PDF en el servidor ("el PDF es lo que se lleva el
+      // cliente; los datos son la empresa" — ahora la empresa guarda ambos)
+      uploadPdfToServer(blob, fileName);
 
       // Mostrar directamente el Estado 2 (Acciones Disponibles)
       const overlay = document.getElementById("loading-overlay");
@@ -368,6 +371,17 @@ function startPdfProcess() {
       console.error("Error al generar PDF:", err);
       alert("❌ Ocurrió un error al compilar el reporte PDF.");
     });
+}
+
+// F2.3: sube el PDF generado al servidor (fire-and-forget; sin señal el
+// técnico igual lo descarga/comparte local — F2.4 encola el reintento)
+function uploadPdfToServer(blob, fileName) {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine || !blob) return;
+  const fd = new FormData();
+  fd.append("pdf", blob, fileName || "acta.pdf");
+  fetch(`/api/actas/${uuid}/pdf`, { method: "POST", body: fd })
+    .catch(() => { /* el PDF local sigue siendo el fallback */ });
 }
 
 // Handlers de los botones principales (mantenemos compatibilidad de nombres con el HTML)

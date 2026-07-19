@@ -180,4 +180,90 @@ async function fotoBorrar(req, res) {
   } catch (e) { console.error('[actas:fotoDel]', e); return res.status(500).json({ error: 'Error interno' }); }
 }
 
-module.exports = { crear, obtener, draft, fotoSubir, fotoVer, fotoBorrar, uploadMw: upload.single('foto') };
+// ── POST /api/actas/:uuid/firma · PNG del canvas + timestamp + gps (F2.3) ──
+async function firma(req, res) {
+  const tenant = tenantOf(req);
+  const u = req.params.uuid;
+  if (!UUID_RE.test(u)) return res.status(400).json({ error: 'uuid inválido' });
+  if (rateLimited(ipOf(req), 30)) return res.status(429).json({ error: 'Demasiadas solicitudes' });
+  const dataUrl = String(req.body?.firma || '');
+  const m = dataUrl.match(/^data:image\/png;base64,([A-Za-z0-9+/=]+)$/);
+  if (!m || m[1].length > 700_000) return res.status(400).json({ error: 'firma inválida (PNG base64 ≤512KB)' });
+  try {
+    const buf = Buffer.from(m[1], 'base64');
+    const dir = path.join(UPLOAD_DIR, 'firmas');
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, `${u}.png`);
+    fs.writeFileSync(file, buf);
+    const { rowCount } = await getPool().query(
+      `UPDATE actas.actas SET firma_path = $3, firma_at = now(),
+         estado = CASE WHEN estado = 'borrador' THEN 'firmada' ELSE estado END,
+         data = data || jsonb_build_object('firma_gps', $4::text)
+       WHERE tenant = $1 AND uuid = $2`,
+      [tenant, u, file, String(req.body?.gps ?? '').slice(0, 120)],
+    );
+    if (!rowCount) { try { fs.unlinkSync(file); } catch { /* nada */ } return res.status(404).json({ error: 'acta no existe' }); }
+    return res.json({ success: true, firmada_at: new Date().toISOString() });
+  } catch (e) { console.error('[actas:firma]', e); return res.status(500).json({ error: 'Error interno' }); }
+}
+
+// ── GET /api/actas/:uuid/firma · stream del PNG ──
+async function firmaVer(req, res) {
+  const u = req.params.uuid;
+  if (!UUID_RE.test(u)) return res.status(400).json({ error: 'uuid inválido' });
+  try {
+    const { rows: [a] } = await getPool().query('SELECT firma_path FROM actas.actas WHERE uuid = $1', [u]);
+    if (!a?.firma_path || !fs.existsSync(a.firma_path)) return res.status(404).json({ error: 'sin firma' });
+    res.setHeader('Content-Type', 'image/png');
+    fs.createReadStream(a.firma_path).pipe(res);
+  } catch (e) { console.error('[actas:firmaVer]', e); return res.status(500).json({ error: 'Error interno' }); }
+}
+
+// multer aparte para el PDF archivado (≤25MB — un acta con 10 fotos pesa)
+const uploadPdf = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, cb) => cb(null, file.mimetype === 'application/pdf'),
+});
+
+// ── POST /api/actas/:uuid/pdf · archiva el PDF generado y marca 'enviada' (F2.3) ──
+async function pdfSubir(req, res) {
+  const tenant = tenantOf(req);
+  const u = req.params.uuid;
+  if (!UUID_RE.test(u)) return res.status(400).json({ error: 'uuid inválido' });
+  if (!req.file) return res.status(400).json({ error: 'falta el archivo "pdf"' });
+  try {
+    const { rowCount } = await getPool().query('SELECT 1 FROM actas.actas WHERE tenant = $1 AND uuid = $2', [tenant, u]);
+    if (!rowCount) return res.status(404).json({ error: 'acta no existe' });
+    const dir = path.join(UPLOAD_DIR, 'pdf');
+    fs.mkdirSync(dir, { recursive: true });
+    const file = path.join(dir, `${u}.pdf`);
+    fs.writeFileSync(file, req.file.buffer);
+    await getPool().query(
+      `UPDATE actas.actas SET pdf_path = $3, updated_at = now(),
+         estado = CASE WHEN estado IN ('borrador','firmada') THEN 'enviada' ELSE estado END
+       WHERE tenant = $1 AND uuid = $2`,
+      [tenant, u, file],
+    );
+    return res.json({ success: true, size: req.file.size });
+  } catch (e) { console.error('[actas:pdf]', e); return res.status(500).json({ error: 'Error interno' }); }
+}
+
+// ── GET /api/actas/:uuid/pdf · stream del PDF archivado ──
+async function pdfVer(req, res) {
+  const u = req.params.uuid;
+  if (!UUID_RE.test(u)) return res.status(400).json({ error: 'uuid inválido' });
+  try {
+    const { rows: [a] } = await getPool().query('SELECT pdf_path, ot FROM actas.actas WHERE uuid = $1', [u]);
+    if (!a?.pdf_path || !fs.existsSync(a.pdf_path)) return res.status(404).json({ error: 'sin pdf' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="Acta_${a.ot}.pdf"`);
+    fs.createReadStream(a.pdf_path).pipe(res);
+  } catch (e) { console.error('[actas:pdfVer]', e); return res.status(500).json({ error: 'Error interno' }); }
+}
+
+module.exports = {
+  crear, obtener, draft, fotoSubir, fotoVer, fotoBorrar,
+  firma, firmaVer, pdfSubir, pdfVer,
+  uploadMw: upload.single('foto'), uploadPdfMw: uploadPdf.single('pdf'),
+};
