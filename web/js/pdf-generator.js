@@ -382,7 +382,7 @@ function uploadPdfToServer(blob, fileName) {
   if (!uuid || !navigator.onLine) return enqueue(); // F2.4: sin señal → a la cola
   const fd = new FormData();
   fd.append("pdf", blob, fileName || "acta.pdf");
-  fetch(`/api/actas/${uuid}/pdf`, { method: "POST", body: fd })
+  fetch(`/api/actas/${uuid}/pdf`, { method: "POST", headers: window.geHeaders(), body: fd })
     .then((r) => { if (!r.ok && r.status !== 400) enqueue(); })
     .catch(enqueue);
 }

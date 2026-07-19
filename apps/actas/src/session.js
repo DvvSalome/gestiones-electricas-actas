@@ -5,7 +5,8 @@
 // 'clave-insegura-de-respaldo' desaparece (el server no arranca sin secreto).
 const crypto = require('crypto');
 
-const TTL_MS = 12 * 60 * 60 * 1000;
+const TTL_MS = 12 * 60 * 60 * 1000;            // admin: 12h (igual que Vercel)
+const TTL_TECNICO_MS = 30 * 24 * 60 * 60 * 1000; // técnico: 30 días (sesión larga en el dispositivo de campo)
 
 function secret() {
   const s = process.env.SESSION_SECRET;
@@ -19,8 +20,10 @@ function b64url(buf) {
 function sign(payloadStr) {
   return b64url(crypto.createHmac('sha256', secret()).update(payloadStr).digest());
 }
-function makeToken(username) {
-  const payload = b64url(JSON.stringify({ u: username, exp: Date.now() + TTL_MS }));
+function makeToken(username, role = 'admin') {
+  const ttl = role === 'tecnico' ? TTL_TECNICO_MS : TTL_MS;
+  // los tokens admin viejos no llevan "r" — verifyToken los trata como admin
+  const payload = b64url(JSON.stringify({ u: username, r: role, exp: Date.now() + ttl }));
   return payload + '.' + sign(payload);
 }
 function verifyToken(token) {
@@ -48,4 +51,12 @@ function tokenFromReq(req) {
   return h.startsWith('Bearer ') ? h.slice(7) : '';
 }
 
-module.exports = { makeToken, verifyToken, hashPw, safeEq, tokenFromReq };
+// Middleware F2.5: exige sesión válida (técnico o admin). Cierra el anónimo.
+function requireAuth(req, res, next) {
+  const sess = verifyToken(tokenFromReq(req));
+  if (!sess) return res.status(401).json({ error: 'Sesión requerida. Ingrese con su PIN.' });
+  req.actor = { username: sess.u, role: sess.r || 'admin' };
+  next();
+}
+
+module.exports = { makeToken, verifyToken, hashPw, safeEq, tokenFromReq, requireAuth };

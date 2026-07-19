@@ -27,3 +27,20 @@ window.checklistItems = [
   { id: "iluminacion", label: "Iluminación y luminarias", state: "" },
   { id: "senalizacion", label: "Señalización de seguridad eléctrica", state: "" }
 ];
+
+// --- F2.5: sesión del técnico (PIN) ---
+// Todos los fetch al API adjuntan el Bearer si existe. 401 → se limpia la
+// sesión y la compuerta de PIN reaparece (pin-gate.js).
+window.geHeaders = function (extra) {
+  const h = Object.assign({}, extra || {});
+  const t = localStorage.getItem("ge_tecnico_token");
+  if (t) h["Authorization"] = "Bearer " + t;
+  return h;
+};
+window.geHandle401 = function (res) {
+  if (res && res.status === 401) {
+    localStorage.removeItem("ge_tecnico_token");
+    if (typeof window.showPinGate === "function") window.showPinGate();
+  }
+  return res;
+};

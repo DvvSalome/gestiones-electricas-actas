@@ -45,7 +45,7 @@ function pushDraftToServer(data) {
     }
     fetch(`/api/actas/${uuid}/draft`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: window.geHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(payload),
     }).then((r) => { if (!r.ok && r.status !== 400 && window.queueDraft) window.queueDraft(uuid, payload); })
       .catch(() => { if (window.queueDraft) window.queueDraft(uuid, payload); });

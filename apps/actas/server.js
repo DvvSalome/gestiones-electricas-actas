@@ -23,30 +23,44 @@ app.disable('x-powered-by');
 app.set('trust proxy', 1); // Traefik de Coolify — para el rate-limit por IP real
 app.use(express.json({ limit: '256kb' })); // el resumen de acta es pequeño; F2 usa multipart para fotos
 
-// CORS igual que Vercel (F2 lo cierra al dominio junto con el PIN)
+// F2.5: CORS cerrado a los orígenes propios (el form es same-origin; esto solo
+// bloquea a terceros desde el browser). ALLOWED_ORIGINS extra por env (csv).
+const ALLOWED = new Set([
+  'https://actas.gestioneselectricas.com',
+  'http://qdw6pcfrtjvaqdlb14n3g6uo.2.24.83.195.sslip.io',
+  ...(process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
+]);
 app.use('/api', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin && ALLOWED.has(origin)) res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, bypass-tunnel-reminder');
   next();
 });
 
 // ---- API (mismos contratos que las functions de Vercel) ----
+const { requireAuth } = require('./src/session');
 app.all('/api/auth', authRoute);
-app.all('/api/forms', formsRoute);
+// ⚠️ F2.5 (corrección del crítico, cierre EN el mismo deploy del PIN):
+// escribir un acta o su resumen exige sesión (técnico o admin).
+app.get('/api/forms', formsRoute);            // ya exigía sesión admin adentro
+app.post('/api/forms', requireAuth, formsRoute);
+app.options('/api/forms', formsRoute);
 app.all('/api/reviews', reviewsRoute);
 app.get('/api/media', mediaRoute);
-// acta completa (F2): OT de servidor + borrador restaurable + autosave + fotos originales
-app.all('/api/actas', actasRoute.crear);
-app.get('/api/actas/:uuid', actasRoute.obtener);
-app.put('/api/actas/:uuid/draft', actasRoute.draft);
-app.post('/api/actas/:uuid/fotos', actasRoute.uploadMw, actasRoute.fotoSubir);
-app.get('/api/actas/:uuid/fotos/:slot', actasRoute.fotoVer);
-app.delete('/api/actas/:uuid/fotos/:slot', actasRoute.fotoBorrar);
-app.post('/api/actas/:uuid/firma', express.json({ limit: '1mb' }), actasRoute.firma);
-app.get('/api/actas/:uuid/firma', actasRoute.firmaVer);
-app.post('/api/actas/:uuid/pdf', actasRoute.uploadPdfMw, actasRoute.pdfSubir);
-app.get('/api/actas/:uuid/pdf', actasRoute.pdfVer);
+// acta completa (F2) — TODA la superficie requiere sesión
+app.post('/api/actas', requireAuth, actasRoute.crear);
+app.options('/api/actas', actasRoute.crear);
+app.get('/api/actas/:uuid', requireAuth, actasRoute.obtener);
+app.put('/api/actas/:uuid/draft', requireAuth, actasRoute.draft);
+app.post('/api/actas/:uuid/fotos', requireAuth, actasRoute.uploadMw, actasRoute.fotoSubir);
+app.get('/api/actas/:uuid/fotos/:slot', requireAuth, actasRoute.fotoVer);
+app.delete('/api/actas/:uuid/fotos/:slot', requireAuth, actasRoute.fotoBorrar);
+app.post('/api/actas/:uuid/firma', requireAuth, express.json({ limit: '1mb' }), actasRoute.firma);
+app.get('/api/actas/:uuid/firma', requireAuth, actasRoute.firmaVer);
+app.post('/api/actas/:uuid/pdf', requireAuth, actasRoute.uploadPdfMw, actasRoute.pdfSubir);
+app.get('/api/actas/:uuid/pdf', requireAuth, actasRoute.pdfVer);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

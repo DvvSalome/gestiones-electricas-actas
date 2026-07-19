@@ -48,7 +48,7 @@
   async function ensureUuid() {
     let uuid = localStorage.getItem("ge_current_acta_uuid");
     if (uuid) return uuid;
-    const r = await fetch("/api/actas", { method: "POST", headers: { "Content-Type": "application/json" } });
+    const r = await fetch("/api/actas", { method: "POST", headers: window.geHeaders({ "Content-Type": "application/json" }) });
     if (!r.ok) throw new Error("sin server");
     const { uuid: u, ot } = await r.json();
     localStorage.setItem("ge_current_acta_uuid", u);
@@ -81,15 +81,15 @@
             fd.append("foto", item.blob, item.fileName || item.slot);
             fd.append("slot", item.slot);
             if (item.gps) fd.append("gps", item.gps);
-            res = await fetch(`/api/actas/${uuid}/fotos`, { method: "POST", body: fd });
+            res = await fetch(`/api/actas/${uuid}/fotos`, { method: "POST", headers: window.geHeaders(), body: fd });
           } else if (item.kind === "firma") {
             res = await fetch(`/api/actas/${uuid}/firma`, {
-              method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(item.json),
+              method: "POST", headers: window.geHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(item.json),
             });
           } else if (item.kind === "pdf") {
             const fd = new FormData();
             fd.append("pdf", item.blob, item.fileName || "acta.pdf");
-            res = await fetch(`/api/actas/${uuid}/pdf`, { method: "POST", body: fd });
+            res = await fetch(`/api/actas/${uuid}/pdf`, { method: "POST", headers: window.geHeaders(), body: fd });
           } else { res = { ok: true, status: 200 }; }
           // éxito o error permanente (acta inexistente / payload inválido) → sacar de la cola
           if (res.ok || res.status === 404 || res.status === 400) {
@@ -105,7 +105,7 @@
         try {
           const uuid = dk !== "sin-uuid" ? dk : await ensureUuid();
           const res = await fetch(`/api/actas/${uuid}/draft`, {
-            method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(d.payload),
+            method: "PUT", headers: window.geHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(d.payload),
           });
           if (res.ok || res.status === 404 || res.status === 400) {
             await tx(DRAFTS, "readwrite", (s) => s.delete(dk));

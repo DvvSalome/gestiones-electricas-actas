@@ -52,7 +52,7 @@ function initOTNumber() {
     paintOT(ot);
     return;
   }
-  fetch("/api/actas", { method: "POST", headers: { "Content-Type": "application/json" } })
+  fetch("/api/actas", { method: "POST", headers: window.geHeaders({ "Content-Type": "application/json" }) })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status))))
     .then(({ uuid: u, ot: serverOt }) => {
       localStorage.setItem("ge_current_ot", serverOt);

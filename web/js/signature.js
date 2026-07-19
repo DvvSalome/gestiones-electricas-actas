@@ -117,7 +117,7 @@ function uploadFirmaToServer() {
   if (!uuid || !navigator.onLine) return enqueue(); // F2.4: sin señal → a la cola
   fetch(`/api/actas/${uuid}/firma`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: window.geHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   }).then((r) => { if (!r.ok && r.status !== 400) enqueue(); }).catch(enqueue);
 

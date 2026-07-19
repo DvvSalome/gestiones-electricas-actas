@@ -56,7 +56,7 @@ function uploadOriginalPhoto(file, slot) {
   fd.append("foto", file, file.name || slot);
   fd.append("slot", slot);
   if (gps) fd.append("gps", gps);
-  fetch(`/api/actas/${uuid}/fotos`, { method: "POST", body: fd })
+  fetch(`/api/actas/${uuid}/fotos`, { method: "POST", headers: window.geHeaders(), body: fd })
     .then((r) => { if (!r.ok && r.status !== 400) enqueue(); })
     .catch(enqueue);
 }
@@ -64,7 +64,7 @@ function uploadOriginalPhoto(file, slot) {
 function deleteServerPhoto(slot) {
   const uuid = localStorage.getItem("ge_current_acta_uuid");
   if (!uuid || !navigator.onLine) return;
-  fetch(`/api/actas/${uuid}/fotos/${slot}`, { method: "DELETE" }).catch(() => {});
+  fetch(`/api/actas/${uuid}/fotos/${slot}`, { method: "DELETE", headers: window.geHeaders() }).catch(() => {});
 }
 
 // --- Evidencias adicionales dinámicas (hasta MAX_TOTAL_IMAGES en total) ---

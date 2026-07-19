@@ -5,7 +5,7 @@ const { makeToken, verifyToken, hashPw, safeEq } = require('../session');
 
 async function getUsers(tenant) {
   const { rows } = await getPool().query(
-    'SELECT username, salt, hash FROM actas.users WHERE tenant = $1 ORDER BY id', [tenant],
+    'SELECT username, salt, hash, role FROM actas.users WHERE tenant = $1 ORDER BY id', [tenant],
   );
   return rows;
 }
@@ -28,16 +28,28 @@ module.exports = async function authRoute(req, res) {
       if (!username || !password) return res.status(400).json({ error: 'Faltan credenciales' });
       const users = await getUsers(tenant);
       const u = users.find((x) => x.username.toLowerCase() === String(username).toLowerCase());
-      if (!u || !safeEq(hashPw(password, u.salt), u.hash)) {
+      if (!u || u.role !== 'admin' || !safeEq(hashPw(password, u.salt), u.hash)) {
         return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
       }
-      return res.json({ token: makeToken(u.username), username: u.username });
+      return res.json({ token: makeToken(u.username, 'admin'), username: u.username });
+    }
+
+    // F2.5: login del técnico de campo con PIN — sesión larga (30 días en el dispositivo)
+    if (action === 'login-tecnico') {
+      const { username, pin } = body;
+      if (!username || !pin) return res.status(400).json({ error: 'Faltan usuario y PIN' });
+      const users = await getUsers(tenant);
+      const u = users.find((x) => x.username.toLowerCase() === String(username).toLowerCase());
+      if (!u || u.role !== 'tecnico' || !safeEq(hashPw(pin, u.salt), u.hash)) {
+        return res.status(401).json({ error: 'Usuario o PIN incorrectos' });
+      }
+      return res.json({ token: makeToken(u.username, 'tecnico'), username: u.username, role: 'tecnico' });
     }
 
     if (action === 'change-password') {
       const { token, currentPassword, newPassword } = body;
       const sess = verifyToken(token);
-      if (!sess) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+      if (!sess || (sess.r && sess.r !== "admin")) return res.status(401).json({ error: 'Sesión inválida o expirada' });
       if (!newPassword || String(newPassword).length < 8) {
         return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
       }
@@ -57,32 +69,38 @@ module.exports = async function authRoute(req, res) {
     if (action === 'list-users') {
       if (!verifyToken(body.token)) return res.status(401).json({ error: 'Sesión inválida o expirada' });
       const users = await getUsers(tenant);
-      return res.json({ users: users.map((u) => ({ username: u.username })) });
+      return res.json({ users: users.map((u) => ({ username: u.username, role: u.role })) });
     }
 
     if (action === 'create-user') {
-      if (!verifyToken(body.token)) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+      const sessCU = verifyToken(body.token);
+      if (!sessCU || (sessCU.r && sessCU.r !== 'admin')) return res.status(401).json({ error: 'Sesión inválida o expirada' });
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
+      const role = body.role === 'tecnico' ? 'tecnico' : 'admin';
       if (!username) return res.status(400).json({ error: 'El usuario es obligatorio' });
       if (username.length > 40) return res.status(400).json({ error: 'El usuario es demasiado largo' });
-      if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+      if (role === 'tecnico') {
+        if (!/^\d{4,6}$/.test(password)) return res.status(400).json({ error: 'El PIN del técnico debe ser de 4 a 6 dígitos' });
+      } else if (password.length < 8) {
+        return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+      }
       const salt = crypto.randomBytes(16).toString('hex');
       try {
         await getPool().query(
-          'INSERT INTO actas.users (tenant, username, salt, hash) VALUES ($1, $2, $3, $4)',
-          [tenant, username, salt, hashPw(password, salt)],
+          'INSERT INTO actas.users (tenant, username, salt, hash, role) VALUES ($1, $2, $3, $4, $5)',
+          [tenant, username, salt, hashPw(password, salt), role],
         );
       } catch (e) {
         if (e.code === '23505') return res.status(409).json({ error: 'Ya existe un usuario con ese nombre' });
         throw e;
       }
-      return res.json({ success: true, username });
+      return res.json({ success: true, username, role });
     }
 
     if (action === 'delete-user') {
       const sess = verifyToken(body.token);
-      if (!sess) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+      if (!sess || (sess.r && sess.r !== 'admin')) return res.status(401).json({ error: 'Sesión inválida o expirada' });
       const username = String(body.username || '').trim();
       const users = await getUsers(tenant);
       if (users.length <= 1) return res.status(400).json({ error: 'Debe quedar al menos un usuario' });
