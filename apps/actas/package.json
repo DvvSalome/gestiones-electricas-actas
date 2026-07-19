@@ -1,0 +1,15 @@
+{
+  "name": "ge-actas-server",
+  "version": "1.0.0",
+  "description": "Acta Digital de Gestiones Eléctricas — Express + Postgres (port del deploy Vercel a VPS Coolify)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}

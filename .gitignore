@@ -10,3 +10,4 @@ mcp/node_modules/
 *.mp4
 .DS_Store
 .claude/
+apps/actas/node_modules/
