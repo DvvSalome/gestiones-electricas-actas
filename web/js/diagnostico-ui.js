@@ -78,6 +78,7 @@
       const d = await r.json();
       if (d.findings && d.findings.length) renderFindings(el, slot, d);
       if (d.status === "completed") { stopPolling(slot); el.dataset.state = "done"; if (!d.findings?.length) renderSinHallazgos(el, slot); }
+      else if (d.status === "failed_budget") { stopPolling(slot); renderError(el, slot, "Presupuesto diario de IA agotado — continúe con diagnóstico manual; mañana se reinicia"); }
       else if (d.status === "failed") { stopPolling(slot); renderError(el, slot, "El motor no pudo analizar esta foto"); }
     } catch { /* siguiente tick */ }
   }
@@ -119,9 +120,115 @@
       ? `<div style="font-size:11px;color:#5c6600;font-weight:800;margin-bottom:6px">🧠 DIAGNÓSTICO IA · ${d.findings.length} hallazgo(s)</div>`
       : `<div style="font-size:11px;color:#9aa0a6;margin-bottom:6px">⏳ analizando… hallazgos parciales</div>`;
     el.innerHTML = head + items;
-    // F3.3 cablea aquí los botones "Usar en diagnóstico" / "Confirmar-Corregir"
-    if (typeof window.renderDiagAcciones === "function") window.renderDiagAcciones(slot, d);
+    renderDiagAcciones(slot, d);
   }
+
+  // --- F3.3: acciones por hallazgo — cierran el círculo del aprendizaje ---
+  const CHECKLIST_MAP = [
+    [/tablero|gabinete|celda|envolvente/i, "tablero"],
+    [/breaker|protecci[oó]n|termomagn|interruptor|sobrecorriente/i, "breakers"],
+    [/acometida|medidor|medici[oó]n/i, "acometida"],
+    [/conductor|cable|canaliz|empalme|aislamiento/i, "conductores"],
+    [/tierra|spt|electrodo|equipotencial/i, "puesta_tierra"],
+    [/tomacorriente|gfci|salida/i, "tomacorrientes"],
+    [/luminaria|iluminaci[oó]n|l[aá]mpara/i, "iluminacion"],
+    [/se[ñn]al|advertencia|riesgo el[eé]ctrico|r[oó]tul/i, "senalizacion"],
+  ];
+
+  function marcarChecklistFalla(texto) {
+    const hit = CHECKLIST_MAP.find(([re]) => re.test(texto));
+    if (!hit) return false;
+    const idx = (window.checklistItems || []).findIndex((c) => c.id === hit[1]);
+    if (idx < 0) return false;
+    window.checklistItems[idx].state = "fail";
+    const div = document.querySelector(`.check-item[data-index="${idx}"]`);
+    if (div) {
+      div.classList.remove("ok");
+      div.classList.add("fail");
+      const s = div.querySelector(".check-status");
+      if (s) s.textContent = "FALLA";
+    }
+    return true;
+  }
+
+  function renderDiagAcciones(slot, d) {
+    if (d.status !== "completed") return; // acciones solo con el análisis cerrado
+    d.findings.forEach((f, i) => {
+      const box = document.getElementById(`diag-acciones-${slot}-${i}`);
+      if (!box) return;
+      if (f.revisado) {
+        box.innerHTML = f.revisado === "correcto"
+          ? `<div style="margin-top:7px;font-size:11.5px;color:#4c7a1f;font-weight:700">✓ Confirmado — el motor aprende de ti</div>`
+          : `<div style="margin-top:7px;font-size:11.5px;color:#c0392b;font-weight:700">✗ Corregido — el motor no repetirá este error</div>`;
+        return;
+      }
+      box.innerHTML = `
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <button type="button" onclick="diagUsar('${slot}',${i})" style="flex:1;min-width:130px;min-height:38px;background:${LIMA};color:${NAVY};font-weight:800;font-size:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit">➕ Usar en diagnóstico</button>
+          <button type="button" onclick="diagReview('${slot}',${i},'correcto')" style="min-height:38px;background:#fff;border:1.5px solid #d2e8bb;color:#4c7a1f;font-weight:800;font-size:12px;border-radius:10px;cursor:pointer;padding:0 12px;font-family:inherit">✓</button>
+          <button type="button" onclick="diagCorregir('${slot}',${i})" style="min-height:38px;background:#fff;border:1.5px solid #eec9c5;color:#c0392b;font-weight:800;font-size:12px;border-radius:10px;cursor:pointer;padding:0 12px;font-family:inherit">✗</button>
+        </div>
+        <div id="diag-motivo-${slot}-${i}" style="display:none;margin-top:6px"></div>`;
+    });
+    window._diagData = window._diagData || {};
+    window._diagData[slot] = d;
+  }
+
+  window.diagUsar = function (slot, i) {
+    const f = window._diagData?.[slot]?.findings?.[i];
+    if (!f) return;
+    const campo = document.getElementById("field-diagnostico");
+    if (campo) {
+      const cita = f.citas && f.citas[0] ? ` (${f.citas[0].refPath})` : "";
+      const linea = `• ${f.titulo}${cita}: ${f.descripcion || ""}`.trim();
+      campo.value = campo.value ? `${campo.value}\n${linea}` : linea;
+    }
+    marcarChecklistFalla(`${f.titulo} ${f.descripcion || ""}`);
+    if (typeof saveCurrentFormToLocal === "function") saveCurrentFormToLocal();
+    const box = document.getElementById(`diag-acciones-${slot}-${i}`);
+    if (box) {
+      const done = document.createElement("div");
+      done.style.cssText = "margin-top:5px;font-size:11px;color:#5c6600;font-weight:700";
+      done.textContent = "➕ Agregado al diagnóstico del acta";
+      box.appendChild(done);
+    }
+  };
+
+  window.diagReview = async function (slot, i, veredicto, motivo) {
+    const f = window._diagData?.[slot]?.findings?.[i];
+    const uuid = localStorage.getItem("ge_current_acta_uuid");
+    if (!f || !uuid) return;
+    const box = document.getElementById(`diag-acciones-${slot}-${i}`);
+    try {
+      const r = await fetch(`/api/actas/${uuid}/fotos/${slot}/diagnostico/review`, {
+        method: "POST",
+        headers: window.geHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ finding_id: f.id, veredicto, motivo }),
+      });
+      if (!r.ok) throw new Error();
+      f.revisado = veredicto;
+      if (box) box.innerHTML = veredicto === "correcto"
+        ? `<div style="margin-top:7px;font-size:11.5px;color:#4c7a1f;font-weight:700">✓ Confirmado — el motor aprende de ti</div>`
+        : `<div style="margin-top:7px;font-size:11.5px;color:#c0392b;font-weight:700">✗ Corregido — el motor no repetirá este error</div>`;
+    } catch {
+      if (box) {
+        const err = document.createElement("div");
+        err.style.cssText = "margin-top:5px;font-size:11px;color:#c0392b";
+        err.textContent = "No se pudo enviar — reintente con señal";
+        box.appendChild(err);
+      }
+    }
+  };
+
+  window.diagCorregir = function (slot, i) {
+    const mbox = document.getElementById(`diag-motivo-${slot}-${i}`);
+    if (!mbox) return;
+    mbox.style.display = "block";
+    mbox.innerHTML = `
+      <input id="diag-motivo-input-${slot}-${i}" placeholder="¿Por qué es incorrecto? (ej: no es un tablero...)" style="width:100%;min-height:42px;border:1.5px solid #e3e6da;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;color:${NAVY}">
+      <button type="button" onclick="(function(){var v=document.getElementById('diag-motivo-input-${slot}-${i}').value.trim();if(v.length>=3)window.diagReview('${slot}',${i},'incorrecto',v)})()" style="margin-top:6px;width:100%;min-height:38px;background:#c0392b;color:#fff;font-weight:800;font-size:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit">Enviar corrección</button>`;
+    mbox.querySelector("input")?.focus();
+  };
 
   function escapeHtml(s) {
     return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));

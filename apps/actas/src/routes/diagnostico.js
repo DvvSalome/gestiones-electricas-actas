@@ -88,6 +88,7 @@ async function estado(req, res) {
       estado: f.estado,
       severidad: f.severidad,
       confianza: f.confianza,
+      revisado: f.goldenLabel || null, // correcto | incorrecto | null (F3.3)
       citas: (f.citas || []).filter((c) => c.validated).map((c) => ({ refPath: c.refPath, quote: c.quote })),
     }));
     // persistir vínculo finding_ids (semilla de la hoja de vida F4)
@@ -107,4 +108,55 @@ async function estado(req, res) {
   }
 }
 
-module.exports = { disparar, estado };
+// ── POST /api/actas/:uuid/fotos/:slot/diagnostico/review · confirmar/corregir (F3.3) ──
+// ⚠️ Corrección del crítico: el proxy VALIDA que el finding pertenezca a la
+// inspección vinculada a ESTA foto antes de proxear el PATCH (el motor no
+// tiene tenant-check en review). La etiqueta alimenta el aprendizaje en
+// caliente del motor (goldenLabel/reviewMotivo → getLearningPromptBlock).
+async function review(req, res) {
+  const u = req.params.uuid, slot = req.params.slot;
+  if (!UUID_RE.test(u) || !SLOT_RE.test(slot)) return res.status(400).json({ error: 'inválido' });
+  const { finding_id, veredicto, motivo } = req.body || {};
+  if (!UUID_RE.test(String(finding_id || ''))) return res.status(400).json({ error: 'finding_id inválido' });
+  if (veredicto !== 'correcto' && veredicto !== 'incorrecto') return res.status(400).json({ error: 'veredicto debe ser correcto|incorrecto' });
+  try {
+    const p = getPool();
+    const { rows: [foto] } = await p.query(
+      'SELECT inspection_id, finding_ids, (SELECT ot FROM actas.actas a WHERE a.uuid = f.acta_uuid) AS ot FROM actas.acta_fotos f WHERE acta_uuid = $1 AND slot = $2', [u, slot],
+    );
+    if (!foto?.inspection_id) return res.status(404).json({ error: 'Sin diagnóstico para esta foto' });
+
+    // validar pertenencia; si finding_ids está desactualizado, refrescar del motor UNA vez
+    let ids = foto.finding_ids || [];
+    if (!ids.includes(finding_id)) {
+      const r = await fetch(`${MOTOR_URL}/api/inspections/${foto.inspection_id}/events`, { headers: svcHeaders() });
+      if (r.ok) {
+        const data = await r.json();
+        ids = (data.findings || []).map((f) => f.id);
+        if (ids.length) await p.query('UPDATE actas.acta_fotos SET finding_ids = $3 WHERE acta_uuid = $1 AND slot = $2', [u, slot, ids]);
+      }
+    }
+    if (!ids.includes(finding_id)) {
+      return res.status(403).json({ error: 'El hallazgo no pertenece al diagnóstico de esta foto' });
+    }
+
+    // proveniencia en el motivo (dataset de aprendizaje con contexto de campo)
+    const quien = req.actor?.username || 'tecnico';
+    const motivoFinal = veredicto === 'incorrecto'
+      ? `[acta ${foto.ot} · ${quien}] ${String(motivo || 'sin detalle').slice(0, 800)}`
+      : undefined;
+
+    const pr = await fetch(`${MOTOR_URL}/api/findings/${finding_id}/review`, {
+      method: 'PATCH',
+      headers: svcHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ veredicto, ...(motivoFinal ? { motivo: motivoFinal } : {}) }),
+    });
+    if (!pr.ok) return res.status(502).json({ error: 'El motor no aceptó la revisión' });
+    return res.json({ success: true, veredicto });
+  } catch (e) {
+    console.error('[diagnostico:review]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+module.exports = { disparar, estado, review };

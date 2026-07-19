@@ -66,6 +66,7 @@ app.get('/api/actas/:uuid/pdf', requireAuth, actasRoute.pdfVer);
 const diagnosticoRoute = require('./src/routes/diagnostico');
 app.post('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.disparar);
 app.get('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.estado);
+app.post('/api/actas/:uuid/fotos/:slot/diagnostico/review', requireAuth, diagnosticoRoute.review);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });
