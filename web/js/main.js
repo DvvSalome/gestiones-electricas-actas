@@ -39,15 +39,38 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Generador o cargador de N° de OT
+// Generador o cargador de N° de OT.
+// F2.1: el OT lo asigna el SERVIDOR (secuencial por tenant — fin de las
+// colisiones entre celulares). Si el server no responde (offline, o el deploy
+// viejo de Vercel sin /api/actas), cae al aleatorio de siempre y se marca
+// pendiente para reconciliar cuando vuelva la señal.
 function initOTNumber() {
   let ot = localStorage.getItem("ge_current_ot");
-  if (!ot) {
-    // Generar un número aleatorio para OT
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    ot = `OT-${rand}`;
-    localStorage.setItem("ge_current_ot", ot);
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (ot) {
+    // acta en curso: no pedir otra (el uuid puede faltar si nació offline)
+    paintOT(ot);
+    return;
   }
+  fetch("/api/actas", { method: "POST", headers: { "Content-Type": "application/json" } })
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status))))
+    .then(({ uuid: u, ot: serverOt }) => {
+      localStorage.setItem("ge_current_ot", serverOt);
+      localStorage.setItem("ge_current_acta_uuid", u);
+      localStorage.removeItem("ge_ot_offline");
+      paintOT(serverOt);
+    })
+    .catch(() => {
+      // fallback: aleatorio local (comportamiento histórico) — funciona offline
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      const localOt = `OT-${rand}`;
+      localStorage.setItem("ge_current_ot", localOt);
+      localStorage.setItem("ge_ot_offline", "1");
+      paintOT(localOt);
+    });
+}
+
+function paintOT(ot) {
   if (window.otBadgeNum) window.otBadgeNum.textContent = ot;
   if (window.otField) window.otField.value = ot;
 }

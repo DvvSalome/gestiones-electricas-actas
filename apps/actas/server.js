@@ -16,6 +16,7 @@ const authRoute = require('./src/routes/auth');
 const formsRoute = require('./src/routes/forms');
 const reviewsRoute = require('./src/routes/reviews');
 const mediaRoute = require('./src/routes/media');
+const actasRoute = require('./src/routes/actas');
 
 const app = express();
 app.disable('x-powered-by');
@@ -35,6 +36,9 @@ app.all('/api/auth', authRoute);
 app.all('/api/forms', formsRoute);
 app.all('/api/reviews', reviewsRoute);
 app.get('/api/media', mediaRoute);
+// acta completa (F2): OT de servidor + borrador restaurable
+app.all('/api/actas', (req, res) => { req.params = {}; return actasRoute(req, res); });
+app.all('/api/actas/:uuid', actasRoute);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

@@ -125,6 +125,8 @@ function resetForm() {
     localStorage.removeItem("ge_form_draft");
     localStorage.removeItem("ge_signature");
     localStorage.removeItem("ge_current_ot");
+    localStorage.removeItem("ge_current_acta_uuid"); // F2.1: el server asigna una nueva
+    localStorage.removeItem("ge_ot_offline");
     
     // Limpiar fotos en memoria
     removePhoto("antes");
