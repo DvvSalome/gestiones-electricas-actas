@@ -26,6 +26,39 @@ function saveCurrentFormToLocal() {
   
   localStorage.setItem("ge_form_draft", JSON.stringify(data));
   updateTimelineProgress();
+  pushDraftToServer(data); // F2.2: el server es la fuente de verdad; localStorage queda de caché
+}
+
+// --- Autosave server-side (F2.2): debounce 2s, fire-and-forget ---
+// Si no hay señal o el server no existe (deploy Vercel viejo), falla en silencio:
+// el flujo local + PDF sigue intacto. F2.4 formaliza la cola offline.
+let _draftTimer = null;
+function pushDraftToServer(data) {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine) return;
+  clearTimeout(_draftTimer);
+  _draftTimer = setTimeout(() => {
+    fetch(`/api/actas/${uuid}/draft`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        data: {
+          servicioTipo: data.servicioTipo, cliente: data.cliente, direccion: data.direccion,
+          telefono: data.telefono, email: data.email, tecnico: data.tecnico,
+          matricula: data.matricula, diagnostico: data.diagnostico, tension: data.tension,
+          corriente: data.corriente, acciones: data.acciones, norma: data.norma,
+          firmanteNombre: data.firmanteNombre, firmanteDocumento: data.firmanteDocumento,
+          operacionFinal: data.operacionFinal,
+          ot: localStorage.getItem("ge_current_ot") || "",
+          gps: window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : (data.gps || ""),
+        },
+        checklist: (data.checklist || []).map(c => ({ item_id: c.id, estado: c.state })),
+        materiales: (data.materials || []).filter(m => m.desc).map(m => ({
+          descripcion: m.desc, cantidad: m.cant, unidad: m.ref,
+        })),
+      }),
+    }).catch(() => { /* offline o server viejo — el borrador local manda */ });
+  }, 2000);
 }
 
 function loadLocalStorageData() {

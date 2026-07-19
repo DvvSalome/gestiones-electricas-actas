@@ -26,7 +26,7 @@ app.use(express.json({ limit: '256kb' })); // el resumen de acta es pequeño; F2
 // CORS igual que Vercel (F2 lo cierra al dominio junto con el PIN)
 app.use('/api', (req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, bypass-tunnel-reminder');
   next();
 });
@@ -36,9 +36,13 @@ app.all('/api/auth', authRoute);
 app.all('/api/forms', formsRoute);
 app.all('/api/reviews', reviewsRoute);
 app.get('/api/media', mediaRoute);
-// acta completa (F2): OT de servidor + borrador restaurable
-app.all('/api/actas', (req, res) => { req.params = {}; return actasRoute(req, res); });
-app.all('/api/actas/:uuid', actasRoute);
+// acta completa (F2): OT de servidor + borrador restaurable + autosave + fotos originales
+app.all('/api/actas', actasRoute.crear);
+app.get('/api/actas/:uuid', actasRoute.obtener);
+app.put('/api/actas/:uuid/draft', actasRoute.draft);
+app.post('/api/actas/:uuid/fotos', actasRoute.uploadMw, actasRoute.fotoSubir);
+app.get('/api/actas/:uuid/fotos/:slot', actasRoute.fotoVer);
+app.delete('/api/actas/:uuid/fotos/:slot', actasRoute.fotoBorrar);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

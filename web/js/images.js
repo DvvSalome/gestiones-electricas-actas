@@ -1,10 +1,13 @@
 // --- Image Upload & Base64 previews ---
 function handleImageUpload(input, type) {
   if (!input.files || !input.files[0]) return;
-  
+
   const file = input.files[0];
+  // F2.2: subir el archivo ORIGINAL al servidor (el EXIF es valor probatorio y
+  // el canvas comprimido lo destruye — ese queda solo para preview y PDF).
+  uploadOriginalPhoto(file, type);
   const reader = new FileReader();
-  
+
   reader.onload = function(e) {
     // Reducir la imagen un poco antes de procesarla para optimizar rendimiento del PDF
     compressImage(e.target.result, 1000, (compressedBase64) => {
@@ -39,7 +42,27 @@ function removePhoto(type, event) {
   window.imagesInMemory[type] = "";
   document.getElementById(`img-${type}`).value = "";
   document.getElementById(`preview-${type}`).innerHTML = "";
+  deleteServerPhoto(type); // F2.2: mantener el server en sincronía
   updateTimelineProgress();
+}
+
+// --- F2.2: persistencia de fotos originales en el servidor ---
+function uploadOriginalPhoto(file, slot) {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine) return; // sin acta server u offline: el PDF local cubre (F2.4 encola)
+  const fd = new FormData();
+  fd.append("foto", file, file.name || slot);
+  fd.append("slot", slot);
+  const gps = window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : "";
+  if (gps) fd.append("gps", gps);
+  fetch(`/api/actas/${uuid}/fotos`, { method: "POST", body: fd })
+    .catch(() => { /* offline o server viejo — la evidencia sigue en el PDF local */ });
+}
+
+function deleteServerPhoto(slot) {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine) return;
+  fetch(`/api/actas/${uuid}/fotos/${slot}`, { method: "DELETE" }).catch(() => {});
 }
 
 // --- Evidencias adicionales dinámicas (hasta MAX_TOTAL_IMAGES en total) ---
@@ -92,6 +115,7 @@ function removeExtraPhotoSlot(key, event) {
     event.preventDefault();
   }
   delete window.imagesInMemory[key];
+  deleteServerPhoto(key);
   window.extraSlots = window.extraSlots.filter(k => k !== key);
   const el = document.getElementById(`slot-container-${key}`);
   if (el) el.remove();
