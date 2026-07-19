@@ -46,17 +46,19 @@ function removePhoto(type, event) {
   updateTimelineProgress();
 }
 
-// --- F2.2: persistencia de fotos originales en el servidor ---
+// --- F2.2/F2.4: persistencia de fotos originales (con cola offline) ---
 function uploadOriginalPhoto(file, slot) {
   const uuid = localStorage.getItem("ge_current_acta_uuid");
-  if (!uuid || !navigator.onLine) return; // sin acta server u offline: el PDF local cubre (F2.4 encola)
+  const gps = window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : "";
+  const enqueue = () => window.queueOffline && window.queueOffline({ kind: "foto", uuid: uuid || null, slot, gps, blob: file, fileName: file.name || slot });
+  if (!uuid || !navigator.onLine) return enqueue(); // acta offline o sin señal → a la cola
   const fd = new FormData();
   fd.append("foto", file, file.name || slot);
   fd.append("slot", slot);
-  const gps = window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : "";
   if (gps) fd.append("gps", gps);
   fetch(`/api/actas/${uuid}/fotos`, { method: "POST", body: fd })
-    .catch(() => { /* offline o server viejo — la evidencia sigue en el PDF local */ });
+    .then((r) => { if (!r.ok && r.status !== 400) enqueue(); })
+    .catch(enqueue);
 }
 
 function deleteServerPhoto(slot) {

@@ -108,15 +108,18 @@ function lockSignatureAndPrompt() {
 
 function uploadFirmaToServer() {
   const uuid = localStorage.getItem("ge_current_acta_uuid");
-  if (!uuid || !navigator.onLine || !window.signatureDataURL) return;
+  if (!window.signatureDataURL) return;
+  const payload = {
+    firma: window.signatureDataURL,
+    gps: window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : "",
+  };
+  const enqueue = () => window.queueOffline && window.queueOffline({ kind: "firma", uuid: uuid || null, json: payload });
+  if (!uuid || !navigator.onLine) return enqueue(); // F2.4: sin señal → a la cola
   fetch(`/api/actas/${uuid}/firma`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      firma: window.signatureDataURL,
-      gps: window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : "",
-    }),
-  }).catch(() => { /* offline o server viejo — la firma sigue en el PDF local */ });
+    body: JSON.stringify(payload),
+  }).then((r) => { if (!r.ok && r.status !== 400) enqueue(); }).catch(enqueue);
 
   alert("✅ Firma confirmada con éxito. Recuerda descargar el reporte PDF y compartirlo.");
 }

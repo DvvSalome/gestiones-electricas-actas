@@ -35,13 +35,25 @@ function saveCurrentFormToLocal() {
 let _draftTimer = null;
 function pushDraftToServer(data) {
   const uuid = localStorage.getItem("ge_current_acta_uuid");
-  if (!uuid || !navigator.onLine) return;
   clearTimeout(_draftTimer);
   _draftTimer = setTimeout(() => {
+    const payload = buildDraftPayload(data);
+    if (!uuid || !navigator.onLine) {
+      // F2.4: borrador a la cola (coalescido por acta — el último gana)
+      if (window.queueDraft) window.queueDraft(uuid, payload);
+      return;
+    }
     fetch(`/api/actas/${uuid}/draft`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(payload),
+    }).then((r) => { if (!r.ok && r.status !== 400 && window.queueDraft) window.queueDraft(uuid, payload); })
+      .catch(() => { if (window.queueDraft) window.queueDraft(uuid, payload); });
+  }, 2000);
+}
+
+function buildDraftPayload(data) {
+  return {
         data: {
           servicioTipo: data.servicioTipo, cliente: data.cliente, direccion: data.direccion,
           telefono: data.telefono, email: data.email, tecnico: data.tecnico,
@@ -56,9 +68,7 @@ function pushDraftToServer(data) {
         materiales: (data.materials || []).filter(m => m.desc).map(m => ({
           descripcion: m.desc, cantidad: m.cant, unidad: m.ref,
         })),
-      }),
-    }).catch(() => { /* offline o server viejo — el borrador local manda */ });
-  }, 2000);
+  };
 }
 
 function loadLocalStorageData() {

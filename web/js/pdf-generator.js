@@ -377,11 +377,14 @@ function startPdfProcess() {
 // técnico igual lo descarga/comparte local — F2.4 encola el reintento)
 function uploadPdfToServer(blob, fileName) {
   const uuid = localStorage.getItem("ge_current_acta_uuid");
-  if (!uuid || !navigator.onLine || !blob) return;
+  if (!blob) return;
+  const enqueue = () => window.queueOffline && window.queueOffline({ kind: "pdf", uuid: uuid || null, blob, fileName: fileName || "acta.pdf" });
+  if (!uuid || !navigator.onLine) return enqueue(); // F2.4: sin señal → a la cola
   const fd = new FormData();
   fd.append("pdf", blob, fileName || "acta.pdf");
   fetch(`/api/actas/${uuid}/pdf`, { method: "POST", body: fd })
-    .catch(() => { /* el PDF local sigue siendo el fallback */ });
+    .then((r) => { if (!r.ok && r.status !== 400) enqueue(); })
+    .catch(enqueue);
 }
 
 // Handlers de los botones principales (mantenemos compatibilidad de nombres con el HTML)
