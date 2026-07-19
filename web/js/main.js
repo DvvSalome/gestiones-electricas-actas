@@ -15,6 +15,7 @@ window.addEventListener("DOMContentLoaded", () => {
   setupCanvas();
   loadLocalStorageData();
   if (typeof restoreFromServer === "function") void restoreFromServer(); // F2.6: respaldo del server
+  if (typeof refreshDiagFromServer === "function") setTimeout(() => void refreshDiagFromServer(), 1500); // F3.2
   updateTimelineProgress();
   
   // Auto-guardado en inputs comunes

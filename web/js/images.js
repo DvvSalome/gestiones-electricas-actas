@@ -57,7 +57,10 @@ function uploadOriginalPhoto(file, slot) {
   fd.append("slot", slot);
   if (gps) fd.append("gps", gps);
   fetch(`/api/actas/${uuid}/fotos`, { method: "POST", headers: window.geHeaders(), body: fd })
-    .then((r) => { if (!r.ok && r.status !== 400) enqueue(); })
+    .then((r) => {
+      if (r.ok && window.showDiagButton) window.showDiagButton(slot); // F3.2: foto en server → ofrecer IA
+      if (!r.ok && r.status !== 400) enqueue();
+    })
     .catch(enqueue);
 }
 

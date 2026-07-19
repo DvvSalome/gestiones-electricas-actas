@@ -93,7 +93,21 @@ async function restoreFromServer() {
     localStorage.setItem("ge_form_draft", JSON.stringify(draft));
     if (a.ot) { localStorage.setItem("ge_current_ot", a.ot); if (typeof paintOT === "function") paintOT(a.ot); }
     loadLocalStorageData();
+    if (typeof window.initDiagSlots === "function") window.initDiagSlots(a.fotos); // F3.2: restaurar cards de IA
   } catch { /* sin señal: se queda el flujo local */ }
+}
+
+// F3.2: aunque el borrador local exista, las cards de diagnóstico se restauran
+// del server (las fotos/inspecciones viven allá).
+async function refreshDiagFromServer() {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine) return;
+  try {
+    const r = await fetch(`/api/actas/${uuid}`, { headers: window.geHeaders() });
+    if (!r.ok) return;
+    const a = await r.json();
+    if (typeof window.initDiagSlots === "function") window.initDiagSlots(a.fotos);
+  } catch { /* sin señal */ }
 }
 
 function loadLocalStorageData() {
