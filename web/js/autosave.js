@@ -16,6 +16,8 @@ function saveCurrentFormToLocal() {
     firmanteNombre: document.getElementById("field-firmante-nombre").value,
     firmanteDocumento: document.getElementById("field-firmante-documento").value,
     operacionFinal: document.querySelector('input[name="operacion-final"]:checked')?.value || "si",
+    activoId: (window.getActivoSeleccionado ? window.getActivoSeleccionado().id : ""),
+    activoCodigo: (window.getActivoSeleccionado ? window.getActivoSeleccionado().codigo : ""),
     checklist: window.checklistItems.map(item => ({ id: item.id, state: item.state })),
     materials: Array.from(window.materialsTbody.querySelectorAll("tr")).map(tr => ({
       desc: tr.querySelector(".desc-input").value,
@@ -61,6 +63,7 @@ function buildDraftPayload(data) {
           corriente: data.corriente, acciones: data.acciones, norma: data.norma,
           firmanteNombre: data.firmanteNombre, firmanteDocumento: data.firmanteDocumento,
           operacionFinal: data.operacionFinal,
+          activo_id: data.activoId || "", activo_codigo: data.activoCodigo || "",
           ot: localStorage.getItem("ge_current_ot") || "",
           gps: window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : (data.gps || ""),
         },
@@ -87,6 +90,7 @@ async function restoreFromServer() {
       diagnostico: d.diagnostico, tension: d.tension, corriente: d.corriente,
       acciones: d.acciones, norma: d.norma, firmanteNombre: d.firmanteNombre,
       firmanteDocumento: d.firmanteDocumento, operacionFinal: d.operacionFinal,
+      activoId: d.activo_id || "", activoCodigo: d.activo_codigo || "",
       checklist: (a.checklist || []).map(c => ({ id: c.item_id, state: c.estado })),
       materials: (a.materiales || []).map(m => ({ desc: m.descripcion, cant: m.cantidad, ref: m.unidad })),
     };
@@ -130,6 +134,7 @@ function loadLocalStorageData() {
       document.getElementById("field-norma").value = data.norma || "RETIE 2013 / 2022";
       document.getElementById("field-firmante-nombre").value = data.firmanteNombre || "";
       document.getElementById("field-firmante-documento").value = data.firmanteDocumento || "";
+      if (data.activoId && window.setActivoFromDraft) window.setActivoFromDraft(data.activoId, data.activoCodigo);
       
       // Compliance radio
       const opVal = data.operacionFinal || "si";
@@ -222,6 +227,9 @@ function resetForm() {
     });
     document.querySelectorAll(".textarea").forEach(t => t.value = "");
     
+    const activoSel = document.getElementById("field-activo");
+    if (activoSel) { activoSel.value = ""; document.getElementById("activo-nuevo-row").style.display = "none"; }
+
     window.checklistItems.forEach(item => item.state = "");
     document.querySelectorAll(".check-item").forEach(el => {
       el.classList.remove("ok", "fail");

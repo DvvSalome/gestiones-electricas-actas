@@ -122,7 +122,9 @@ async function review(req, res) {
   try {
     const p = getPool();
     const { rows: [foto] } = await p.query(
-      'SELECT inspection_id, finding_ids, (SELECT ot FROM actas.actas a WHERE a.uuid = f.acta_uuid) AS ot FROM actas.acta_fotos f WHERE acta_uuid = $1 AND slot = $2', [u, slot],
+      `SELECT f.inspection_id, f.finding_ids, a.ot, a.data->>'activo_id' AS activo_id
+       FROM actas.acta_fotos f JOIN actas.actas a ON a.uuid = f.acta_uuid
+       WHERE f.acta_uuid = $1 AND f.slot = $2`, [u, slot],
     );
     if (!foto?.inspection_id) return res.status(404).json({ error: 'Sin diagnóstico para esta foto' });
 
@@ -146,10 +148,13 @@ async function review(req, res) {
       ? `[acta ${foto.ot} · ${quien}] ${String(motivo || 'sin detalle').slice(0, 800)}`
       : undefined;
 
+    // F4.2: si el acta tiene activo seleccionado, la calificación ancla el
+    // hallazgo a su hoja de vida (el motor recalcula el semáforo del activo)
+    const assetId = UUID_RE.test(String(foto.activo_id || '')) ? foto.activo_id : undefined;
     const pr = await fetch(`${MOTOR_URL}/api/findings/${finding_id}/review`, {
       method: 'PATCH',
       headers: svcHeaders({ 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ veredicto, ...(motivoFinal ? { motivo: motivoFinal } : {}) }),
+      body: JSON.stringify({ veredicto, ...(motivoFinal ? { motivo: motivoFinal } : {}), ...(assetId ? { assetId } : {}) }),
     });
     if (!pr.ok) return res.status(502).json({ error: 'El motor no aceptó la revisión' });
     return res.json({ success: true, veredicto });

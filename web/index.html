@@ -1471,6 +1471,32 @@
           <input type="text" class="input" id="field-direccion" placeholder="Ej. Calle 79 # 53-22, Barranquilla">
         </div>
 
+        <!-- F4.2: activo intervenido (hoja de vida por equipo en el motor) -->
+        <div class="field">
+          <span class="label">Activo Intervenido</span>
+          <select class="select" id="field-activo">
+            <option value="">— Sin activo específico —</option>
+            <option value="__nuevo">＋ Crear activo nuevo…</option>
+          </select>
+          <div id="activo-nuevo-row" style="display:none; margin-top:8px;">
+            <div class="field-row">
+              <div class="field">
+                <input type="text" class="input" id="activo-nuevo-codigo" placeholder="Código (ej. TB-01)" autocapitalize="characters">
+              </div>
+              <div class="field">
+                <select class="select" id="activo-nuevo-tipo">
+                  <option value="tablero">Tablero</option>
+                  <option value="acometida">Acometida</option>
+                  <option value="transformador">Transformador</option>
+                  <option value="spt">SPT / Puesta a tierra</option>
+                  <option value="general">General</option>
+                </select>
+              </div>
+            </div>
+            <button type="button" class="btn-secondary" id="activo-nuevo-btn" style="margin-top:8px;" onclick="crearActivo()">Crear activo</button>
+          </div>
+        </div>
+
         <div class="field-row">
           <div class="field">
             <span class="label">Teléfono Cliente</span>
@@ -2058,6 +2084,7 @@
   <script src="/js/gps.js"></script>
   <script src="/js/checklist.js"></script>
   <script src="/js/materials.js"></script>
+  <script src="/js/activos.js"></script>
   <script src="/js/images.js"></script>
   <script src="/js/signature.js"></script>
   <script src="/js/timeline.js"></script>

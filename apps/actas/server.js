@@ -62,6 +62,10 @@ app.post('/api/actas/:uuid/firma', requireAuth, express.json({ limit: '1mb' }), 
 app.get('/api/actas/:uuid/firma', requireAuth, actasRoute.firmaVer);
 app.post('/api/actas/:uuid/pdf', requireAuth, actasRoute.uploadPdfMw, actasRoute.pdfSubir);
 app.get('/api/actas/:uuid/pdf', requireAuth, actasRoute.pdfVer);
+// F4.2: activos (hoja de vida) — selector sede+activo del bloque 01
+const activosRoute = require('./src/routes/activos');
+app.get('/api/activos', requireAuth, activosRoute.listar);
+app.post('/api/activos', requireAuth, activosRoute.crear);
 // F3: el motor RETIE en la foto (proxy con service token — el browser nunca ve el motor)
 const diagnosticoRoute = require('./src/routes/diagnostico');
 app.post('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.disparar);
