@@ -71,6 +71,31 @@ function buildDraftPayload(data) {
   };
 }
 
+// F2.6: si el borrador local se perdió (navegador limpiado / otro dispositivo)
+// pero el acta existe en el servidor, se restaura desde allá.
+async function restoreFromServer() {
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || localStorage.getItem("ge_form_draft") || !navigator.onLine) return;
+  try {
+    const r = await fetch(`/api/actas/${uuid}`, { headers: window.geHeaders() });
+    if (!r.ok) { window.geHandle401 && window.geHandle401(r); return; }
+    const a = await r.json();
+    const d = a.data || {};
+    const draft = {
+      servicioTipo: d.servicioTipo, cliente: d.cliente, direccion: d.direccion,
+      telefono: d.telefono, email: d.email, tecnico: d.tecnico, matricula: d.matricula,
+      diagnostico: d.diagnostico, tension: d.tension, corriente: d.corriente,
+      acciones: d.acciones, norma: d.norma, firmanteNombre: d.firmanteNombre,
+      firmanteDocumento: d.firmanteDocumento, operacionFinal: d.operacionFinal,
+      checklist: (a.checklist || []).map(c => ({ id: c.item_id, state: c.estado })),
+      materials: (a.materiales || []).map(m => ({ desc: m.descripcion, cant: m.cantidad, ref: m.unidad })),
+    };
+    localStorage.setItem("ge_form_draft", JSON.stringify(draft));
+    if (a.ot) { localStorage.setItem("ge_current_ot", a.ot); if (typeof paintOT === "function") paintOT(a.ot); }
+    loadLocalStorageData();
+  } catch { /* sin señal: se queda el flujo local */ }
+}
+
 function loadLocalStorageData() {
   const draftStr = localStorage.getItem("ge_form_draft");
   if (draftStr) {

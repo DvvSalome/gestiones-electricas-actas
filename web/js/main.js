@@ -14,6 +14,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initGPSData();
   setupCanvas();
   loadLocalStorageData();
+  if (typeof restoreFromServer === "function") void restoreFromServer(); // F2.6: respaldo del server
   updateTimelineProgress();
   
   // Auto-guardado en inputs comunes

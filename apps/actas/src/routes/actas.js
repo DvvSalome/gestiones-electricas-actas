@@ -262,8 +262,29 @@ async function pdfVer(req, res) {
   } catch (e) { console.error('[actas:pdfVer]', e); return res.status(500).json({ error: 'Error interno' }); }
 }
 
+// ── GET /api/actas-full?ot=OT-X · evidencia completa para el panel (solo admin, F2.6) ──
+async function porOt(req, res) {
+  if (req.actor?.role !== 'admin') return res.status(403).json({ error: 'Solo administradores' });
+  const tenant = tenantOf(req);
+  const ot = String(req.query.ot || '');
+  if (!ot || ot.length > 40) return res.status(400).json({ error: 'ot requerido' });
+  try {
+    const p = getPool();
+    const { rows: [acta] } = await p.query(
+      `SELECT uuid, ot, estado, firma_path IS NOT NULL AS firma, firma_at,
+              pdf_path IS NOT NULL AS pdf, created_at, updated_at
+       FROM actas.actas WHERE tenant = $1 AND ot = $2`, [tenant, ot],
+    );
+    if (!acta) return res.status(404).json({ error: 'sin acta completa (registro pre-VPS: la evidencia quedó en el PDF original)' });
+    const { rows: fotos } = await p.query(
+      'SELECT slot, mime, size_bytes, tomada_at, gps FROM actas.acta_fotos WHERE acta_uuid = $1 ORDER BY tomada_at', [acta.uuid],
+    );
+    return res.json({ ...acta, fotos });
+  } catch (e) { console.error('[actas:porOt]', e); return res.status(500).json({ error: 'Error interno' }); }
+}
+
 module.exports = {
   crear, obtener, draft, fotoSubir, fotoVer, fotoBorrar,
-  firma, firmaVer, pdfSubir, pdfVer,
+  firma, firmaVer, pdfSubir, pdfVer, porOt,
   uploadMw: upload.single('foto'), uploadPdfMw: uploadPdf.single('pdf'),
 };

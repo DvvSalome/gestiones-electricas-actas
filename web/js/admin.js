@@ -354,10 +354,78 @@ function renderTable(forms) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           PDF
         </button>
+        <button class="pdf-btn" style="margin-top:4px" onclick="openEvidencia('${esc(f.ot || "").replace(/'/g, "\\'")}')" title="Ver fotos y firma reales">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m21 15-5-5L5 21"></path></svg>
+          Evidencia
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+}
+
+/* ── F2.6: modal de evidencia real (fotos con EXIF + firma + PDF archivado) ── */
+async function fetchBlobURL(url) {
+  const r = await fetch(url, { headers: { Authorization: "Bearer " + getToken() } });
+  if (!r.ok) return null;
+  return URL.createObjectURL(await r.blob());
+}
+
+async function openEvidencia(ot) {
+  let modal = document.getElementById("evidencia-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "evidencia-modal";
+    modal.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(31,31,64,.55);display:flex;align-items:center;justify-content:center;padding:20px";
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `<div style="background:#fff;border-radius:16px;max-width:720px;width:100%;max-height:86vh;overflow:auto;padding:22px;font-family:inherit">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <b style="font-size:16px">Evidencia · ${esc(ot)}</b>
+      <button onclick="document.getElementById('evidencia-modal').remove()" style="border:none;background:#eef1e4;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px">×</button>
+    </div>
+    <div id="evidencia-body" style="color:#6b7280;font-size:13px">Cargando evidencia…</div>
+  </div>`;
+
+  const body = modal.querySelector("#evidencia-body");
+  try {
+    const r = await fetch(`/api/actas-full?ot=${encodeURIComponent(ot)}`, { headers: { Authorization: "Bearer " + getToken() } });
+    if (r.status === 404) { body.innerHTML = "📄 Registro pre-VPS: la evidencia quedó solo en el PDF original que descargó el técnico."; return; }
+    if (!r.ok) { body.innerHTML = "No se pudo cargar la evidencia."; return; }
+    const a = await r.json();
+
+    let html = `<div style="margin-bottom:12px;font-size:12.5px">Estado: <b>${esc(a.estado)}</b>${a.firma_at ? ` · Firmada: ${new Date(a.firma_at).toLocaleString("es-CO")}` : ""}</div>`;
+    if (a.fotos.length) {
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px" id="ev-fotos">` +
+        a.fotos.map(f => `<figure style="margin:0"><div data-slot="${esc(f.slot)}" style="height:110px;background:#f5f7ef;border:1px solid #e3e6da;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#9aa0a6;font-size:11px;overflow:hidden">cargando…</div><figcaption style="font-size:10.5px;color:#6b7280;margin-top:3px">${esc(f.slot)} · ${(f.size_bytes/1024).toFixed(0)}KB${f.gps ? " · 📍" : ""}</figcaption></figure>`).join("") + `</div>`;
+    } else { html += `<p>Sin fotos en servidor.</p>`; }
+    html += `<div style="display:flex;gap:10px;flex-wrap:wrap">`;
+    if (a.firma) html += `<div id="ev-firma" style="border:1px solid #e3e6da;border-radius:10px;padding:8px;min-width:180px"><div style="font-size:10.5px;color:#6b7280;margin-bottom:4px">Firma del cliente</div>cargando…</div>`;
+    if (a.pdf) html += `<button id="ev-pdf" style="border:1.5px solid #e3e6da;background:#fff;border-radius:10px;padding:10px 16px;cursor:pointer;font-weight:700;font-size:13px;font-family:inherit">📄 Abrir PDF archivado</button>`;
+    html += `</div>`;
+    body.innerHTML = html;
+
+    // cargar binarios con el token (los <img> no mandan Authorization)
+    for (const f of a.fotos) {
+      const u = await fetchBlobURL(`/api/actas/${a.uuid}/fotos/${encodeURIComponent(f.slot)}`);
+      const box = body.querySelector(`[data-slot="${CSS.escape(f.slot)}"]`);
+      if (box) box.innerHTML = u ? `<img src="${u}" style="width:100%;height:100%;object-fit:cover">` : "no disponible";
+    }
+    if (a.firma) {
+      const u = await fetchBlobURL(`/api/actas/${a.uuid}/firma`);
+      const fb = body.querySelector("#ev-firma");
+      if (fb) fb.innerHTML = `<div style="font-size:10.5px;color:#6b7280;margin-bottom:4px">Firma del cliente</div>` + (u ? `<img src="${u}" style="max-width:220px;background:#fff">` : "no disponible");
+    }
+    if (a.pdf) {
+      body.querySelector("#ev-pdf")?.addEventListener("click", async () => {
+        const u = await fetchBlobURL(`/api/actas/${a.uuid}/pdf`);
+        if (u) window.open(u, "_blank");
+      });
+    }
+  } catch {
+    body.innerHTML = "Error de conexión.";
+  }
 }
 
 /* ── Descargar un acta como PDF (resumen desde el registro) ── */

@@ -52,6 +52,7 @@ app.get('/api/media', mediaRoute);
 // acta completa (F2) — TODA la superficie requiere sesión
 app.post('/api/actas', requireAuth, actasRoute.crear);
 app.options('/api/actas', actasRoute.crear);
+app.get('/api/actas-full', requireAuth, actasRoute.porOt); // evidencia por OT (panel admin)
 app.get('/api/actas/:uuid', requireAuth, actasRoute.obtener);
 app.put('/api/actas/:uuid/draft', requireAuth, actasRoute.draft);
 app.post('/api/actas/:uuid/fotos', requireAuth, actasRoute.uploadMw, actasRoute.fotoSubir);
