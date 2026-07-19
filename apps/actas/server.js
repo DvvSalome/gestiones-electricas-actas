@@ -19,6 +19,14 @@ const actasRoute = require('./src/routes/actas');
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', 1); // Traefik de Coolify — para el rate-limit por IP real
+// F8.2: headers de seguridad (sin dependencia helmet — estos 3 bastan aquí;
+// CSP se omite a propósito: el form usa inline scripts)
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 app.use(express.json({ limit: '256kb' })); // el resumen de acta es pequeño; F2 usa multipart para fotos
 
 // F2.5: CORS cerrado a los orígenes propios (el form es same-origin; esto solo
