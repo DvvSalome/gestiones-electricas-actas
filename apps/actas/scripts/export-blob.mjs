@@ -6,13 +6,12 @@
  *
  * DOS MODOS (usa el que tengas disponible):
  *
- *  A) Modo BLOB (export completo: actas + usuarios con sus hashes + reviews):
+ *  A) Modo BLOB (export completo: actas + usuarios con sus hashes):
  *     BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx DATABASE_URL=postgres://... node scripts/export-blob.mjs
  *
  *  B) Modo API (sin token de Blob; usa el deploy vivo):
  *     ACTAS_ADMIN_USER=xxx ACTAS_ADMIN_PASS=yyy DATABASE_URL=postgres://... node scripts/export-blob.mjs --api
  *     - actas: GET /api/forms con sesión admin (login real)
- *     - reviews: GET /api/reviews (público)
  *     - usuarios: NO exportable por API (los hashes no salen) → crear admin nuevo:
  *       node scripts/export-blob.mjs --create-admin usuario contraseña
  *
@@ -35,17 +34,6 @@ async function upsertActa(form) {
      ON CONFLICT (tenant, ot) DO UPDATE SET data = EXCLUDED.data,
        updated_at = COALESCE(EXCLUDED.updated_at, actas.actas.updated_at)`,
     [TENANT, form.ot, JSON.stringify({ ...data, ot: form.ot }), created_at ?? null, updated_at ?? null],
-  );
-}
-
-async function upsertReview(filename, r) {
-  await pool.query(
-    `INSERT INTO actas.reviews (tenant, filename, approved, comment, reviewer, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (tenant, filename) DO UPDATE SET approved = EXCLUDED.approved,
-       comment = EXCLUDED.comment, reviewer = EXCLUDED.reviewer, updated_at = EXCLUDED.updated_at`,
-    [TENANT, filename, r.approved ?? null, r.comment ?? '', r.reviewer ?? 'compañero',
-     r.created_at ?? new Date().toLocaleString('es-CO'), r.updated_at ?? new Date().toLocaleString('es-CO')],
   );
 }
 
@@ -72,26 +60,14 @@ if (args[0] === '--create-admin') {
   await pool.end(); process.exit(0);
 }
 
-// ---- reviews (públicos — siempre se exportan) ----
-async function exportReviews() {
-  const res = await fetch(`${LIVE}/api/reviews?tenant=${TENANT}`);
-  if (!res.ok) { console.warn(`reviews: HTTP ${res.status} — omitido`); return 0; }
-  const { reviews = [] } = await res.json();
-  for (const r of reviews) await upsertReview(r.filename, r);
-  return reviews.length;
-}
-
 async function main() {
   let actas = 0, users = 0;
-
-  // reviews son públicos — se exportan SIEMPRE, haya o no credenciales
-  const reviews = await exportReviews();
 
   if (args.includes('--api')) {
     // ---- modo API: login admin + GET /api/forms ----
     const user = process.env.ACTAS_ADMIN_USER, pass = process.env.ACTAS_ADMIN_PASS;
     if (!user || !pass) {
-      console.log(`reviews: ${reviews} exportados. Para las ACTAS en modo API faltan ACTAS_ADMIN_USER/ACTAS_ADMIN_PASS (o usa el modo BLOB con el token).`);
+      console.log(`Para las ACTAS en modo API faltan ACTAS_ADMIN_USER/ACTAS_ADMIN_PASS (o usa el modo BLOB con el token).`);
       await pool.end(); return;
     }
     const login = await fetch(`${LIVE}/api/auth?tenant=${TENANT}`, {
@@ -125,7 +101,7 @@ async function main() {
     for (const u of auth.users ?? []) { await upsertUser(u); users++; }
   }
 
-  console.log(`export OK — actas: ${actas} · usuarios: ${users} · reviews: ${reviews} (tenant ${TENANT})`);
+  console.log(`export OK — actas: ${actas} · usuarios: ${users} (tenant ${TENANT})`);
   await pool.end();
 }
 

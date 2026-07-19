@@ -2,8 +2,6 @@
 .env.local
 .env
 node_modules/
-api-local/node_modules/
-mcp/node_modules/
 *.db
 *.db-shm
 *.db-wal
@@ -11,3 +9,4 @@ mcp/node_modules/
 .DS_Store
 .claude/
 apps/actas/node_modules/
+.claude-flow/

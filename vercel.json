@@ -1,12 +1,8 @@
 {
   "trailingSlash": false,
   "build": { "env": { "NODE_VERSION": "20" } },
-  "redirects": [
-    { "source": "/", "destination": "/publicidad", "permanent": false }
-  ],
   "rewrites": [
-    { "source": "/publicidad", "destination": "/web/publicidad/index.html" },
-    { "source": "/publicidad/:path*", "destination": "/web/publicidad/:path*" },
+    { "source": "/", "destination": "/web/index.html" },
     { "source": "/actas", "destination": "/web/index.html" },
     { "source": "/actas/:path*", "destination": "/web/:path*" },
     { "source": "/admin", "destination": "/web/admin.html" },

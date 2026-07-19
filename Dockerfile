@@ -7,8 +7,7 @@ WORKDIR /app
 COPY apps/actas/package.json apps/actas/
 RUN cd apps/actas && npm install --omit=dev --no-audit --no-fund
 
-# código + frontend (los mp4 de web/publicidad quedan fuera por .dockerignore —
-# se sirven vía /api/media proxy a Supabase)
+# código + frontend (formulario del acta + panel)
 COPY apps/actas apps/actas
 COPY web web
 
