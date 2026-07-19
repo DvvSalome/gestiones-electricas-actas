@@ -62,6 +62,10 @@ app.post('/api/actas/:uuid/firma', requireAuth, express.json({ limit: '1mb' }), 
 app.get('/api/actas/:uuid/firma', requireAuth, actasRoute.firmaVer);
 app.post('/api/actas/:uuid/pdf', requireAuth, actasRoute.uploadPdfMw, actasRoute.pdfSubir);
 app.get('/api/actas/:uuid/pdf', requireAuth, actasRoute.pdfVer);
+// F3: el motor RETIE en la foto (proxy con service token — el browser nunca ve el motor)
+const diagnosticoRoute = require('./src/routes/diagnostico');
+app.post('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.disparar);
+app.get('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.estado);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });
