@@ -32,6 +32,18 @@ Historia de la integración: `docs/integracion/BACKLOG.md` (bitácora completa).
   (probado 2026-07-19 con conteos idénticos). Uploads: `tar xzf uploads-FECHA.tgz -C /data`.
 - Mejora pendiente: copia off-host (hoy vive en el mismo disco).
 
+## Corpus normativo
+
+- Cargado: **RETIE 2026** (601), **RETILAP 2026** (429), **NTC 2050** (3.578) = 4.608
+  fragmentos con embedding. Las tres normas que pide la guía del cliente.
+- Ingesta (dentro del contenedor del worker, que ya tiene `tsx` y credenciales):
+  `docker cp <pdf> <worker>:/tmp/x.pdf` → `tsx scripts/ingest-corpus.ts load --doc <k> --pdf /tmp/x.pdf`
+  → `tsx scripts/ingest-corpus.ts embed --doc <k>`.
+- Comprobar que una norma se recupera: `tsx scripts/check-retrieval.ts "consulta" 6`.
+- ⚠️ **NTC 2050 tiene `quotable = false`** (norma ICONTEC con derechos reservados):
+  el motor la usa y la cita por referencia, pero su texto literal NO se imprime en
+  informes ni portal. Ver `electroscan360/docs/adr/0002-corpus-normas-privadas.md`.
+
 ## Incidentes conocidos
 
 - **Pipeline colgado / worker redeployado a mitad de corrida**: pg-boss deja el job
