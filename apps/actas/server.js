@@ -75,6 +75,10 @@ const diagnosticoRoute = require('./src/routes/diagnostico');
 app.post('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.disparar);
 app.get('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.estado);
 app.post('/api/actas/:uuid/fotos/:slot/diagnostico/review', requireAuth, diagnosticoRoute.review);
+// Batch por acta: N fotos del mismo sitio → UNA inspección (una corrida, sin duplicados)
+app.post('/api/actas/:uuid/diagnostico', requireAuth, diagnosticoRoute.actaDisparar);
+app.get('/api/actas/:uuid/diagnostico', requireAuth, diagnosticoRoute.actaEstado);
+app.post('/api/actas/:uuid/diagnostico/review', requireAuth, diagnosticoRoute.actaReview);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

@@ -43,6 +43,7 @@ function removePhoto(type, event) {
   document.getElementById(`img-${type}`).value = "";
   document.getElementById(`preview-${type}`).innerHTML = "";
   deleteServerPhoto(type); // F2.2: mantener el server en sincronía
+  if (window.diagPhotoRemoved) window.diagPhotoRemoved(type); // batch IA: descontar
   updateTimelineProgress();
 }
 
