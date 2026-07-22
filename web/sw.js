@@ -2,11 +2,11 @@
 // Objetivo: ABRIR EN FRÍO SIN SEÑAL (el shell completo vive en cache).
 // Los DATOS nunca pasan por aquí: /api/* va directo a red (la cola offline
 // de IndexedDB ya maneja actas/fotos sin señal).
-const VERSION = "ge-acta-v1"; // subir al cambiar el shell de forma incompatible
+const VERSION = "ge-acta-v2"; // v2: favicon/íconos canónicos del brand-kit (símbolo e)
 
 const SHELL = [
   "/actas",
-  "/favicon.svg",
+  "/images/icon-192.png",
   "/manifest.json",
   "/html2pdf.bundle.min.js",
   "/images/icon-192.png",
