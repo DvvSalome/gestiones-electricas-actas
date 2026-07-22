@@ -364,6 +364,32 @@
     return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   }
 
+  // ── nudge antes de firmar: los hallazgos sin calificar son el entrenamiento ──
+  window.diagPendientes = function () {
+    return (batch?.findings || []).filter((f) => !f.revisado).length;
+  };
+  // muestra el aviso; si el técnico decide seguir, llama a continuar()
+  window.diagNudgeAntesDeFirmar = function (continuar) {
+    const n = window.diagPendientes();
+    if (!n) return continuar();
+    inject();
+    const old = document.getElementById("dgx-nudge");
+    if (old) old.remove();
+    const m = document.createElement("div");
+    m.id = "dgx-nudge";
+    m.style.cssText = "position:fixed;inset:0;z-index:950;background:rgba(31,31,64,.6);display:flex;align-items:center;justify-content:center;padding:20px";
+    m.innerHTML = `<div style="background:#fff;border-radius:18px;max-width:400px;width:100%;padding:22px;font-family:inherit">
+      <div style="font-size:34px;text-align:center">🧠</div>
+      <h3 style="color:${NAVY};font-size:16.5px;text-align:center;margin:8px 0 6px">Hay ${n} hallazgo${n === 1 ? "" : "s"} de IA sin revisar</h3>
+      <p style="font-size:13px;color:#6b7280;text-align:center;line-height:1.5;margin:0 0 16px">Tu calificación (✓/✗) entrena al motor y respalda el acta. Toma menos de un minuto.</p>
+      <button type="button" class="dgx-btn dgx-main" id="dgx-nudge-rev">Revisar ahora (${n})</button>
+      <button type="button" style="width:100%;min-height:44px;background:none;border:none;color:#9aa0a6;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;text-decoration:underline" id="dgx-nudge-skip">Firmar de todas formas</button>
+    </div>`;
+    document.body.appendChild(m);
+    document.getElementById("dgx-nudge-rev").onclick = () => { m.remove(); window.abrirDiagStepper(); };
+    document.getElementById("dgx-nudge-skip").onclick = () => { m.remove(); continuar(); };
+  };
+
   // ── hooks del resto del acta ──
   // foto llegó al servidor → cuenta para el batch
   window.showDiagButton = function (slot) {

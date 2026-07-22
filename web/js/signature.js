@@ -89,6 +89,15 @@ function lockSignatureAndPrompt() {
     return;
   }
 
+  // Nudge: si hay hallazgos de IA sin calificar, ofrecer revisarlos ANTES de
+  // firmar (la calificación entrena al motor). El técnico puede seguir igual.
+  if (window.diagNudgeAntesDeFirmar && window.diagPendientes && window.diagPendientes() > 0) {
+    return window.diagNudgeAntesDeFirmar(confirmarFirma);
+  }
+  confirmarFirma();
+}
+
+function confirmarFirma() {
   window.signatureConfirmed = true;
   window.signatureDataURL = window.canvasElement.toDataURL("image/png");
   

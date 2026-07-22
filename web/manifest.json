@@ -1,0 +1,18 @@
+{
+  "name": "Acta Digital — Gestiones Eléctricas",
+  "short_name": "Acta GE",
+  "description": "Acta técnica de campo con diagnóstico RETIE asistido por IA",
+  "id": "/actas",
+  "start_url": "/actas",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F6F2",
+  "theme_color": "#0D1100",
+  "lang": "es-CO",
+  "icons": [
+    { "src": "/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/images/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
