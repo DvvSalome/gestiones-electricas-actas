@@ -169,6 +169,12 @@
       color: var(--ink); font-family: 'Outfit', sans-serif; outline: none;
     }
     .card-box input:focus { border-color: var(--lime-deep); box-shadow: 0 0 0 3px rgba(147,172,31,0.14); }
+    .role-tab {
+      flex: 1; padding: 9px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+      background: var(--cream); border: 1px solid var(--line); border-radius: 10px;
+      color: var(--muted); font-family: 'Outfit', sans-serif; transition: all .14s ease;
+    }
+    .role-tab.active { background: var(--olive); border-color: var(--olive); color: #fff; }
     .card-box .btn { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
     .msg { font-size: 13px; margin-top: 12px; display: none; }
     .msg-error { color: var(--danger); }
@@ -217,8 +223,13 @@
 
       <div style="border-top:1px solid var(--line); padding-top:14px;">
         <p style="font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); font-weight:700; margin-bottom:9px;">Crear nuevo usuario</p>
-        <input type="text" id="nu-user" placeholder="Usuario" autocomplete="off">
-        <input type="password" id="nu-pass" placeholder="Contraseña (mín. 8)" autocomplete="new-password">
+        <div class="role-tabs" style="display:flex; gap:8px; margin-bottom:10px;">
+          <button type="button" class="role-tab active" id="role-tab-tecnico" onclick="setNuRole('tecnico')">Técnico de campo</button>
+          <button type="button" class="role-tab" id="role-tab-admin" onclick="setNuRole('admin')">Administrador</button>
+        </div>
+        <input type="text" id="nu-user" placeholder="Nombre del técnico (ej. jperez)" autocomplete="off">
+        <input type="text" id="nu-pass" inputmode="numeric" placeholder="PIN de 4 a 6 dígitos" autocomplete="off" maxlength="6">
+        <p id="nu-hint" style="font-size:11.5px; color:var(--muted); margin:2px 0 8px; line-height:1.45;">El técnico entra al acta desde su celular con este usuario y PIN. La sesión dura 30 días en el dispositivo.</p>
         <div style="display:flex; gap:9px; margin-top:4px;">
           <button class="btn btn-primary" style="flex:1; justify-content:center;" onclick="createUser()">Crear usuario</button>
           <button class="btn btn-ghost" style="flex:1; justify-content:center;" onclick="document.getElementById('users-overlay').style.display='none'">Cerrar</button>
