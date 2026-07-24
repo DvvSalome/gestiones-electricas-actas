@@ -112,6 +112,14 @@ module.exports = async function authRoute(req, res) {
       return res.json({ success: true });
     }
 
+    // F2.5 fix: valida un token existente (lo usa la compuerta de PIN al recargar).
+    // Read-only: no crea sesión, solo confirma firma + expiración contra SESSION_SECRET.
+    if (action === 'verify') {
+      const sess = verifyToken(body.token);
+      if (!sess) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+      return res.json({ valid: true, username: sess.u, role: sess.r || 'admin' });
+    }
+
     return res.status(400).json({ error: 'Acción no válida' });
   } catch (e) {
     console.error('[auth]', e);
