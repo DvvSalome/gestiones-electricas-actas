@@ -2,7 +2,7 @@
 // Objetivo: ABRIR EN FRÍO SIN SEÑAL (el shell completo vive en cache).
 // Los DATOS nunca pasan por aquí: /api/* va directo a red (la cola offline
 // de IndexedDB ya maneja actas/fotos sin señal).
-const VERSION = "ge-acta-v6"; // v6: Tensión/Corriente con beforeinput (auto / sin romper borrado/edición)
+const VERSION = "ge-acta-v7"; // v7: Tensión/Corriente en cajas segmentadas (teclado numérico puro, / automático)
 
 const SHELL = [
   "/actas",

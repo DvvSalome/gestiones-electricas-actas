@@ -1654,19 +1654,29 @@
           <textarea class="textarea" id="field-diagnostico" placeholder="Indicar las anomalías encontradas, riesgos eléctricos activos o condiciones técnicas generales del predio."></textarea>
         </div>
 
-        <div class="field-row">
+        <div class="field-row" style="grid-template-columns: 1fr;">
           <div class="field">
             <span class="label">Tensión Operación (V)</span>
-            <div style="position: relative; display: flex; align-items: center;">
-              <svg style="position: absolute; left: 12px; color: #64ffda; pointer-events: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              <input type="text" inputmode="decimal" class="input" id="field-tension" placeholder="Ej. 120 . 208 . 220" style="padding-left: 38px;">
+            <div class="seg-wrap" style="display: flex; align-items: center; gap: 6px;">
+              <svg style="color: #64ffda; flex: 0 0 auto;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <input inputmode="numeric" class="input seg-box" data-seg="field-tension" placeholder="120" style="text-align: center; flex: 1 1 0; min-width: 0; padding: 12px 6px;">
+              <span class="seg-slash" style="color: #9aa0a6; font-weight: 800; flex: 0 0 auto;">/</span>
+              <input inputmode="numeric" class="input seg-box" data-seg="field-tension" placeholder="208" style="text-align: center; flex: 1 1 0; min-width: 0; padding: 12px 6px;">
+              <span class="seg-slash" style="color: #9aa0a6; font-weight: 800; flex: 0 0 auto;">/</span>
+              <input inputmode="numeric" class="input seg-box" data-seg="field-tension" placeholder="220" style="text-align: center; flex: 1 1 0; min-width: 0; padding: 12px 6px;">
+              <input type="hidden" id="field-tension">
             </div>
           </div>
           <div class="field">
             <span class="label">Corriente Medida (A)</span>
-            <div style="position: relative; display: flex; align-items: center;">
-              <svg style="position: absolute; left: 12px; color: #64ffda; pointer-events: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-              <input type="text" inputmode="decimal" class="input" id="field-corriente" placeholder="Ej. 15 . 32 . 40" style="padding-left: 38px;">
+            <div class="seg-wrap" style="display: flex; align-items: center; gap: 6px;">
+              <svg style="color: #64ffda; flex: 0 0 auto;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+              <input inputmode="numeric" class="input seg-box" data-seg="field-corriente" placeholder="15" style="text-align: center; flex: 1 1 0; min-width: 0; padding: 12px 6px;">
+              <span class="seg-slash" style="color: #9aa0a6; font-weight: 800; flex: 0 0 auto;">/</span>
+              <input inputmode="numeric" class="input seg-box" data-seg="field-corriente" placeholder="32" style="text-align: center; flex: 1 1 0; min-width: 0; padding: 12px 6px;">
+              <span class="seg-slash" style="color: #9aa0a6; font-weight: 800; flex: 0 0 auto;">/</span>
+              <input inputmode="numeric" class="input seg-box" data-seg="field-corriente" placeholder="40" style="text-align: center; flex: 1 1 0; min-width: 0; padding: 12px 6px;">
+              <input type="hidden" id="field-corriente">
             </div>
           </div>
         </div>
@@ -2127,29 +2137,43 @@
   <script src="/js/autosave.js"></script>
   <script src="/js/pdf-generator.js"></script>
   <script src="/js/main.js"></script>
-  <!-- Tensión/Corriente: teclado numérico + auto " / " al teclear separador,
-       SIN romper borrado/edición/selección (usa beforeinput, no reformatea todo). -->
+  <!-- Tensión/Corriente: cajas numéricas segmentadas. El técnico solo teclea
+       NÚMEROS (teclado numérico puro); el " / " ya está puesto entre cajas, sin
+       que tenga que presionar ningún separador. Los inputs ocultos
+       #field-tension/#field-corriente guardan el valor unido ("v1 / v2 / v3")
+       para autosave y PDF, sin cambiar el contrato de datos. -->
   <script>
     (function () {
-      function setup(el) {
-        if (!el) return;
-        el.addEventListener('beforeinput', function (e) {
-          if (e.inputType !== 'insertText' || e.data == null) return; // borrado/edición: normal
-          // transforma SOLO lo que se inserta: dígitos quedan; separadores (. , / espacio) -> " / "
-          var t = e.data.replace(/[^\d.,\/\s]/g, '').replace(/[.,\/\s]+/g, ' / ');
-          if (t === e.data) return; // dígitos puros -> inserción por defecto (no tocar cursor)
-          e.preventDefault();
-          var s = el.selectionStart, en = el.selectionEnd, v = el.value, before = v.slice(0, s);
-          t = t.replace(/^ \/ /, (before === '' || /[\/\s]$/.test(before)) ? '' : ' / '); // sin doble ni al inicio
-          el.value = before + t + v.slice(en);
-          var pos = (before + t).length;
-          el.setSelectionRange(pos, pos);
-          el.dispatchEvent(new Event('input', { bubbles: true })); // autosave
+      function wire(hiddenId) {
+        var hidden = document.getElementById(hiddenId);
+        if (!hidden) return;
+        var boxes = Array.prototype.slice.call(
+          document.querySelectorAll('input.seg-box[data-seg="' + hiddenId + '"]')
+        );
+        if (!boxes.length) return;
+        function sync() {
+          hidden.value = boxes.map(function (b) { return b.value.replace(/\D/g, ''); })
+                              .filter(Boolean).join(' / ');
+          hidden.dispatchEvent(new Event('input', { bubbles: true }));  // autosave
+          hidden.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        function fill() {
+          if (!boxes.every(function (b) { return !b.value; })) return; // no pisar lo tecleado
+          var parts = (hidden.value || '').split('/')
+                        .map(function (s) { return s.replace(/\D/g, ''); }).filter(Boolean);
+          if (parts.length) boxes.forEach(function (b, i) { b.value = parts[i] || ''; });
+        }
+        boxes.forEach(function (b, i) {
+          b.addEventListener('input', function () { b.value = b.value.replace(/\D/g, ''); sync(); });
+          b.addEventListener('keydown', function (e) {
+            if ((e.key === 'Enter' || e.key === '/' || e.key === ' ') && boxes[i + 1]) { e.preventDefault(); boxes[i + 1].focus(); }
+            else if (e.key === 'Backspace' && !b.value && boxes[i - 1]) { boxes[i - 1].focus(); }
+          });
         });
+        fill(); setTimeout(fill, 0); setTimeout(fill, 800); // captura restauración de autosave
       }
       document.addEventListener('DOMContentLoaded', function () {
-        setup(document.getElementById('field-tension'));
-        setup(document.getElementById('field-corriente'));
+        wire('field-tension'); wire('field-corriente');
       });
     })();
   </script>
