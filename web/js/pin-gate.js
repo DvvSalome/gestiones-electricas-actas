@@ -13,6 +13,7 @@
     el.innerHTML = `
       <div style="width:min(380px,100%);background:#fff;border:1px solid #e3e6da;border-radius:18px;padding:26px;box-shadow:0 10px 40px rgba(31,31,64,.10)">
         <div style="text-align:center;margin-bottom:18px">
+          <img src="/images/logo-simbolo.png" alt="Gestiones Eléctricas" style="display:block;margin:0 auto 12px;height:60px;width:auto" />
           <div style="font-weight:800;font-size:20px;letter-spacing:-.02em;color:${NAVY}">Acta Digital</div>
           <div style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;font-weight:700">Gestiones Eléctricas</div>
         </div>

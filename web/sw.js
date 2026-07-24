@@ -2,7 +2,7 @@
 // Objetivo: ABRIR EN FRÍO SIN SEÑAL (el shell completo vive en cache).
 // Los DATOS nunca pasan por aquí: /api/* va directo a red (la cola offline
 // de IndexedDB ya maneja actas/fotos sin señal).
-const VERSION = "ge-acta-v3"; // v3: fix sesión + logout + anti-flash (fuerza refresco de index.html y pin-gate.js cacheados)
+const VERSION = "ge-acta-v4"; // v4: logo en el login (fuerza refresco de pin-gate.js + precache del isotipo)
 
 const SHELL = [
   "/actas",
@@ -11,6 +11,7 @@ const SHELL = [
   "/html2pdf.bundle.min.js",
   "/images/icon-192.png",
   "/images/icon-512.png",
+  "/images/logo-simbolo.png",
   "/js/config.js",
   "/js/offline-queue.js",
   "/js/pin-gate.js",
