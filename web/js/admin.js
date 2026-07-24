@@ -145,12 +145,41 @@ function nuMsg(t, ok) {
   msg.textContent = t; msg.className = "msg " + (ok ? "msg-ok" : "msg-error"); msg.style.display = "block";
 }
 
+let NU_ROLE = "tecnico"; // rol seleccionado en el formulario de creación
+
+const ROLE_CHIP = {
+  tecnico: '<span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:var(--olive); background:rgba(199,229,47,.28); padding:2px 8px; border-radius:20px;">Técnico</span>',
+  admin: '<span style="font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; color:#fff; background:var(--olive); padding:2px 8px; border-radius:20px;">Admin</span>',
+};
+
+// Cambia el rol del formulario: ajusta pestaña activa, el campo de credencial y la ayuda.
+function setNuRole(role) {
+  NU_ROLE = role === "admin" ? "admin" : "tecnico";
+  document.getElementById("role-tab-tecnico").classList.toggle("active", NU_ROLE === "tecnico");
+  document.getElementById("role-tab-admin").classList.toggle("active", NU_ROLE === "admin");
+  const pass = document.getElementById("nu-pass");
+  const user = document.getElementById("nu-user");
+  const hint = document.getElementById("nu-hint");
+  if (NU_ROLE === "tecnico") {
+    pass.type = "text"; pass.inputMode = "numeric"; pass.maxLength = 6;
+    pass.placeholder = "PIN de 4 a 6 dígitos";
+    user.placeholder = "Nombre del técnico (ej. jperez)";
+    hint.textContent = "El técnico entra al acta desde su celular con este usuario y PIN. La sesión dura 30 días en el dispositivo.";
+  } else {
+    pass.type = "password"; pass.inputMode = "text"; pass.removeAttribute("maxlength");
+    pass.placeholder = "Contraseña (mín. 8)";
+    user.placeholder = "Usuario del panel";
+    hint.textContent = "El administrador accede a este panel de trazabilidad con usuario y contraseña.";
+  }
+  pass.value = "";
+}
+
 function renderUsersList() {
   const cont = document.getElementById("users-list");
   cont.innerHTML = PANEL_USERS.map(u => `
-    <div style="display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--cream); border:1px solid var(--line); border-radius:9px; margin-bottom:7px;">
-      <span style="font-weight:600; color:var(--ink); font-size:13.5px;">${esc(u.username)}</span>
-      <button class="btn btn-ghost" style="padding:4px 11px; font-size:11.5px;" onclick="deleteUser('${esc(u.username).replace(/'/g, "\\'")}')">Eliminar</button>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; background:var(--cream); border:1px solid var(--line); border-radius:9px; margin-bottom:7px;">
+      <span style="display:flex; align-items:center; gap:9px; min-width:0;"><span style="font-weight:600; color:var(--ink); font-size:13.5px;">${esc(u.username)}</span>${ROLE_CHIP[u.role] || ''}</span>
+      <button class="btn btn-ghost" style="padding:4px 11px; font-size:11.5px; flex-shrink:0;" onclick="deleteUser('${esc(u.username).replace(/'/g, "\\'")}')">Eliminar</button>
     </div>`).join('') || `<p style="font-size:13px; color:var(--muted);">Sin usuarios.</p>`;
 }
 
@@ -158,6 +187,7 @@ function openUsers() {
   document.getElementById("nu-user").value = "";
   document.getElementById("nu-pass").value = "";
   document.getElementById("nu-msg").style.display = "none";
+  setNuRole("tecnico"); // por defecto crear técnicos (lo más común)
   document.getElementById("users-overlay").style.display = "flex";
   loadUsers();
 }
@@ -183,18 +213,24 @@ async function createUser() {
   const username = document.getElementById("nu-user").value.trim();
   const password = document.getElementById("nu-pass").value;
   if (!username) return nuMsg("Ingrese un nombre de usuario.", false);
-  if (password.length < 8) return nuMsg("La contraseña debe tener al menos 8 caracteres.", false);
+  if (NU_ROLE === "tecnico") {
+    if (!/^\d{4,6}$/.test(password)) return nuMsg("El PIN del técnico debe ser de 4 a 6 dígitos.", false);
+  } else if (password.length < 8) {
+    return nuMsg("La contraseña debe tener al menos 8 caracteres.", false);
+  }
   try {
     const res = await fetch('/api/auth', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'create-user', token: getToken(), username, password }),
+      body: JSON.stringify({ action: 'create-user', token: getToken(), username, password, role: NU_ROLE }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "No se pudo crear el usuario");
     // Optimista: reflejar de inmediato (la lista en la nube tarda unos segundos en refrescar).
-    if (!PANEL_USERS.some(u => u.username.toLowerCase() === username.toLowerCase())) PANEL_USERS.push({ username });
+    if (!PANEL_USERS.some(u => u.username.toLowerCase() === username.toLowerCase())) PANEL_USERS.push({ username, role: NU_ROLE });
     renderUsersList();
-    nuMsg(`✓ Usuario "${username}" creado. Ya puede iniciar sesión.`, true);
+    nuMsg(NU_ROLE === "tecnico"
+      ? `✓ Técnico "${username}" creado. Ya puede entrar al acta con su PIN.`
+      : `✓ Administrador "${username}" creado. Ya puede iniciar sesión en el panel.`, true);
     document.getElementById("nu-user").value = "";
     document.getElementById("nu-pass").value = "";
   } catch (e) { nuMsg(e.message || "Error", false); }

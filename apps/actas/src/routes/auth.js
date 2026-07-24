@@ -105,6 +105,11 @@ module.exports = async function authRoute(req, res) {
       const users = await getUsers(tenant);
       if (users.length <= 1) return res.status(400).json({ error: 'Debe quedar al menos un usuario' });
       if (username.toLowerCase() === sess.u.toLowerCase()) return res.status(400).json({ error: 'No puede eliminar su propio usuario' });
+      // no dejar el panel sin acceso: siempre debe quedar al menos un admin
+      const objetivo = users.find((x) => x.username.toLowerCase() === username.toLowerCase());
+      if (objetivo && objetivo.role === 'admin' && users.filter((x) => x.role === 'admin').length <= 1) {
+        return res.status(400).json({ error: 'Debe quedar al menos un administrador con acceso al panel' });
+      }
       const { rowCount } = await getPool().query(
         'DELETE FROM actas.users WHERE tenant = $1 AND lower(username) = lower($2)', [tenant, username],
       );

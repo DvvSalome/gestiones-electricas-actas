@@ -21,8 +21,12 @@
       } catch (e) { document.documentElement.classList.add('ge-locked'); }
     })();
   </script>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="apple-touch-icon" href="/favicon.svg">
+  <link rel="icon" type="image/png" href="/images/icon-192.png">
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0D1100">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
   <!-- Font Google: Outfit para look premium y moderno -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1797,6 +1801,9 @@
           <button type="button" class="add-photo-btn" id="btn-add-photo" onclick="addExtraPhotoSlot()">+ Agregar evidencia</button>
           <span id="photo-counter" style="font-size: 11px; color: var(--brand-muted); font-weight: 700;">4 / 10 espacios</span>
         </div>
+
+        <!-- Diagnóstico IA del acta (batch): un solo análisis para todas las fotos -->
+        <div id="diag-global"></div>
       </section>
 
       <!-- BLOQUE 5: FIRMA DIGITAL -->
@@ -2120,5 +2127,6 @@
   <script src="/js/autosave.js"></script>
   <script src="/js/pdf-generator.js"></script>
   <script src="/js/main.js"></script>
+  <script src="/js/pwa.js"></script>
 </body>
 </html>
