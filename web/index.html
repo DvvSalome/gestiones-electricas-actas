@@ -4,6 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acta Técnica Digital — Gestiones Eléctricas</title>
+  <!-- Anti-flash: si no hay sesión válida, bloquea el acta ANTES del primer paint
+       (corre síncrono, antes de que se pinte el body). pin-gate.js quita el bloqueo
+       al confirmar sesión y lo repone al cerrar. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ge_tecnico_token'), ok = false;
+        if (t && t.indexOf('.') > 0) {
+          var p = t.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+          while (p.length % 4) p += '=';
+          var d = JSON.parse(atob(p));
+          ok = !!d.exp && Date.now() < d.exp;
+        }
+        if (!ok) document.documentElement.classList.add('ge-locked');
+      } catch (e) { document.documentElement.classList.add('ge-locked'); }
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="apple-touch-icon" href="/favicon.svg">
   
@@ -20,6 +37,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 
   <style>
+    /* Anti-flash de contenido protegido: oculta el acta hasta confirmar sesión
+       (script síncrono en <head> + pin-gate.js). Evita que el formulario se vea
+       por unos instantes al recargar sin sesión (fuga visual, F2.5 fix). */
+    html.ge-locked { background: #f5f7ef; }
+    html.ge-locked .mobile-container { visibility: hidden !important; }
+
     /* ════════════════════════════════════════════
        TOKENS DE DISEÑO E IDENTIDAD DE MARCA
        Gestiones Eléctricas SAS - Paleta EnergyTech

@@ -49,6 +49,7 @@
           const { token, username: name } = await r.json();
           localStorage.setItem("ge_tecnico_token", token);
           localStorage.setItem("ge_tecnico_nombre", name);
+          document.documentElement.classList.remove("ge-locked"); // sesión válida → mostrar el acta
           toggleLogout(true);
           const ft = document.getElementById("field-tecnico");
           if (ft && !ft.value) { ft.value = name; if (typeof saveCurrentFormToLocal === "function") saveCurrentFormToLocal(); }
@@ -73,6 +74,7 @@
   }
 
   window.showPinGate = function () {
+    document.documentElement.classList.add("ge-locked"); // oculta el acta detrás del gate
     if (!document.getElementById("pin-gate")) buildGate();
     toggleLogout(false); // con el gate visible no se ofrece "Salir"
   };
@@ -134,7 +136,8 @@
       window.showPinGate();
       return;
     }
-    // token vigente localmente → app + botón Salir; se confirma con el server en 2º plano.
+    // token vigente localmente → mostrar el acta + botón Salir; se confirma con el server en 2º plano.
+    document.documentElement.classList.remove("ge-locked");
     toggleLogout(true);
     verificarConServidor(token);
   });
