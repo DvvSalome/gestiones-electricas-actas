@@ -70,6 +70,9 @@ app.get('/api/actas/:uuid/pdf', requireAuth, actasRoute.pdfVer);
 const activosRoute = require('./src/routes/activos');
 app.get('/api/activos', requireAuth, activosRoute.listar);
 app.post('/api/activos', requireAuth, activosRoute.crear);
+// El catálogo de tipos vive en el motor: el acta lo consulta y puede añadir.
+app.get('/api/activos/tipos', requireAuth, activosRoute.tipos);
+app.post('/api/activos/tipos', requireAuth, activosRoute.crearTipo);
 // F3: el motor RETIE en la foto (proxy con service token — el browser nunca ve el motor)
 const diagnosticoRoute = require('./src/routes/diagnostico');
 app.post('/api/actas/:uuid/fotos/:slot/diagnostico', requireAuth, diagnosticoRoute.disparar);

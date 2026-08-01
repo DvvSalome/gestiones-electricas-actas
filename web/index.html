@@ -1517,15 +1517,34 @@
                 <input type="text" class="input" id="activo-nuevo-codigo" placeholder="Código (ej. TB-01)" autocapitalize="characters">
               </div>
               <div class="field">
+                <!-- Se llena desde el motor (ver web/js/activos.js). Los cinco
+                     de aquí son solo el respaldo para cuando no hay señal. -->
                 <select class="select" id="activo-nuevo-tipo">
                   <option value="tablero">Tablero</option>
                   <option value="acometida">Acometida</option>
                   <option value="transformador">Transformador</option>
                   <option value="spt">SPT / Puesta a tierra</option>
                   <option value="general">General</option>
+                  <option value="__nuevo_tipo">＋ Crear tipo nuevo…</option>
                 </select>
               </div>
             </div>
+            <!-- Alta de un tipo que no está en la lista. Sale cuando el técnico
+                 elige "Crear tipo nuevo…": en campo aparecen equipos que nadie
+                 previó y antes se quedaba sin poder registrarlos. -->
+            <div id="tipo-nuevo-row" style="display:none; margin-top:8px;">
+              <div class="field-row">
+                <div class="field">
+                  <input type="text" class="input" id="tipo-nuevo-etiqueta" placeholder="Nombre del tipo (ej. Planta eléctrica)" maxlength="60">
+                </div>
+                <div class="field">
+                  <input type="text" class="input" id="tipo-nuevo-prefijo" placeholder="PLE" maxlength="4" autocapitalize="characters" style="text-transform:uppercase">
+                </div>
+              </div>
+              <p class="hint" id="tipo-nuevo-hint" style="margin:6px 0 0;font-size:12px;opacity:.75;">Los activos de este tipo se llamarán PREFIJO-1, PREFIJO-2…</p>
+              <button type="button" class="btn-secondary" id="tipo-nuevo-btn" style="margin-top:8px;" onclick="crearTipoActivo()">Crear tipo</button>
+            </div>
+            <p class="hint" id="tipos-respaldo-aviso" style="display:none;margin:6px 0 0;font-size:12px;opacity:.75;">Sin conexión con el motor: se muestran los tipos básicos. Puede que falten tipos creados por el equipo.</p>
             <button type="button" class="btn-secondary" id="activo-nuevo-btn" style="margin-top:8px;" onclick="crearActivo()">Crear activo</button>
           </div>
         </div>
