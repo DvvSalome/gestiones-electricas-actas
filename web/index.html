@@ -330,6 +330,57 @@
       margin-bottom: 14px;
     }
 
+    /* --- Sub-formulario anidado (crear tipo dentro de crear activo) ---
+       Los dos botones estaban al mismo nivel y se leían como alternativas,
+       cuando uno es un paso previo del otro. */
+    .subform {
+      margin-top: 10px;
+      padding: 12px 13px 13px;
+      border: 1.5px solid var(--brand-border);
+      border-left-width: 3px;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 0, 0, 0.02);
+    }
+    .subform-tt {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--brand-muted);
+      margin-bottom: 9px;
+    }
+    /* El prefijo son 3 letras: no tiene por qué ocupar media fila, y el nombre
+       se cortaba en el placeholder por culpa de repartir al 50%. */
+    .subform-campos {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 10px;
+    }
+    .input-prefijo {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+      font-weight: 600;
+    }
+    .hint {
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--brand-muted);
+      margin: 8px 0 0;
+    }
+    .hint-aviso { margin-top: 8px; }
+    /* .btn-secondary trae flex:1 para las filas de botones; aquí estorba. */
+    .btn-subform, .btn-principal { flex: none; display: block; margin-top: 10px; }
+    .btn-subform { width: auto; min-width: 130px; padding-left: 18px; padding-right: 18px; }
+    .btn-principal { width: 100%; margin-top: 12px; }
+
+    @media (max-width: 420px) {
+      .subform-campos { grid-template-columns: 1fr; }
+      .input-prefijo { text-align: left; }
+      .btn-subform { width: 100%; }
+    }
+
     .label {
       display: block;
       font-size: 11px;
@@ -1529,23 +1580,20 @@
                 </select>
               </div>
             </div>
-            <!-- Alta de un tipo que no está en la lista. Sale cuando el técnico
-                 elige "Crear tipo nuevo…": en campo aparecen equipos que nadie
-                 previó y antes se quedaba sin poder registrarlos. -->
-            <div id="tipo-nuevo-row" style="display:none; margin-top:8px;">
-              <div class="field-row">
-                <div class="field">
-                  <input type="text" class="input" id="tipo-nuevo-etiqueta" placeholder="Nombre del tipo (ej. Planta eléctrica)" maxlength="60">
-                </div>
-                <div class="field">
-                  <input type="text" class="input" id="tipo-nuevo-prefijo" placeholder="PLE" maxlength="4" autocapitalize="characters" style="text-transform:uppercase">
-                </div>
+            <!-- Alta de un tipo que no está en la lista. Va en caja anidada a
+                 propósito: es un paso DENTRO de crear el activo, y antes los dos
+                 botones se leían como alternativas del mismo nivel. -->
+            <div id="tipo-nuevo-row" class="subform" style="display:none;">
+              <span class="subform-tt">Nuevo tipo de activo</span>
+              <div class="subform-campos">
+                <input type="text" class="input" id="tipo-nuevo-etiqueta" placeholder="Nombre (ej. Planta eléctrica)" maxlength="60">
+                <input type="text" class="input input-prefijo" id="tipo-nuevo-prefijo" placeholder="PLE" maxlength="4" autocapitalize="characters">
               </div>
-              <p class="hint" id="tipo-nuevo-hint" style="margin:6px 0 0;font-size:12px;opacity:.75;">Los activos de este tipo se llamarán PREFIJO-1, PREFIJO-2…</p>
-              <button type="button" class="btn-secondary" id="tipo-nuevo-btn" style="margin-top:8px;" onclick="crearTipoActivo()">Crear tipo</button>
+              <p class="hint" id="tipo-nuevo-hint">Los activos de este tipo se llamarán PREFIJO-1, PREFIJO-2…</p>
+              <button type="button" class="btn-secondary btn-subform" id="tipo-nuevo-btn" onclick="crearTipoActivo()">Crear tipo</button>
             </div>
-            <p class="hint" id="tipos-respaldo-aviso" style="display:none;margin:6px 0 0;font-size:12px;opacity:.75;">Sin conexión con el motor: se muestran los tipos básicos. Puede que falten tipos creados por el equipo.</p>
-            <button type="button" class="btn-secondary" id="activo-nuevo-btn" style="margin-top:8px;" onclick="crearActivo()">Crear activo</button>
+            <p class="hint hint-aviso" id="tipos-respaldo-aviso" style="display:none;">Sin conexión con el motor: se muestran los tipos básicos. Puede que falten tipos creados por el equipo.</p>
+            <button type="button" class="btn-secondary btn-principal" id="activo-nuevo-btn" onclick="crearActivo()">Crear activo</button>
           </div>
         </div>
 
