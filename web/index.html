@@ -1385,6 +1385,72 @@
       color: #656C51;
     }
 
+    .pdf-portal-access {
+      background: #F7F9EC;
+      border: 1.5px dashed #8EA100;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-top: 6px;
+    }
+
+    .pdf-portal-access-intro {
+      font-size: 9px;
+      color: #4B5232;
+      line-height: 1.5;
+      margin: 0 0 10px;
+    }
+
+    .pdf-portal-access-grid {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 10px;
+    }
+
+    .pdf-portal-access-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .pdf-portal-access-label {
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #656C51;
+      font-weight: bold;
+    }
+
+    .pdf-portal-access-value {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 14px;
+      font-weight: bold;
+      color: #283000;
+      background: #FFFFFF;
+      border: 1px solid #DDE3C4;
+      border-radius: 5px;
+      padding: 3px 10px;
+      letter-spacing: 0.03em;
+    }
+
+    .pdf-portal-access-url {
+      font-size: 9.5px;
+      color: #283000;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .pdf-portal-access-url span {
+      font-family: 'Space Grotesk', monospace;
+      color: #5E6B00;
+    }
+
+    .pdf-portal-access-note {
+      font-size: 7.5px;
+      color: #9CA3AF;
+      font-style: italic;
+      margin: 0;
+    }
+
     .pdf-footer {
       border-top: 1px solid #E5E7EB;
       padding-top: 15px;
@@ -2168,6 +2234,33 @@
           <span class="pdf-signature-meta" id="pdf-firmante-cliente-documento">C.C. / NIT: —</span>
           <span class="pdf-signature-meta" id="pdf-gps-cliente-time">Fecha/Hora: --:-- - GPS Confirmado</span>
         </div>
+      </div>
+
+      <!-- F6.2: Acceso al Portal del Cliente — oculto por defecto, preparePrintableTemplate()
+           lo muestra solo si window.portalAccess existe (sede nueva creada por esta acta). -->
+      <div class="pdf-section-title" id="pdf-portal-access-title" style="display: none;">6. Acceso al Portal del Cliente</div>
+      <div class="pdf-portal-access" id="pdf-portal-access" style="display: none;">
+        <p class="pdf-portal-access-intro">
+          Consulte en línea la hoja de vida de sus equipos, el historial de servicios y el estado normativo
+          de su instalación desde cualquier dispositivo:
+        </p>
+        <div class="pdf-portal-access-grid">
+          <div class="pdf-portal-access-item">
+            <span class="pdf-portal-access-label">Usuario</span>
+            <span class="pdf-portal-access-value" id="pdf-portal-access-user">—</span>
+          </div>
+          <div class="pdf-portal-access-item">
+            <span class="pdf-portal-access-label">Contraseña</span>
+            <span class="pdf-portal-access-value" id="pdf-portal-access-pass">—</span>
+          </div>
+        </div>
+        <div class="pdf-portal-access-url">
+          Ingrese en: <span id="pdf-portal-access-link">—</span>
+        </div>
+        <p class="pdf-portal-access-note">
+          Guarde esta contraseña: no queda registrada en ningún otro lugar y no puede recuperarse, solo
+          generarse una nueva.
+        </p>
       </div>
 
       <!-- Footer legal y QR Google -->

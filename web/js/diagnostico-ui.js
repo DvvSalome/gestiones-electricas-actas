@@ -154,6 +154,14 @@
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { batch = { status: "failed" }; renderGlobal(); return alertaSuave(d.error || "No se pudo iniciar el diagnóstico"); }
       batch.fotos = d.fotos;
+      // F6.2: si esta sede es nueva, el motor devuelve el acceso al portal
+      // (usuario + contraseña en texto plano, UNA sola vez). Se guarda aparte
+      // de ge_form_draft porque ese objeto se reescribe entero en cada
+      // pulsación de tecla (saveCurrentFormToLocal) y lo perdería enseguida.
+      if (d.portalAccess) {
+        window.portalAccess = d.portalAccess;
+        localStorage.setItem("ge_portal_access", JSON.stringify(d.portalAccess));
+      }
       startPoll();
     } catch {
       batch = null;

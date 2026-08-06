@@ -59,9 +59,16 @@ async function disparar(req, res) {
       console.error('[diagnostico] motor respondió', r.status, t.slice(0, 200));
       return res.status(502).json({ error: 'El motor no aceptó el diagnóstico', detalle: r.status });
     }
-    const { id: inspectionId } = await r.json();
+    // F6.2: si esta es la PRIMERA vez que el motor ve esta sede, la respuesta
+    // trae portalAccess (usuario + contraseña en texto plano, una sola vez —
+    // el motor solo guarda el hash). Se persiste en el acta para que
+    // pdf-generator.js lo imprima en el documento final.
+    const { id: inspectionId, portalAccess } = await r.json();
     await p.query('UPDATE actas.acta_fotos SET inspection_id = $3 WHERE acta_uuid = $1 AND slot = $2', [u, slot, inspectionId]);
-    return res.json({ inspection_id: inspectionId, estado: 'analizando', nota: 'El análisis puede tardar 1-2 minutos; puede seguir llenando el acta.' });
+    if (portalAccess) {
+      await p.query('UPDATE actas.actas SET data = data || $2::jsonb WHERE uuid = $1', [u, JSON.stringify({ portalAccess })]);
+    }
+    return res.json({ inspection_id: inspectionId, estado: 'analizando', nota: 'El análisis puede tardar 1-2 minutos; puede seguir llenando el acta.', portalAccess });
   } catch (e) {
     console.error('[diagnostico:disparar]', e);
     return res.status(502).json({ error: 'Motor no disponible — el acta sigue funcionando sin diagnóstico' });
@@ -211,10 +218,14 @@ async function actaDisparar(req, res) {
       console.error('[diag-batch] motor respondió', r.status, t.slice(0, 200));
       return res.status(502).json({ error: 'El motor no aceptó el diagnóstico', detalle: r.status });
     }
-    const { id: inspectionId } = await r.json();
+    // F6.2: ver comentario equivalente en disparar() más arriba.
+    const { id: inspectionId, portalAccess } = await r.json();
     // el vínculo queda en TODAS las fotos del lote (la fuente de verdad del acta)
     await p.query(`UPDATE actas.acta_fotos SET inspection_id = $2, finding_ids = '{}' WHERE acta_uuid = $1`, [u, inspectionId]);
-    return res.json({ inspection_id: inspectionId, fotos: listas.length, estado: 'analizando' });
+    if (portalAccess) {
+      await p.query('UPDATE actas.actas SET data = data || $2::jsonb WHERE uuid = $1', [u, JSON.stringify({ portalAccess })]);
+    }
+    return res.json({ inspection_id: inspectionId, fotos: listas.length, estado: 'analizando', portalAccess });
   } catch (e) {
     console.error('[diag-batch:disparar]', e);
     return res.status(502).json({ error: 'Motor no disponible — el acta sigue funcionando sin diagnóstico' });

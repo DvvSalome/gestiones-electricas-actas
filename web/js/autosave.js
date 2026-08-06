@@ -84,6 +84,9 @@ async function restoreFromServer() {
     if (!r.ok) { window.geHandle401 && window.geHandle401(r); return; }
     const a = await r.json();
     const d = a.data || {};
+    // F6.2: recuperar el acceso al portal si esta acta ya lo generó (ver
+    // dispararDiagnosticoActa en diagnostico-ui.js — misma clave dedicada).
+    if (d.portalAccess) localStorage.setItem("ge_portal_access", JSON.stringify(d.portalAccess));
     const draft = {
       servicioTipo: d.servicioTipo, cliente: d.cliente, direccion: d.direccion,
       telefono: d.telefono, email: d.email, tecnico: d.tecnico, matricula: d.matricula,
@@ -115,6 +118,12 @@ async function refreshDiagFromServer() {
 }
 
 function loadLocalStorageData() {
+  // F6.2: independiente del draft del formulario — ver nota en diagnostico-ui.js
+  const portalAccessStr = localStorage.getItem("ge_portal_access");
+  if (portalAccessStr) {
+    try { window.portalAccess = JSON.parse(portalAccessStr); } catch { /* dato corrupto, se ignora */ }
+  }
+
   const draftStr = localStorage.getItem("ge_form_draft");
   if (draftStr) {
     try {
@@ -214,6 +223,8 @@ function resetForm() {
     localStorage.removeItem("ge_current_ot");
     localStorage.removeItem("ge_current_acta_uuid"); // F2.1: el server asigna una nueva
     localStorage.removeItem("ge_ot_offline");
+    localStorage.removeItem("ge_portal_access"); // F6.2: no arrastrar credenciales de la acta anterior
+    window.portalAccess = null;
     
     // Limpiar fotos en memoria
     removePhoto("antes");

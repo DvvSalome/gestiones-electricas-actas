@@ -148,6 +148,23 @@ function preparePrintableTemplate() {
   } else {
     pdfSignatureImgBox.innerHTML = `<div class="pdf-signature-empty">PENDIENTE DE FIRMA</div>`;
   }
+
+  // F6.2: acceso al Portal del Cliente — solo aparece si esta acta generó una
+  // sede nueva (window.portalAccess). Sedes que ya existían no traen nada
+  // nuevo que mostrar aquí: su acceso ya se entregó en una acta anterior.
+  const portalAccessTitle = document.getElementById("pdf-portal-access-title");
+  const portalAccessBox = document.getElementById("pdf-portal-access");
+  if (window.portalAccess && window.portalAccess.username && window.portalAccess.password) {
+    document.getElementById("pdf-portal-access-user").textContent = window.portalAccess.username;
+    document.getElementById("pdf-portal-access-pass").textContent = window.portalAccess.password;
+    document.getElementById("pdf-portal-access-link").textContent =
+      window.portalAccess.url ? window.portalAccess.url.replace(/^https?:\/\//, "") : "electroscan.gestioneselectricas.com/p/login";
+    portalAccessTitle.style.display = "";
+    portalAccessBox.style.display = "";
+  } else {
+    portalAccessTitle.style.display = "none";
+    portalAccessBox.style.display = "none";
+  }
 }
 
 // --- Validaciones generales para exportar/compartir ---
