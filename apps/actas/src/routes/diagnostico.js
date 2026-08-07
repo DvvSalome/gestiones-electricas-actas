@@ -330,4 +330,47 @@ async function actaReview(req, res) {
   }
 }
 
-module.exports = { disparar, estado, review, actaDisparar, actaEstado, actaReview };
+// ── POST /api/actas/:uuid/activo/conforme · declara el activo conforme (F6.6) ──
+// El radio "Condición Operativa Final = ✅ Conforme" del acta (bloque 4.5)
+// nunca salía de la BD propia del acta — el motor no tenía forma de saber que
+// el técnico revisó un activo específico y lo encontró bien, así que
+// `assets.currentStatus` se quedaba en 'sin_datos' para siempre (la IA solo
+// genera hallazgos de INCUMPLIMIENTO; un activo sin problemas no produce
+// ninguna fila). Esto cierra ese hueco: si hay un activo seleccionado y una
+// inspección vinculada a esta acta, se lo dice al motor explícitamente.
+async function activoConforme(req, res) {
+  const u = req.params.uuid;
+  if (!UUID_RE.test(u)) return res.status(400).json({ error: 'inválido' });
+  const { activoId } = req.body || {};
+  if (!UUID_RE.test(String(activoId || ''))) return res.status(400).json({ error: 'activoId inválido' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const p = getPool();
+    const inspectionId = await inspeccionDelActa(p, u);
+    if (!inspectionId) return res.status(404).json({ error: 'Sin diagnóstico para esta acta — dispare el análisis antes de marcar conforme' });
+    const { rows: [acta] } = await p.query('SELECT ot FROM actas.actas WHERE uuid = $1', [u]);
+    if (!acta) return res.status(404).json({ error: 'acta no existe' });
+
+    const quien = req.actor?.username || 'tecnico';
+    const r = await fetch(`${MOTOR_URL}/api/assets/${activoId}/conforme`, {
+      method: 'POST',
+      headers: svcHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        inspectionId,
+        motivo: `Confirmado conforme por ${quien} en acta ${acta.ot}.`,
+      }),
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => '');
+      console.error('[activoConforme] motor respondió', r.status, t.slice(0, 200));
+      return res.status(502).json({ error: 'El motor no aceptó la marca de conforme' });
+    }
+    const data = await r.json();
+    return res.json({ success: true, currentStatus: data.currentStatus });
+  } catch (e) {
+    console.error('[diagnostico:activoConforme]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+module.exports = { disparar, estado, review, actaDisparar, actaEstado, actaReview, activoConforme };

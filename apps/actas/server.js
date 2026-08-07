@@ -82,6 +82,8 @@ app.post('/api/actas/:uuid/fotos/:slot/diagnostico/review', requireAuth, diagnos
 app.post('/api/actas/:uuid/diagnostico', requireAuth, diagnosticoRoute.actaDisparar);
 app.get('/api/actas/:uuid/diagnostico', requireAuth, diagnosticoRoute.actaEstado);
 app.post('/api/actas/:uuid/diagnostico/review', requireAuth, diagnosticoRoute.actaReview);
+// F6.6: el técnico declara un activo conforme (bloque "Condición Operativa Final")
+app.post('/api/actas/:uuid/activo/conforme', requireAuth, diagnosticoRoute.activoConforme);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

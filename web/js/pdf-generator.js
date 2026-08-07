@@ -470,6 +470,10 @@ function startPdfProcess() {
     // fire-and-forget — antes se disparaba desde "Confirmar Firma".
     if (typeof uploadFirmaToServer === "function") uploadFirmaToServer();
 
+    // F6.6: si el técnico dejó "Condición Operativa Final = Conforme" con un
+    // activo seleccionado, avisar al motor (fire-and-forget) — ver activos.js.
+    if (typeof marcarActivoConformeSiAplica === "function") marcarActivoConformeSiAplica();
+
     // Mostrar el overlay de "procesando" DESDE YA, para que el técnico vea que
     // algo está pasando (antes esto nunca se veía: el overlay solo se mostraba
     // al final, ya con el PDF listo, saltando directo a los 3 botones).

@@ -31,6 +31,26 @@
     return { id: v, codigo: s.options[s.selectedIndex]?.textContent?.split(" · ")[0] || "" };
   };
 
+  // F6.6: el radio "Condición Operativa Final = Conforme" (bloque 4.5) no
+  // tocaba el motor — el activo se quedaba en 'sin_datos' para siempre y el
+  // Portal del Cliente nunca lo contaba como "Conforme". Se dispara desde
+  // "Guardar cambios" (startPdfProcess → proceed, ver pdf-generator.js), best
+  // effort: si no hay activo seleccionado, no hay señal, o no hay conexión,
+  // simplemente no hace nada — no bloquea el guardado del acta.
+  window.marcarActivoConformeSiAplica = function () {
+    const operacionFinal = document.querySelector('input[name="operacion-final"]:checked')?.value || "si";
+    if (operacionFinal !== "si") return;
+    const activo = window.getActivoSeleccionado();
+    if (!activo.id) return;
+    const uuid = localStorage.getItem("ge_current_acta_uuid");
+    if (!uuid || !navigator.onLine) return;
+    fetch(`/api/actas/${uuid}/activo/conforme`, {
+      method: "POST",
+      headers: window.geHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ activoId: activo.id }),
+    }).catch((e) => console.error("[activo-conforme]", e));
+  };
+
   const SEMAFORO_ICON = { rojo: "🔴", ambar: "🟡", verde: "🟢" };
 
   // ---- Tipos de activo: vienen del motor, no están escritos aquí ----
