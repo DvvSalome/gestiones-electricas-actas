@@ -53,7 +53,6 @@ function getMousePos(canvasDom, mouseEvent) {
 }
 
 function startDrawing(e) {
-  if (window.signatureConfirmed) return;
   window.isDrawing = true;
   const pos = getMousePos(window.canvasElement, e);
   window.ctx.beginPath();
@@ -61,14 +60,18 @@ function startDrawing(e) {
 }
 
 function draw(e) {
-  if (!window.isDrawing || window.signatureConfirmed) return;
+  if (!window.isDrawing) return;
   const pos = getMousePos(window.canvasElement, e);
   window.ctx.lineTo(pos.x, pos.y);
   window.ctx.stroke();
 }
 
+// Ya no hay botón "Confirmar Firma": cada trazo se auto-captura al soltar el
+// lápiz/dedo. "Guardar cambios" (startPdfProcess) es quien de verdad la
+// envía al servidor — esto solo mantiene el estado local/visual al día.
 function stopDrawing() {
   window.isDrawing = false;
+  capturarFirma();
 }
 
 function clearSignature() {
@@ -82,37 +85,19 @@ function clearSignature() {
   updateTimelineProgress();
 }
 
-function lockSignatureAndPrompt() {
-  const isBlank = isCanvasBlank(window.canvasElement);
-  if (isBlank) {
-    alert("Por favor, dibuje la firma antes de confirmar.");
-    return;
-  }
-
-  // Nudge: si hay hallazgos de IA sin calificar, ofrecer revisarlos ANTES de
-  // firmar (la calificación entrena al motor). El técnico puede seguir igual.
-  if (window.diagNudgeAntesDeFirmar && window.diagPendientes && window.diagPendientes() > 0) {
-    return window.diagNudgeAntesDeFirmar(confirmarFirma);
-  }
-  confirmarFirma();
-}
-
-function confirmarFirma() {
+function capturarFirma() {
+  if (isCanvasBlank(window.canvasElement)) return; // nada dibujado, no hay nada que capturar
   window.signatureConfirmed = true;
   window.signatureDataURL = window.canvasElement.toDataURL("image/png");
 
   const statusTxt = document.getElementById("signature-status-txt");
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} hrs`;
-  statusTxt.textContent = `✅ Confirmado - ${timeStr}`;
+  statusTxt.textContent = `✅ Firmado - ${timeStr}`;
   statusTxt.classList.add("confirmed");
 
   localStorage.setItem("ge_signature", window.signatureDataURL);
   updateTimelineProgress();
-
-  // F2.3: la firma viaja al servidor en el momento de confirmarla (PNG +
-  // timestamp + gps) — fire-and-forget: sin señal, el PDF local la conserva.
-  uploadFirmaToServer();
 }
 
 // --- Firma del TÉCNICO (F6.3) — mismo patrón que la firma del cliente, con
@@ -186,7 +171,6 @@ function setupTecnicoCanvas() {
 }
 
 function startDrawingTecnico(e) {
-  if (window.tecnicoSignatureConfirmed) return;
   if (!ensureTecnicoCanvasSized()) return; // no visible en este instante, ignorar el trazo
   window.isDrawingTecnico = true;
   const pos = getMousePos(window.tecnicoCanvasElement, e);
@@ -195,14 +179,17 @@ function startDrawingTecnico(e) {
 }
 
 function drawTecnico(e) {
-  if (!window.isDrawingTecnico || window.tecnicoSignatureConfirmed) return;
+  if (!window.isDrawingTecnico) return;
   const pos = getMousePos(window.tecnicoCanvasElement, e);
   window.tecnicoCtx.lineTo(pos.x, pos.y);
   window.tecnicoCtx.stroke();
 }
 
+// Igual que stopDrawing() del cliente: sin botón de confirmar, se auto-captura
+// al soltar el trazo.
 function stopDrawingTecnico() {
   window.isDrawingTecnico = false;
+  capturarFirmaTecnico();
 }
 
 function clearSignatureTecnico() {
@@ -216,20 +203,16 @@ function clearSignatureTecnico() {
   updateTimelineProgress();
 }
 
-function confirmarFirmaTecnico() {
+function capturarFirmaTecnico() {
   ensureTecnicoCanvasSized();
-  const isBlank = isCanvasBlank(window.tecnicoCanvasElement);
-  if (isBlank) {
-    alert("Por favor, dibuje la firma del técnico antes de confirmar.");
-    return;
-  }
+  if (isCanvasBlank(window.tecnicoCanvasElement)) return;
   window.tecnicoSignatureConfirmed = true;
   window.tecnicoSignatureDataURL = window.tecnicoCanvasElement.toDataURL("image/png");
 
   const statusTxt = document.getElementById("signature-status-txt-tecnico");
   const now = new Date();
   const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} hrs`;
-  statusTxt.textContent = `✅ Confirmado - ${timeStr}`;
+  statusTxt.textContent = `✅ Firmado - ${timeStr}`;
   statusTxt.classList.add("confirmed");
 
   localStorage.setItem("ge_signature_tecnico", window.tecnicoSignatureDataURL);
@@ -250,6 +233,4 @@ function uploadFirmaToServer() {
     headers: window.geHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   }).then((r) => { if (!r.ok && r.status !== 400) enqueue(); }).catch(enqueue);
-
-  alert("✅ Firma confirmada con éxito. Recuerda descargar el reporte PDF y compartirlo.");
 }

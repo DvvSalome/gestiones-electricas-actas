@@ -445,32 +445,45 @@ function saveFormDataToBackend() {
 }
 
 // Función principal para iniciar la generación y abrir el diálogo Dual-State
+//
+// F6.5: ya no hay botón "Confirmar Firma" — cada trazo se guarda solo (ver
+// captureSignatureState/captureSignatureTecnicoState en signature.js) y
+// "Guardar cambios" es el único botón que de verdad persiste todo: valida
+// que ambas firmas tengan trazo, sube la firma del cliente al servidor
+// (antes iba dentro de "Confirmar Firma", que ya no existe) y genera el PDF.
+// El aviso de hallazgos de IA sin revisar también vivía en ese botón — se
+// mudó aquí, es el nuevo momento de "cerrar" el acta.
 function startPdfProcess() {
   if (!validateFormForExport("procesar el reporte")) return;
 
-  const otNum = (window.otBadgeNum.textContent || "SN").trim().replace(/[^a-z0-9\-]/gi, "");
-  const now = new Date();
-  const fechaArch = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
-  // Nombre del archivo: número de orden + marca del cliente (Gestiones Eléctricas) + fecha de creación.
-  const fileName = `Acta_${otNum}_Gestiones_Electricas_${fechaArch}.pdf`;
+  function proceed() {
+    const otNum = (window.otBadgeNum.textContent || "SN").trim().replace(/[^a-z0-9\-]/gi, "");
+    const now = new Date();
+    const fechaArch = `${String(now.getDate()).padStart(2, "0")}-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`;
+    // Nombre del archivo: número de orden + marca del cliente (Gestiones Eléctricas) + fecha de creación.
+    const fileName = `Acta_${otNum}_Gestiones_Electricas_${fechaArch}.pdf`;
 
-  window.lastGeneratedPdfFileName = fileName;
-  window.lastGeneratedPdfBlob = null;
+    window.lastGeneratedPdfFileName = fileName;
+    window.lastGeneratedPdfBlob = null;
 
-  // Mostrar el overlay de "procesando" DESDE YA, para que el técnico vea que
-  // algo está pasando (antes esto nunca se veía: el overlay solo se mostraba
-  // al final, ya con el PDF listo, saltando directo a los 3 botones).
-  // Es seguro mostrarlo aquí: generatePdfBlob() lo oculta internamente justo
-  // antes de la captura con html2canvas (si quedara visible, position:fixed;
-  // z-index:10000 saldría capturado encima del template), y este código lo
-  // vuelve a mostrar —ya con el Estado 2— cuando el blob está listo.
-  const overlay = document.getElementById("loading-overlay");
-  const loadingContent = document.getElementById("overlay-loading-content");
-  const actionContent = document.getElementById("overlay-action-content");
-  if (overlay) overlay.style.display = "flex";
-  if (loadingContent) loadingContent.style.display = "flex";
-  if (actionContent) actionContent.style.display = "none";
-  document.body.style.cursor = "wait";
+    // F2.3: firma del cliente al servidor (PNG + timestamp + gps),
+    // fire-and-forget — antes se disparaba desde "Confirmar Firma".
+    if (typeof uploadFirmaToServer === "function") uploadFirmaToServer();
+
+    // Mostrar el overlay de "procesando" DESDE YA, para que el técnico vea que
+    // algo está pasando (antes esto nunca se veía: el overlay solo se mostraba
+    // al final, ya con el PDF listo, saltando directo a los 3 botones).
+    // Es seguro mostrarlo aquí: generatePdfBlob() lo oculta internamente justo
+    // antes de la captura con html2canvas (si quedara visible, position:fixed;
+    // z-index:10000 saldría capturado encima del template), y este código lo
+    // vuelve a mostrar —ya con el Estado 2— cuando el blob está listo.
+    const overlay = document.getElementById("loading-overlay");
+    const loadingContent = document.getElementById("overlay-loading-content");
+    const actionContent = document.getElementById("overlay-action-content");
+    if (overlay) overlay.style.display = "flex";
+    if (loadingContent) loadingContent.style.display = "flex";
+    if (actionContent) actionContent.style.display = "none";
+    document.body.style.cursor = "wait";
 
     generatePdfBlob(fileName)
     .then(blob => {
@@ -499,6 +512,16 @@ function startPdfProcess() {
       console.error("Error al generar PDF:", err);
       alert("❌ Ocurrió un error al compilar el reporte PDF.");
     });
+  }
+
+  // Nudge: si hay hallazgos de IA sin calificar, ofrecer revisarlos ANTES de
+  // guardar (la calificación entrena al motor) — el técnico puede seguir
+  // igual. Antes vivía en el botón "Confirmar Firma"; ahora que ese botón no
+  // existe, este es el nuevo momento de "cerrar" el acta.
+  if (window.diagNudgeAntesDeFirmar && window.diagPendientes && window.diagPendientes() > 0) {
+    return window.diagNudgeAntesDeFirmar(proceed);
+  }
+  proceed();
 }
 
 // F2.3: sube el PDF generado al servidor (fire-and-forget; sin señal el
