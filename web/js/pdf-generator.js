@@ -217,6 +217,16 @@ async function generatePdfBlob(fileName) {
   const clone = originalTemplate.cloneNode(true);
   clone.style.display = "block";
 
+  // F6.4: el bloque de acceso al portal NO se captura como imagen — se
+  // imprime aparte como texto nativo de jsPDF (ver más abajo) para que el
+  // cliente pueda SELECCIONARLO Y COPIARLO. Si esto quedara en la captura de
+  // html2canvas, sería un pixel más del documento, igual que el resto: nada
+  // de texto seleccionable, ni siquiera el usuario/contraseña.
+  const cloneTitle = clone.querySelector("#pdf-portal-access-title");
+  const cloneBox = clone.querySelector("#pdf-portal-access");
+  if (cloneTitle) cloneTitle.style.display = "none";
+  if (cloneBox) cloneBox.style.display = "none";
+
   // Wrapper off-screen: html2canvas captura desde x=-9999 donde no hay nada
   // más en la página, así que el overlay (en x=0) no interfiere.
   const wrapper = document.createElement("div");
@@ -314,6 +324,72 @@ async function generatePdfBlob(fileName) {
 
       srcY = pageEnd;
       page++;
+    }
+
+    // F6.4: página final con el acceso al portal como TEXTO NATIVO de jsPDF
+    // (no una captura de pantalla como el resto del documento) — el cliente
+    // puede seleccionarlo y copiarlo directo del PDF, y el enlace es una
+    // anotación clicable real que abre el portal ya con sesión iniciada
+    // (ver login-form.tsx del lado del motor, que lee ?u=&p= del enlace).
+    if (window.portalAccess && window.portalAccess.username && window.portalAccess.password) {
+      pdf.addPage();
+      const marginX = 20;
+
+      pdf.setFillColor(40, 48, 0); // --forest de marca
+      pdf.rect(0, 0, pageW, 24, "F");
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(15);
+      pdf.text("Acceso al Portal del Cliente", marginX, 15);
+
+      let y = 38;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10.5);
+      pdf.setTextColor(40, 48, 0);
+      const introLines = pdf.splitTextToSize(
+        "Consulte en línea la hoja de vida de sus equipos, el historial de servicios y el estado normativo de su instalación desde cualquier dispositivo.",
+        pageW - marginX * 2
+      );
+      pdf.text(introLines, marginX, y);
+      y += introLines.length * 5.5 + 12;
+
+      function credBox(label, value, boxY) {
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(110, 117, 83);
+        pdf.text(label.toUpperCase(), marginX, boxY);
+        pdf.setDrawColor(142, 161, 0); // --olive
+        pdf.setLineWidth(0.4);
+        pdf.roundedRect(marginX, boxY + 3, pageW - marginX * 2, 16, 2, 2, "S");
+        pdf.setFont("courier", "bold");
+        pdf.setFontSize(17);
+        pdf.setTextColor(40, 48, 0);
+        pdf.text(String(value), marginX + 6, boxY + 13.5);
+      }
+
+      credBox("Usuario", window.portalAccess.username, y);
+      y += 26;
+      credBox("Contraseña", window.portalAccess.password, y);
+      y += 32;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(11.5);
+      pdf.setTextColor(94, 107, 0);
+      // Sin "→" ni otros glifos fuera de WinAnsi: la fuente helvetica base de
+      // jsPDF no los tiene y los renderiza como caracteres corruptos (mismo
+      // problema, en miniatura, que la autocorrección del teclado — un
+      // carácter que el sistema no sabe representar sale como basura).
+      pdf.textWithLink("Toque aquí para entrar al portal", marginX, y, { url: window.portalAccess.url });
+      y += 12;
+
+      pdf.setFont("helvetica", "italic");
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      const noteLines = pdf.splitTextToSize(
+        "Guarde esta contraseña: no queda registrada en ningún otro lugar y no puede recuperarse, solo generarse una nueva.",
+        pageW - marginX * 2
+      );
+      pdf.text(noteLines, marginX, y);
     }
 
     return pdf.output("blob");
