@@ -1613,12 +1613,12 @@
 
         <div class="field">
           <span class="label required">Nombre del Cliente / Empresa</span>
-          <input type="text" class="input" id="field-cliente" placeholder="Ej. Constructora del Caribe S.A.S.">
+          <input type="text" class="input" id="field-cliente" placeholder="Ej. Constructora del Caribe S.A.S." autocapitalize="words" autocorrect="off" spellcheck="false">
         </div>
 
         <div class="field">
           <span class="label required">Dirección del Servicio</span>
-          <input type="text" class="input" id="field-direccion" placeholder="Ej. Calle 79 # 53-22, Barranquilla">
+          <input type="text" class="input" id="field-direccion" placeholder="Ej. Calle 79 # 53-22, Barranquilla" autocapitalize="words" autocorrect="off" spellcheck="false">
         </div>
 
         <!-- F4.2: activo intervenido (hoja de vida por equipo en el motor) -->
@@ -1677,11 +1677,11 @@
         <div class="field-row">
           <div class="field">
             <span class="label required">Técnico Asignado</span>
-            <input type="text" class="input" id="field-tecnico" placeholder="Nombre del técnico">
+            <input type="text" class="input" id="field-tecnico" placeholder="Nombre del técnico" autocapitalize="words" autocorrect="off" spellcheck="false">
           </div>
           <div class="field">
             <span class="label">Matrícula Profesional</span>
-            <input type="text" class="input" id="field-matricula" placeholder="CONTE / RETIE">
+            <input type="text" class="input" id="field-matricula" placeholder="CONTE / RETIE" autocapitalize="characters" autocorrect="off" spellcheck="false">
           </div>
         </div>
       </section>
@@ -1784,7 +1784,7 @@
 
         <div class="field" style="margin-top: 18px;">
           <span class="label required">Diagnóstico Técnico del Sistema</span>
-          <textarea class="textarea" id="field-diagnostico" placeholder="Indicar las anomalías encontradas, riesgos eléctricos activos o condiciones técnicas generales del predio."></textarea>
+          <textarea class="textarea" id="field-diagnostico" placeholder="Indicar las anomalías encontradas, riesgos eléctricos activos o condiciones técnicas generales del predio." autocapitalize="sentences" autocorrect="off" spellcheck="false"></textarea>
         </div>
 
         <div class="field-row" style="grid-template-columns: 1fr;">
@@ -1827,7 +1827,7 @@
 
         <div class="field">
           <span class="label required">Acciones Correctivas Ejecutadas</span>
-          <textarea class="textarea" id="field-acciones" placeholder="Describir las labores realizadas para solucionar la falla, readecuar las instalaciones o normalizar la operación bajo RETIE."></textarea>
+          <textarea class="textarea" id="field-acciones" placeholder="Describir las labores realizadas para solucionar la falla, readecuar las instalaciones o normalizar la operación bajo RETIE." autocapitalize="sentences" autocorrect="off" spellcheck="false"></textarea>
         </div>
 
         <div class="field-row">
@@ -1949,6 +1949,34 @@
         <div id="diag-global"></div>
       </section>
 
+      <!-- BLOQUE 4.5: FIRMA DEL TÉCNICO -->
+      <section class="card" id="card-firma-tecnico">
+        <div class="card-title">
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+          </div>
+          <h2>Firma del Técnico</h2>
+          <span class="card-num">04</span>
+        </div>
+
+        <p style="font-size:12px; color: var(--brand-muted); margin-bottom: 12px; line-height: 1.5;">
+          "Certifico que el diagnóstico y/o los trabajos eléctricos aquí descritos fueron realizados por mí conforme a la normativa RETIE."
+        </p>
+
+        <div class="signature-container">
+          <canvas class="signature-canvas" id="canvas-firma-tecnico"></canvas>
+          <div class="signature-bar">
+            <span>Firma Digital del Técnico</span>
+            <span class="signature-status" id="signature-status-txt-tecnico">✍ Sin firmar</span>
+          </div>
+        </div>
+
+        <div class="signature-actions">
+          <button type="button" class="btn-secondary" onclick="clearSignatureTecnico()">Limpiar</button>
+          <button type="button" class="btn-primary-outline" onclick="confirmarFirmaTecnico()">Confirmar Firma</button>
+        </div>
+      </section>
+
       <!-- BLOQUE 5: FIRMA DIGITAL -->
       <section class="card" id="card-firmas">
         <div class="card-title">
@@ -1978,12 +2006,12 @@
 
         <div class="field" style="margin-top: 15px;">
           <span class="label required">Nombre Responsable</span>
-          <input type="text" class="input" id="field-firmante-nombre" placeholder="Nombre completo del cliente">
+          <input type="text" class="input" id="field-firmante-nombre" placeholder="Nombre completo del cliente" autocapitalize="words" autocorrect="off" spellcheck="false">
         </div>
 
         <div class="field">
           <span class="label required">C.C. / NIT</span>
-          <input type="text" class="input" id="field-firmante-documento" placeholder="Número de identificación">
+          <input type="text" class="input" id="field-firmante-documento" placeholder="Número de identificación" inputmode="numeric" autocorrect="off" spellcheck="false">
         </div>
       </section>
 
@@ -2001,7 +2029,7 @@
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-        Descargar Acta en PDF
+        Guardar cambios
       </button>
 
       <div class="channel-buttons">
@@ -2215,10 +2243,8 @@
       <div class="pdf-signature-section">
         <!-- Técnico -->
         <div class="pdf-signature-box">
-          <div style="height: 70px; display: flex; align-items: flex-end; margin-bottom: 8px;">
-            <div style="font-family: 'Space Grotesk', monospace; font-size: 16px; color: #283000; font-weight: bold; border-bottom: 1.5px dashed #283000; padding: 2px 10px; width: 100%; text-align: center;">
-              TÉCNICO AUTORIZADO
-            </div>
+          <div id="pdf-signature-img-box-tecnico">
+            <!-- Contendrá la imagen de la firma del técnico o texto de pendiente -->
           </div>
           <span class="pdf-signature-title" id="pdf-firmante-tecnico-nombre">Ing./Téc. Asignado</span>
           <span class="pdf-signature-meta" id="pdf-firmante-tecnico-matricula">Reg. Profesional: CONTE / RETIE</span>

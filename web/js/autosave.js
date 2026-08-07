@@ -1,6 +1,6 @@
 // --- LocalStorage AutoSave ---
-function saveCurrentFormToLocal() {
-  const data = {
+function buildCurrentFormData() {
+  return {
     servicioTipo: document.getElementById("field-servicio-tipo").value,
     cliente: document.getElementById("field-cliente").value,
     direccion: document.getElementById("field-direccion").value,
@@ -25,7 +25,10 @@ function saveCurrentFormToLocal() {
       ref: tr.querySelector(".ref-input").value
     }))
   };
-  
+}
+
+function saveCurrentFormToLocal() {
+  const data = buildCurrentFormData();
   localStorage.setItem("ge_form_draft", JSON.stringify(data));
   updateTimelineProgress();
   pushDraftToServer(data); // F2.2: el server es la fuente de verdad; localStorage queda de caché
@@ -52,6 +55,30 @@ function pushDraftToServer(data) {
     }).then((r) => { if (!r.ok && r.status !== 400 && window.queueDraft) window.queueDraft(uuid, payload); })
       .catch(() => { if (window.queueDraft) window.queueDraft(uuid, payload); });
   }, 2000);
+}
+
+// F6.2 fix: guardado INMEDIATO (sin el debounce de 2s), esperado con await.
+// El disparo del diagnóstico necesita que el servidor YA tenga el nombre del
+// cliente antes de crear la sede — si el técnico escribe el cliente y dispara
+// el diagnóstico en menos de 2s (razonable, es lo esperado de alguien
+// eficiente en campo), el debounce normal aún no habría mandado nada al
+// servidor y la sede se creaba con el nombre de respaldo genérico
+// ("Gestiones Eléctricas — Terreno") en vez del cliente real.
+async function flushDraftToServer() {
+  clearTimeout(_draftTimer);
+  const uuid = localStorage.getItem("ge_current_acta_uuid");
+  if (!uuid || !navigator.onLine) return; // sin conexión: el diagnóstico igual fallará después
+  const payload = buildDraftPayload(buildCurrentFormData());
+  try {
+    const r = await fetch(`/api/actas/${uuid}/draft`, {
+      method: "PUT",
+      headers: window.geHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok && r.status !== 400 && window.queueDraft) window.queueDraft(uuid, payload);
+  } catch {
+    if (window.queueDraft) window.queueDraft(uuid, payload);
+  }
 }
 
 function buildDraftPayload(data) {
@@ -202,17 +229,36 @@ function loadLocalStorageData() {
   if (savedSign) {
     window.signatureConfirmed = true;
     window.signatureDataURL = savedSign;
-    
+
     // Dibujarla en canvas
     const img = new Image();
     img.src = savedSign;
     img.onload = () => {
       window.ctx.drawImage(img, 0, 0);
     };
-    
+
     const statusTxt = document.getElementById("signature-status-txt");
     statusTxt.textContent = "✅ Confirmado (Borrador)";
     statusTxt.classList.add("confirmed");
+  }
+
+  // Firma del técnico (F6.3) — mismo patrón que la del cliente, arriba.
+  const savedSignTecnico = localStorage.getItem("ge_signature_tecnico");
+  if (savedSignTecnico && window.tecnicoCanvasElement) {
+    window.tecnicoSignatureConfirmed = true;
+    window.tecnicoSignatureDataURL = savedSignTecnico;
+
+    const img = new Image();
+    img.src = savedSignTecnico;
+    img.onload = () => {
+      window.tecnicoCtx.drawImage(img, 0, 0);
+    };
+
+    const statusTxtTecnico = document.getElementById("signature-status-txt-tecnico");
+    if (statusTxtTecnico) {
+      statusTxtTecnico.textContent = "✅ Confirmado (Borrador)";
+      statusTxtTecnico.classList.add("confirmed");
+    }
   }
 }
 
@@ -220,6 +266,7 @@ function resetForm() {
   if (confirm("¿Está seguro de que desea vaciar el acta técnica? Perderá todos los datos de esta visita.")) {
     localStorage.removeItem("ge_form_draft");
     localStorage.removeItem("ge_signature");
+    localStorage.removeItem("ge_signature_tecnico");
     localStorage.removeItem("ge_current_ot");
     localStorage.removeItem("ge_current_acta_uuid"); // F2.1: el server asigna una nueva
     localStorage.removeItem("ge_ot_offline");
@@ -252,6 +299,7 @@ function resetForm() {
     addMaterialRow();
     
     clearSignature();
+    if (window.tecnicoCanvasElement) clearSignatureTecnico();
     initOTNumber();
     initGPSData();
     updateTimelineProgress();

@@ -150,6 +150,12 @@
     batch = { status: "running", fotos: serverSlots.size, findings: [] };
     renderGlobal();
     try {
+      // F6.2 fix: asegurar que el servidor YA tenga el nombre del cliente
+      // recién escrito antes de crear la sede — el autoguardado normal tiene
+      // debounce de 2s (autosave.js) y sin esto la sede podía crearse con el
+      // nombre de respaldo genérico si el técnico disparaba el diagnóstico
+      // enseguida de escribir el cliente.
+      if (typeof window.flushDraftToServer === "function") await window.flushDraftToServer();
       const r = await fetch(`/api/actas/${uuid}/diagnostico`, { method: "POST", headers: window.geHeaders() });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) { batch = { status: "failed" }; renderGlobal(); return alertaSuave(d.error || "No se pudo iniciar el diagnóstico"); }

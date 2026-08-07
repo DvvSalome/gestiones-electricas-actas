@@ -13,6 +13,7 @@ window.addEventListener("DOMContentLoaded", () => {
   initOTNumber();
   initGPSData();
   setupCanvas();
+  setupTecnicoCanvas();
   loadLocalStorageData();
   if (typeof restoreFromServer === "function") void restoreFromServer(); // F2.6: respaldo del server
   if (typeof refreshDiagFromServer === "function") setTimeout(() => void refreshDiagFromServer(), 1500); // F3.2

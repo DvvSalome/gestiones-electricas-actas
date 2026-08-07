@@ -133,6 +133,17 @@ function preparePrintableTemplate() {
   pdfTecnicoMatricula.textContent = "Matrícula: " + (document.getElementById("field-matricula").value || "CONTE / RETIE");
   pdfGpsTecnicoTime.textContent = `Firma Geolocalizada: ${window.gpsCoordsDisplay.textContent} · ${timeStr}`;
 
+  // F6.3: firma real del técnico (antes era solo texto estático "Firma
+  // Electrónica mediante GPS", sin ninguna firma capturada de verdad).
+  const pdfSignatureImgBoxTecnico = document.getElementById("pdf-signature-img-box-tecnico");
+  if (pdfSignatureImgBoxTecnico) {
+    if (window.tecnicoSignatureConfirmed && window.tecnicoSignatureDataURL) {
+      pdfSignatureImgBoxTecnico.innerHTML = `<img src="${window.tecnicoSignatureDataURL}" class="pdf-signature-image">`;
+    } else {
+      pdfSignatureImgBoxTecnico.innerHTML = `<div class="pdf-signature-empty">PENDIENTE DE FIRMA</div>`;
+    }
+  }
+
   const pdfClienteNombre = document.getElementById("pdf-firmante-cliente-nombre");
   const pdfClienteDocumento = document.getElementById("pdf-firmante-cliente-documento");
   const pdfGpsClienteTime = document.getElementById("pdf-gps-cliente-time");
@@ -179,6 +190,11 @@ function validateFormForExport(actionName = "exportar") {
 
   if (!cliente || !direccion || !tecnico || !diagnostico || !acciones) {
     alert(`⚠️ Por favor complete todos los campos obligatorios del reporte antes de ${actionName}.`);
+    return false;
+  }
+
+  if (window.tecnicoCanvasElement && !window.tecnicoSignatureConfirmed) {
+    alert(`⚠️ El técnico debe firmar el documento antes de ${actionName}.`);
     return false;
   }
 
@@ -237,6 +253,13 @@ async function generatePdfBlob(fileName) {
       logging: false,
       windowWidth: 794
     });
+
+    // La captura con html2canvas ya terminó — de aquí en adelante es trabajo
+    // local con canvas 2D y jsPDF, nada que vuelva a fotografiar la página.
+    // Reaparece el overlay de "procesando": en actas largas (varias fotos) el
+    // recorte en páginas de abajo todavía toma un rato, y sin esto el técnico
+    // se queda mirando la pantalla congelada otra vez, igual que antes del fix.
+    if (overlay) overlay.style.display = "flex";
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
@@ -358,9 +381,19 @@ function startPdfProcess() {
   window.lastGeneratedPdfFileName = fileName;
   window.lastGeneratedPdfBlob = null;
 
-  // El overlay NO se muestra antes de generatePdfBlob: si estuviera visible
-  // (position:fixed; z-index:10000), html2canvas lo capturaría encima del
-  // template y el PDF saldría en blanco. generatePdfBlob lo oculta internamente.
+  // Mostrar el overlay de "procesando" DESDE YA, para que el técnico vea que
+  // algo está pasando (antes esto nunca se veía: el overlay solo se mostraba
+  // al final, ya con el PDF listo, saltando directo a los 3 botones).
+  // Es seguro mostrarlo aquí: generatePdfBlob() lo oculta internamente justo
+  // antes de la captura con html2canvas (si quedara visible, position:fixed;
+  // z-index:10000 saldría capturado encima del template), y este código lo
+  // vuelve a mostrar —ya con el Estado 2— cuando el blob está listo.
+  const overlay = document.getElementById("loading-overlay");
+  const loadingContent = document.getElementById("overlay-loading-content");
+  const actionContent = document.getElementById("overlay-action-content");
+  if (overlay) overlay.style.display = "flex";
+  if (loadingContent) loadingContent.style.display = "flex";
+  if (actionContent) actionContent.style.display = "none";
   document.body.style.cursor = "wait";
 
     generatePdfBlob(fileName)
@@ -385,6 +418,8 @@ function startPdfProcess() {
     })
     .catch(err => {
       document.body.style.cursor = "";
+      const overlayErr = document.getElementById("loading-overlay");
+      if (overlayErr) overlayErr.style.display = "none"; // no dejar el overlay de "procesando" colgado
       console.error("Error al generar PDF:", err);
       alert("❌ Ocurrió un error al compilar el reporte PDF.");
     });
