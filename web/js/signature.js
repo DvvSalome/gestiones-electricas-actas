@@ -1,9 +1,37 @@
 // --- Lógica del Canvas para Firma ---
+// El ancho de este canvas (bloque 05, "Conformidad del Cliente") puede
+// quedar en 0 según el momento exacto en que setupCanvas() corrió — la
+// misma inestabilidad de layout documentada más abajo para el canvas del
+// técnico, verificada aquí con el mismo síntoma: el trazo se dibuja pero
+// isCanvasBlank() lo ve vacío porque el buffer real tiene ancho 0. Se
+// corrige de forma perezosa justo antes de cada trazo, igual que
+// ensureTecnicoCanvasSized().
+function ensureCanvasSized() {
+  const canvas = window.canvasElement;
+  if (!canvas) return false;
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return false;
+  if (canvas.width !== rect.width || canvas.height !== rect.height) {
+    const hadDrawing = !isCanvasBlank(canvas);
+    const prevImage = hadDrawing ? canvas.toDataURL("image/png") : null;
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    window.ctx.strokeStyle = "#0D1100";
+    window.ctx.lineWidth = 3;
+    window.ctx.lineCap = "round";
+    window.ctx.lineJoin = "round";
+    if (prevImage) {
+      const img = new Image();
+      img.onload = () => window.ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      img.src = prevImage;
+    }
+  }
+  return true;
+}
+
 function setupCanvas() {
   const canvas = window.canvasElement;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
+  ensureCanvasSized();
 
   window.ctx.strokeStyle = "#0D1100";
   window.ctx.lineWidth = 3;
@@ -53,6 +81,7 @@ function getMousePos(canvasDom, mouseEvent) {
 }
 
 function startDrawing(e) {
+  if (!ensureCanvasSized()) return; // no visible en este instante, ignorar el trazo
   window.isDrawing = true;
   const pos = getMousePos(window.canvasElement, e);
   window.ctx.beginPath();
@@ -86,6 +115,7 @@ function clearSignature() {
 }
 
 function capturarFirma() {
+  ensureCanvasSized();
   if (isCanvasBlank(window.canvasElement)) return; // nada dibujado, no hay nada que capturar
   window.signatureConfirmed = true;
   window.signatureDataURL = window.canvasElement.toDataURL("image/png");
