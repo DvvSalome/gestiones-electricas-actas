@@ -330,6 +330,86 @@
       margin-bottom: 14px;
     }
 
+    /* F6.7: autocompletado de sede + historial de servicios anteriores */
+    .sede-sugerencias {
+      position: absolute;
+      left: 0; right: 0; top: calc(100% + 2px);
+      z-index: 20;
+      background: var(--brand-white);
+      border: 1.5px solid var(--brand-border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .sede-sugerencia {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 9px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--brand-border);
+    }
+    .sede-sugerencia:last-child { border-bottom: none; }
+    .sede-sugerencia:hover, .sede-sugerencia:active { background: var(--brand-bg); }
+    .sede-sugerencia b { font-size: 13.5px; color: var(--brand-text); }
+    .sede-sugerencia span { font-size: 11.5px; color: var(--brand-muted); }
+
+    #historial-cliente {
+      margin-bottom: 14px;
+      padding: 12px 13px;
+      border: 1.5px solid var(--brand-border);
+      border-left-width: 3px;
+      border-left-color: var(--brand-lime);
+      border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.02);
+    }
+    #historial-cliente .hc-tt {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--brand-muted);
+      margin-bottom: 8px;
+    }
+    .hc-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--brand-border);
+    }
+    .hc-item:last-child { border-bottom: none; }
+    .hc-item-info { flex: 1; min-width: 0; }
+    .hc-item-info b { font-size: 13px; color: var(--brand-text); }
+    .hc-item-info span { display: block; font-size: 11.5px; color: var(--brand-muted); margin-top: 1px; }
+    .hc-pill {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+    .hc-pill.ok { background: rgba(16,185,129,0.14); color: var(--brand-ok); }
+    .hc-pill.warn { background: rgba(245,158,11,0.16); color: var(--brand-warn); }
+    .hc-link-btn {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-olive);
+      background: none;
+      border: 1.5px solid var(--brand-border);
+      border-radius: 20px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .hc-link-btn.activo {
+      background: var(--brand-lime);
+      border-color: var(--brand-lime);
+      color: var(--brand-dark);
+    }
+
     /* --- Sub-formulario anidado (crear tipo dentro de crear activo) ---
        Los dos botones estaban al mismo nivel y se leían como alternativas,
        cuando uno es un paso previo del otro. */
@@ -1611,10 +1691,16 @@
           </div>
         </div>
 
-        <div class="field">
+        <!-- F6.7: identidad de sede — al escribir se sugieren sedes ya existentes
+             (evita duplicar la misma sede por may/min o tildes distintas) y, si
+             ya se sirvió antes, aparece su historial de servicios abajo. -->
+        <div class="field" style="position:relative">
           <span class="label required">Nombre del Cliente / Empresa</span>
-          <input type="text" class="input" id="field-cliente" placeholder="Ej. Constructora del Caribe S.A.S." autocapitalize="words" autocorrect="off" spellcheck="false">
+          <input type="text" class="input" id="field-cliente" placeholder="Ej. Constructora del Caribe S.A.S." autocapitalize="words" autocorrect="off" spellcheck="false" autocomplete="off">
+          <div id="sede-sugerencias" class="sede-sugerencias" style="display:none"></div>
         </div>
+
+        <div id="historial-cliente" style="display:none"></div>
 
         <div class="field">
           <span class="label required">Dirección del Servicio</span>
@@ -2315,6 +2401,7 @@
   <script src="/js/checklist.js"></script>
   <script src="/js/materials.js"></script>
   <script src="/js/activos.js"></script>
+  <script src="/js/historial-cliente.js"></script>
   <script src="/js/images.js"></script>
   <script src="/js/signature.js"></script>
   <script src="/js/timeline.js"></script>

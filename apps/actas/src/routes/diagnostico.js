@@ -63,10 +63,16 @@ async function disparar(req, res) {
     // trae portalAccess (usuario + contraseña en texto plano, una sola vez —
     // el motor solo guarda el hash). Se persiste en el acta para que
     // pdf-generator.js lo imprima en el documento final.
-    const { id: inspectionId, portalAccess } = await r.json();
+    // F6.7: el motor SIEMPRE devuelve siteId (exista ya la sede o se acabe de
+    // crear) — se guarda aquí sin que el técnico tenga que hacer nada, para
+    // que esta acta aparezca en el historial de la sede la próxima visita.
+    const { id: inspectionId, portalAccess, siteId } = await r.json();
     await p.query('UPDATE actas.acta_fotos SET inspection_id = $3 WHERE acta_uuid = $1 AND slot = $2', [u, slot, inspectionId]);
     if (portalAccess) {
       await p.query('UPDATE actas.actas SET data = data || $2::jsonb WHERE uuid = $1', [u, JSON.stringify({ portalAccess })]);
+    }
+    if (siteId) {
+      await p.query('UPDATE actas.actas SET site_id = $2 WHERE uuid = $1 AND site_id IS NULL', [u, siteId]);
     }
     return res.json({ inspection_id: inspectionId, estado: 'analizando', nota: 'El análisis puede tardar 1-2 minutos; puede seguir llenando el acta.', portalAccess });
   } catch (e) {
@@ -218,12 +224,15 @@ async function actaDisparar(req, res) {
       console.error('[diag-batch] motor respondió', r.status, t.slice(0, 200));
       return res.status(502).json({ error: 'El motor no aceptó el diagnóstico', detalle: r.status });
     }
-    // F6.2: ver comentario equivalente en disparar() más arriba.
-    const { id: inspectionId, portalAccess } = await r.json();
+    // F6.2/F6.7: ver comentario equivalente en disparar() más arriba.
+    const { id: inspectionId, portalAccess, siteId } = await r.json();
     // el vínculo queda en TODAS las fotos del lote (la fuente de verdad del acta)
     await p.query(`UPDATE actas.acta_fotos SET inspection_id = $2, finding_ids = '{}' WHERE acta_uuid = $1`, [u, inspectionId]);
     if (portalAccess) {
       await p.query('UPDATE actas.actas SET data = data || $2::jsonb WHERE uuid = $1', [u, JSON.stringify({ portalAccess })]);
+    }
+    if (siteId) {
+      await p.query('UPDATE actas.actas SET site_id = $2 WHERE uuid = $1 AND site_id IS NULL', [u, siteId]);
     }
     return res.json({ inspection_id: inspectionId, fotos: listas.length, estado: 'analizando', portalAccess });
   } catch (e) {

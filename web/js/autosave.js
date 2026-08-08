@@ -114,6 +114,8 @@ async function restoreFromServer() {
     // F6.2: recuperar el acceso al portal si esta acta ya lo generó (ver
     // dispararDiagnosticoActa en diagnostico-ui.js — misma clave dedicada).
     if (d.portalAccess) localStorage.setItem("ge_portal_access", JSON.stringify(d.portalAccess));
+    // F6.7: sede vinculada — ver historial-cliente.js.
+    if (a.site_id) localStorage.setItem("ge_sede_id", a.site_id);
     const draft = {
       servicioTipo: d.servicioTipo, cliente: d.cliente, direccion: d.direccion,
       telefono: d.telefono, email: d.email, tecnico: d.tecnico, matricula: d.matricula,
@@ -272,6 +274,8 @@ function resetForm() {
     localStorage.removeItem("ge_ot_offline");
     localStorage.removeItem("ge_portal_access"); // F6.2: no arrastrar credenciales de la acta anterior
     window.portalAccess = null;
+    localStorage.removeItem("ge_sede_id"); // F6.7: no arrastrar la sede de la acta anterior
+    if (typeof window.ocultarHistorialCliente === "function") window.ocultarHistorialCliente();
     
     // Limpiar fotos en memoria
     removePhoto("antes");

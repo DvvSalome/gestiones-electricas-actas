@@ -71,7 +71,7 @@ async function obtener(req, res) {
   try {
     const p = getPool();
     const { rows: [acta] } = await p.query(
-      `SELECT uuid, ot, data, estado, firma_at, created_at, updated_at
+      `SELECT uuid, ot, data, estado, firma_at, created_at, updated_at, site_id
        FROM actas.actas WHERE tenant = $1 AND uuid = $2`, [tenant, u],
     );
     if (!acta) return res.status(404).json({ error: 'no existe' });
