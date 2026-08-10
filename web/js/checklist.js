@@ -1,7 +1,7 @@
 // --- Checklist States Cycle ---
 function cycleCheckState(element) {
   const idx = element.getAttribute("data-index");
-  const statusSpan = element.querySelector(".check-status");
+  const statusSpan = element.querySelector(".chk-state");
   
   if (!element.classList.contains("ok") && !element.classList.contains("fail")) {
     // Cambiar a Conforme (OK)

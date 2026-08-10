@@ -87,7 +87,10 @@ app.post('/api/actas/:uuid/activo/conforme', requireAuth, diagnosticoRoute.activ
 // F6.7: identidad de sede + historial de servicios anteriores del mismo cliente
 const historialRoute = require('./src/routes/historial');
 app.get('/api/sedes/buscar', requireAuth, historialRoute.buscarSedes);
+app.get('/api/sedes/recientes', requireAuth, historialRoute.sedesRecientes);
 app.get('/api/sedes/:siteId/servicios-previos', requireAuth, historialRoute.serviciosPrevios);
+app.get('/api/sedes/:siteId/hoja-vida', requireAuth, historialRoute.hojaVidaSede);
+app.post('/api/sedes/:siteId/activos', requireAuth, historialRoute.anadirActivo);
 app.patch('/api/actas/:uuid/sede', requireAuth, historialRoute.vincularSede);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });

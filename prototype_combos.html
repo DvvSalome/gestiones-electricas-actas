@@ -1,0 +1,58 @@
+<!-- CLIENTE -->  
+    <label class="field-label">Cliente / Empresa <span class="req">\*</span></label>  
+    <div class="combo" id="clientCombo">  
+      <div class="combo-input" onclick="D.togCombo('clientCombo')">  
+        <div class="ci-ico" id="clientIco"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></div>  
+        <div class="combo-body"><div class="cb-main ph" id="clientMain">Buscar o seleccionar cliente…</div><div class="cb-sub" id="clientSub" style="display:none"></div></div>  
+        <svg class="combo-caret" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>  
+      </div>  
+      <div class="combo-drop">  
+        <div class="combo-search"><input type="text" placeholder="Escribe el nombre…" oninput="D.filterClients(this.value)"></div>  
+        <div class="combo-list" id="clientList"></div>  
+        <div class="combo-create" onclick="D.openClientCreate()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Crear cliente nuevo</div>  
+      </div>  
+    </div>
+
+    <label class="field-label">Dirección del Servicio <span class="req">\*</span></label>  
+    <input class="fld" id="dir" placeholder="Calle 75 Cr 72 90">
+
+    <!-- ACTIVO -->  
+    <label class="field-label">Activo Intervenido <span class="opt">— se guarda por código, reutilizable</span></label>  
+    <div class="combo" id="assetCombo">  
+      <div class="combo-input" onclick="D.togAsset()">  
+        <div class="ci-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2M14 10h2v4h-2z"/></svg></div>  
+        <div class="combo-body"><div class="cb-main ph" id="assetMain">Selecciona el cliente primero…</div></div>  
+        <svg class="combo-caret" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>  
+      </div>  
+      <div class="combo-drop">  
+        <div class="combo-search"><input type="text" placeholder="Buscar por código o tipo…"></div>  
+        <div class="combo-list" id="assetList"></div>  
+        <div class="combo-create" onclick="D.openCreate()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Crear activo nuevo</div>  
+      </div>  
+    </div>
+
+    <!-- Mini panel crear activo -->  
+    <div class="create-mini" id="createMini">  
+      <div class="row2">  
+        <select class="fld" id="newType" onchange="D.typeChange()"><option value="TAB">Tablero</option><option value="ACO">Acometida</option><option value="TRF">Transformador</option><option value="SPT">SPT / Tierra</option><option value="GEN">General</option><option value="otro">+ Crear tipo nuevo…</option></select>  
+        <input class="fld" id="newNum" placeholder="2345" oninput="D.code()">  
+      </div>
+
+      <!-- Aparece solo si el tipo no está en la lista -->  
+      <div id="newTypeCustomWrap" style="display:none; margin-top:9px;">  
+        <label class="field-label" style="margin-top:0">Nombre del tipo de activo <span class="req">\*</span></label>  
+        <input class="fld" id="newTypeCustom" placeholder="Ej: Motor, Bomba, UPS…" oninput="D.customType()">  
+        <div class="hint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Los activos de este tipo se llamarán <b id="customPrefixHint">PREFIJO</b>-1, <b id="customPrefixHint2">PREFIJO</b>-2…</div>  
+      </div>
+
+      <div class="cm-code"><span class="cc-l">Código:</span><span class="cc-v" id="codePrev">TAB-____</span></div>  
+      <div class="cm-actions">  
+        <button class="cancel" onclick="D.closeCreate()">Cancelar</button>  
+        <button class="go" onclick="D.createAsset()">Crear y abrir ficha</button>  
+      </div>  
+    </div>
+
+    <!-- Activo seleccionado -->  
+    <div id="assetPickedWrap"></div>
+
+    

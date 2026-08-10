@@ -99,4 +99,90 @@ async function vincularSede(req, res) {
   }
 }
 
-module.exports = { buscarSedes, serviciosPrevios, vincularSede };
+// ── GET /api/sedes/recientes · obtiene las sedes visitadas recientemente por el técnico ──
+async function sedesRecientes(req, res) {
+  const { verifyToken, tokenFromReq } = require('../session');
+  const sess = verifyToken(tokenFromReq(req));
+  if (!sess) return res.status(401).json({ error: 'No autorizado' });
+  
+  try {
+    // JOIN con public.sites para asegurar que son sedes reales del Motor
+    const { rows } = await getPool().query(
+      `SELECT 
+         s.id as site_id,
+         s.name AS nombre,
+         s.city AS ciudad,
+         COUNT(a.uuid) as num_servicios
+       FROM actas.actas a
+       JOIN public.sites s ON a.site_id = s.id
+       WHERE a.data->>'tecnico' = $1
+       GROUP BY s.id, s.name, s.city
+       ORDER BY MAX(a.created_at) DESC 
+       LIMIT 10`,
+      [sess.u]
+    );
+    return res.json({ sedes: rows });
+  } catch (e) {
+    console.error('[historial:sedesRecientes]', e);
+    return res.status(500).json({ error: 'Error al consultar sedes recientes' });
+  }
+}
+
+// ── GET /api/sedes/:siteId/hoja-vida · Trae los activos del motor (public.assets) ──
+async function hojaVidaSede(req, res) {
+  const siteId = String(req.params.siteId || '').trim();
+  if (!UUID_RE.test(siteId)) return res.status(400).json({ error: 'siteId inválido' });
+  try {
+    const { rows } = await getPool().query(
+      `SELECT id, codigo, nombre, tipo, ubicacion, current_status, created_at
+       FROM public.assets
+       WHERE site_id = $1
+       ORDER BY created_at DESC`,
+      [siteId]
+    );
+    return res.json({ activos: rows });
+  } catch (e) {
+    console.error('[historial:hojaVida]', e);
+    return res.status(500).json({ error: 'No se pudo cargar la hoja de vida' });
+  }
+}
+
+// ── POST /api/sedes/:siteId/activos · Añadir activo al motor desde campo ──
+async function anadirActivo(req, res) {
+  const { verifyToken, tokenFromReq } = require('../session');
+  const sess = verifyToken(tokenFromReq(req));
+  if (!sess) return res.status(401).json({ error: 'No autorizado' });
+
+  const siteId = String(req.params.siteId || '').trim();
+  if (!UUID_RE.test(siteId)) return res.status(400).json({ error: 'siteId inválido' });
+
+  const { codigo, nombre, tipo, ubicacion } = req.body;
+  if (!codigo || !tipo) return res.status(400).json({ error: 'Código y tipo obligatorios' });
+
+  try {
+    const p = getPool();
+    // 1. Obtener organizationId de la sede
+    const { rows: siteRows } = await p.query('SELECT organization_id FROM public.sites WHERE id = $1', [siteId]);
+    if (siteRows.length === 0) return res.status(404).json({ error: 'Sede no encontrada' });
+    const orgId = siteRows[0].organization_id;
+
+    // 2. Insertar activo
+    const { rows: newAsset } = await p.query(
+      `INSERT INTO public.assets (organization_id, site_id, codigo, nombre, tipo, ubicacion)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, codigo, nombre, tipo, ubicacion, current_status, created_at`,
+      [orgId, siteId, codigo, nombre, tipo, ubicacion]
+    );
+
+    return res.json({ activo: newAsset[0] });
+  } catch (e) {
+    console.error('[historial:anadirActivo]', e);
+    // Verificar si es error de duplicado (ej. código ya existe)
+    if (e.code === '23505') {
+      return res.status(400).json({ error: 'El código del activo ya existe en esta sede o empresa' });
+    }
+    return res.status(500).json({ error: 'No se pudo añadir el activo' });
+  }
+}
+
+module.exports = { buscarSedes, serviciosPrevios, vincularSede, sedesRecientes, hojaVidaSede, anadirActivo };
