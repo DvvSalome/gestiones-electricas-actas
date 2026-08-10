@@ -220,19 +220,34 @@
       i_nt: document.getElementById('ncI_Nt').value
     };
     
-    // Almacenamos temporalmente para anexarlo al guardar el acta final
+        // Almacenamos temporalmente para anexarlo al guardar el acta final
     localStorage.setItem("ge_cliente_nuevo_infra", JSON.stringify(infra));
 
-    const tempSede = { id: nombre, name: nombre, city: tipo };
+    const id = 'c' + Date.now();
+    const tempSede = { id: id, name: nombre, city: tipo, type: tipo, assets: 0, address: direccion };
+    
+    // Push to DB so it appears in the dropdown
+    if (window.DB && window.DB.clients) {
+        window.DB.clients.push(tempSede);
+    }
     
     if(window.D.closeClientCreate) window.D.closeClientCreate(); else { document.getElementById("overlayClient").classList.remove("open"); document.getElementById("floatingClient").classList.remove("open"); }
+    
     seleccionarSede(tempSede);
     
     if(document.getElementById('field-direccion')) {
       document.getElementById('field-direccion').value = direccion;
     }
     
+    if(window.D) {
+      window.D.client = tempSede;
+      if(document.getElementById('assetCombo')) {
+        document.getElementById('assetCombo').style.display = 'block';
+      }
+    }
+    
     if (window.app && app.toast) app.toast('Cliente "'+nombre+'" configurado para guardar con el acta ✓');
+    else if (window.D && window.D.toast) window.D.toast('Cliente configurado. Ahora selecciona o crea un activo.');
   };
 
 
