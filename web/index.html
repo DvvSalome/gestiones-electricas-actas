@@ -4,23 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acta Técnica Digital — Gestiones Eléctricas</title>
-  <!-- Anti-flash: si no hay sesión válida, bloquea el acta ANTES del primer paint
-       (corre síncrono, antes de que se pinte el body). pin-gate.js quita el bloqueo
-       al confirmar sesión y lo repone al cerrar. -->
-  <script>
-    (function () {
-      try {
-        var t = localStorage.getItem('ge_tecnico_token'), ok = false;
-        if (t && t.indexOf('.') > 0) {
-          var p = t.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
-          while (p.length % 4) p += '=';
-          var d = JSON.parse(atob(p));
-          ok = !!d.exp && Date.now() < d.exp;
-        }
-        if (!ok) document.documentElement.classList.add('ge-locked');
-      } catch (e) { document.documentElement.classList.add('ge-locked'); }
-    })();
-  </script>
+  <!-- Anti-flash desactivado en dev -->
   <link rel="icon" type="image/png" href="/images/icon-192.png">
   <link rel="apple-touch-icon" href="/images/icon-192.png">
   <link rel="manifest" href="/manifest.json">
@@ -31,7 +15,7 @@
   <!-- Font Google: Outfit para look premium y moderno -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <!-- PDF generation: html2canvas + jsPDF (sin intermediario html2pdf) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -51,38 +35,43 @@
        TOKENS DE DISEÑO E IDENTIDAD DE MARCA
        Gestiones Eléctricas SAS - Paleta EnergyTech
        ════════════════════════════════════════════ */
+    
     :root {
-      --brand-dark:     #0D1100; /* Fondo general e institucional profundo */
-      --brand-dark-card:#1C2203; /* Tarjetas oscuras */
-      --brand-olive:    #283000; /* Verde oliva principal */
-      --brand-lime:     #C7E52F; /* Amarillo lima / chartreuse brillante (acento) */
-      --brand-lime-rgb: 199, 229, 47;
-      --brand-lime-hover: #D7F53F;
-      --brand-bg:       #F5F6F2; /* Fondo gris claro verdoso para el form */
-      --brand-white:    #FFFFFF;
-      --brand-border:   #DCE0D4;
-      --brand-text:     #1E230B;
-      --brand-muted:    #656C51;
-      --brand-ok:       #10B981; /* Verde esmeralda (Conforme) */
-      --brand-warn:     #F59E0B; /* Naranja (No Conforme) */
-      --brand-neutral:  #9CA3AF;
+      /* Brand Accents */
+      --brand-lime: #C9E400; 
+      --brand-lime-hover: #B5CD00;
+      --brand-olive: #8EA100; 
+      --olive-dark: #5E6B00;
       
-      --radius-sm:  8px;
-      --radius-md:  16px;
-      --radius-lg:  24px;
-      --shadow-sm:  0 2px 8px rgba(13, 17, 0, 0.05);
-      --shadow-md:  0 8px 24px rgba(13, 17, 0, 0.08);
-      --shadow-lg:  0 16px 40px rgba(13, 17, 0, 0.12);
+      /* Brand Darks */
+      --brand-dark: #2B3000; 
+      --brand-dark-card: #0D1100;
       
-      --font-main:  'Outfit', sans-serif;
-      --font-code:  'Space Grotesk', monospace;
+      /* Backgrounds & Surfaces */
+      --brand-bg: #EFF1E4; 
+      --brand-white: #FFFFFF;
+      --surface-2: #F2F4E6; 
+      --field-bg: #F4F6EA;
+      
+      /* Text */
+      --brand-text: #232815;
+      --brand-muted: #6E7553;
+      --text-faint: #9AA178;
+      
+      /* Semantic */
+      --brand-ok: #3B6D11; 
+      --brand-warn: #995B00; 
+      --brand-border: rgba(43,48,0,0.12);
+      
+      --font-main: 'Hanken Grotesk', sans-serif;
     }
+
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: var(--font-main);
+      font-family: 'Hanken Grotesk', sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -486,7 +475,7 @@
       color: var(--brand-text);
       transition: all 0.2s ease;
       -webkit-appearance: none;
-      font-family: var(--font-main);
+      font-family: 'Hanken Grotesk', sans-serif;
     }
 
     .input:focus, .textarea:focus, .select:focus {
@@ -647,7 +636,7 @@
       padding: 4px;
       font-size: 13px;
       color: var(--brand-text);
-      font-family: var(--font-main);
+      font-family: 'Hanken Grotesk', sans-serif;
     }
 
     .mat-input-field:focus {
@@ -1557,7 +1546,419 @@
       text-decoration: underline;
       font-weight: bold;
     }
-  </style>
+  
+    
+    /* --- INJECTED OVERRIDES FOR NEW DESIGN (POLISHED) --- */
+    body { 
+        background-color: var(--brand-bg) !important; 
+        color: var(--brand-text) !important; 
+        font-family: var(--font-main) !important;
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    .form-content {
+        gap: 24px !important; /* Más espacio para respirar */
+    }
+
+    .card, .section-card {
+        background: var(--brand-white) !important;
+        border-radius: 20px !important; /* Mucho más suave */
+        box-shadow: 0 10px 40px rgba(13, 17, 0, 0.03), 0 2px 10px rgba(13, 17, 0, 0.02) !important;
+        border: none !important;
+        padding: 24px !important;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease !important;
+    }
+    
+    .card-title {
+        border-bottom: none !important; /* Quitar línea rústica */
+        padding-bottom: 0 !important;
+        margin-bottom: 24px !important;
+    }
+    
+    .card-title h2 {
+        font-size: 16px !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.02em !important;
+        color: var(--brand-dark) !important;
+    }
+    
+    .card-icon {
+        background-color: rgba(201, 228, 0, 0.15) !important; /* Lima translúcido en vez de negro */
+        color: var(--brand-dark) !important;
+    }
+    
+    /* Inputs Fluidos */
+    input[type="text"], input[type="email"], input[type="number"], select, textarea, .fld {
+        background: var(--field-bg) !important;
+        border: 1px solid transparent !important;
+        border-radius: 12px !important;
+        padding: 16px 16px !important;
+        font-family: var(--font-main) !important;
+        font-size: 15px !important;
+        color: var(--brand-text) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        width: 100%;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.01) !important;
+    }
+    input:focus, select:focus, textarea:focus, .fld:focus {
+        background: var(--brand-white) !important;
+        border-color: var(--brand-lime) !important;
+        box-shadow: 0 0 0 4px rgba(201, 228, 0, 0.2), 0 4px 12px rgba(0,0,0,0.03) !important;
+        outline: none !important;
+        transform: translateY(-1px);
+    }
+    
+    label, .field-label, .field label {
+        text-transform: uppercase !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.05em !important;
+        color: var(--brand-muted) !important;
+        margin-bottom: 8px !important;
+        display: block;
+    }
+    
+    /* Checklist refinado */
+    .check-item {
+        background: var(--surface-2) !important;
+        border: 1px solid transparent !important;
+        border-radius: 16px !important;
+        padding: 16px 20px !important;
+        margin-bottom: 12px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    .check-item:active { transform: scale(0.98); }
+    .check-item.ok {
+        background: #F1F6EA !important; /* Más sutil */
+        border-color: var(--brand-lime) !important;
+        box-shadow: 0 4px 12px rgba(201, 228, 0, 0.1) !important;
+    }
+    .check-item.fail {
+        background: #FFF9F2 !important;
+        border-color: var(--brand-warn) !important;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08) !important;
+    }
+    
+    /* Progress Bar */
+    .progress-bar {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 10px 20px 0 !important;
+    }
+    .progress-dot {
+        border-radius: 30px !important;
+        padding: 8px 16px !important;
+        background: var(--brand-white) !important;
+        border: 1px solid var(--brand-border) !important;
+        transition: all 0.4s ease !important;
+    }
+    .progress-dot.active {
+        background: var(--brand-dark) !important;
+        border-color: var(--brand-dark) !important;
+        color: var(--brand-lime) !important;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(13, 17, 0, 0.15) !important;
+    }
+    
+    /* Botones primarios redondos y flotantes */
+    .btn-primary, button.btn-save {
+        background: var(--brand-lime) !important;
+        color: var(--brand-dark) !important;
+        border-radius: 100px !important; /* Botón tipo píldora */
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.03em !important;
+        border: none !important;
+        padding: 18px 32px !important;
+        box-shadow: 0 8px 24px rgba(201, 228, 0, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .btn-primary:active { transform: scale(0.96); box-shadow: 0 4px 12px rgba(201, 228, 0, 0.3) !important; }
+    
+    .app-header { 
+        background: var(--brand-dark) !important; 
+        border-bottom: none !important;
+    }
+    .gps-bar {
+        border-radius: 16px !important;
+        background: rgba(255,255,255,0.05) !important;
+        border: none !important;
+    }
+
+    /* --- UX/UI INYECTADO PARA CAMPO --- */
+    
+    /* 1. Tap Targets y Anti-Zoom */
+    input[type="text"], input[type="email"], input[type="number"], select, textarea, .fld {
+        min-height: 56px !important;
+        font-size: 16px !important; /* Anti-zoom en iOS */
+        padding: 18px 20px !important;
+    }
+    
+    /* 2. Checklist (Pulgares grandes) */
+    .check-item {
+        min-height: 56px !important;
+        padding: 12px 20px !important;
+    }
+    .check-box {
+        width: 32px !important;
+        height: 32px !important;
+        border-width: 3px !important;
+    }
+    .check-box svg {
+        width: 18px !important;
+        height: 18px !important;
+    }
+    
+    /* 3. Alto Contraste para Sol Directo */
+    label, .field-label, .field label {
+        color: #3A4205 !important; /* Verde muy oscuro y sólido */
+        font-size: 12px !important; 
+        font-weight: 800 !important;
+    }
+    .card-title h2 {
+        font-size: 18px !important;
+    }
+    
+    /* 4. Barra de Acción Flotante (Sticky Bottom) */
+    body {
+        padding-bottom: 120px !important; /* Espacio para que no tape contenido al final */
+    }
+    .btn-main {
+        position: fixed !important;
+        bottom: 24px !important;
+        left: 24px !important;
+        width: calc(100% - 48px) !important;
+        z-index: 9999 !important;
+        box-shadow: 0 16px 40px rgba(201, 228, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.2) !important;
+        min-height: 64px !important;
+        font-size: 17px !important;
+    }
+    
+    /* Mejoras en Fotos (Zonas más grandes) */
+    .pslot {
+        min-height: 120px !important;
+    }
+    .pslot .empty-state {
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        color: var(--brand-dark) !important;
+    }
+
+    /* --- CORRECCIONES DE DISTRIBUCIÓN MÓVIL --- */
+    @media (max-width: 600px) {
+        /* 1. Colapsar columnas a fila única (1fr) para que los campos no queden aplastados */
+        .field-row, .subform-campos {
+            grid-template-columns: 1fr !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 16px !important;
+        }
+        
+        /* 2. Ajustar padding de las tarjetas para maximizar espacio en pantallas chicas */
+        .card, .section-card {
+            padding: 16px !important;
+            border-radius: 16px !important;
+        }
+        
+        /* 3. Asegurar que los botones fijos quepan perfectamente */
+        .btn-main {
+            bottom: 16px !important;
+            left: 16px !important;
+            width: calc(100% - 32px) !important;
+            min-height: 64px !important;
+            padding: 14px 20px !important;
+            white-space: normal !important;
+            line-height: 1.2 !important;
+        }
+        
+        /* 4. Evitar que el canvas (firma) se desborde del celular */
+        .signature-box canvas, .signature-wrapper canvas {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* 5. Asegurar que los botones secundarios (limpiar, agregar foto) ocupen todo el ancho */
+        .btn-secondary, .add-photo-btn, .btn-subform, .btn-principal {
+            width: 100% !important;
+            min-height: 56px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-top: 8px !important;
+        }
+        
+        /* 6. Espaciado extra abajo para que el teclado y botón fijo no tapen */
+        body {
+            padding-bottom: 140px !important;
+        }
+    }
+
+    /* --- SPA NAVIGATION & GALLERY VIEWS --- */
+    #view-acta, #view-visitas {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+    #view-acta.active, #view-visitas.active {
+        display: block;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: var(--brand-white);
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-around;
+        padding: 12px 16px 30px 16px; /* Extra padding for iOS home bar */
+        z-index: 10000;
+        border-top: 1px solid var(--brand-border);
+    }
+    .nav-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        color: var(--brand-muted);
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        transition: all 0.2s ease;
+        padding: 8px;
+        border-radius: 12px;
+    }
+    .nav-tab svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2;
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-tab.active {
+        color: var(--brand-lime) !important;
+    }
+    .nav-tab.active svg {
+        stroke: var(--brand-lime) !important;
+        fill: rgba(201, 228, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    .nav-tab:active {
+        transform: scale(0.95);
+    }
+
+    /* Gallery Grid (Mis Visitas) */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 20px;
+    }
+    .gallery-card {
+        background: var(--brand-white);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(13, 17, 0, 0.03);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    .gallery-card:active {
+        transform: scale(0.96);
+        box-shadow: 0 2px 8px rgba(13, 17, 0, 0.02);
+    }
+    .gallery-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(201, 228, 0, 0.15);
+        color: var(--brand-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+    .gallery-card h3 {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--brand-dark);
+        margin: 0 0 4px 0;
+        line-height: 1.2;
+    }
+    .gallery-card p {
+        font-size: 12px;
+        color: var(--brand-muted);
+        margin: 0;
+    }
+    .gallery-badge {
+        margin-top: 10px;
+        background: var(--surface-2);
+        color: var(--brand-text);
+        font-size: 10px;
+        font-weight: 800;
+        padding: 4px 8px;
+        border-radius: 20px;
+    }
+
+    /* Detalle de Cliente (Hoja de Vida) */
+    #detail-cliente {
+        background: var(--brand-bg);
+    }
+    .hoja-vida-header {
+        background: var(--brand-dark);
+        color: white;
+        padding: 30px 24px 20px 24px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .hoja-vida-header h1 {
+        font-size: 24px;
+        font-weight: 800;
+        margin: 0 0 8px 0;
+        color: var(--brand-white);
+    }
+    .hoja-vida-header p {
+        color: #A3A3A3;
+        font-size: 14px;
+        margin: 0;
+    }
+    .hoja-vida-stats {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+    }
+    .stat-val { font-size: 20px; font-weight: 800; color: var(--brand-lime); }
+    .stat-lbl { font-size: 10px; text-transform: uppercase; color: #A3A3A3; letter-spacing: 0.05em; }
+
+    /* Botón flotante para el historial y re-ajuste del main */
+    .btn-main {
+        bottom: 100px !important; /* Levantar el botón del acta sobre las tabs */
+    }
+</style>
 </head>
 <body>
 
@@ -1600,6 +2001,7 @@
     <!-- ══════════════════════════════════════════
          1. CABECERA E INTEGRACIÓN GPS
          ══════════════════════════════════════════ -->
+    <div id="view-acta" class="active">
     <header class="app-header">
       <div class="header-top">
         <div class="logo-container">
@@ -2388,7 +2790,108 @@
   </div>
 
 
-  <!-- ══════════════════════════════════════════
+  
+    <!-- ══════════════════════════════════════════
+         NUEVA VISTA: MIS VISITAS / HISTORIAL
+         ══════════════════════════════════════════ -->
+    <div id="view-visitas">
+      <!-- Pantalla 1: Galería -->
+      <div id="pantalla-galeria">
+          <div class="card" style="background:transparent; box-shadow:none; padding:0 0 16px 0;">
+              <h2 style="font-size:22px; font-weight:800; color:var(--brand-dark); margin:0;">Mis Visitas (Ruta)</h2>
+              <p style="color:var(--brand-muted); font-size:14px; margin-top:6px;">Registro de clientes y activos trabajados hoy.</p>
+          </div>
+          <div class="gallery-grid" id="gallery-container">
+              <!-- Cargado dinámicamente -->
+          </div>
+      </div>
+      
+      <!-- Pantalla 2: Detalle Cliente (Hoja de Vida) -->
+      <div id="pantalla-detalle" style="display:none;">
+          <div style="margin-bottom: 16px;">
+              <button onclick="cerrarDetalleCliente()" style="background:transparent; border:none; color:var(--brand-dark); font-weight:800; font-size:16px; display:flex; align-items:center; gap:8px; padding:0; cursor:pointer;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  Volver a Galería
+              </button>
+          </div>
+          
+          <div class="hoja-vida-header" id="hdv-header">
+              <!-- Cargado dinámicamente -->
+          </div>
+          
+          <div class="card" style="margin-bottom: 24px;">
+              <div class="card-title">
+                  <h2>Activos del Cliente (Hoja de Vida)</h2>
+              </div>
+              <div id="hdv-servicios">
+                 <!-- Cargado dinámicamente -->
+              </div>
+          </div>
+          
+          <button class="btn-main" onclick="anadirActivoDesdeHdv()" style="position:static !important; width:100% !important; margin-top:20px;">
+              + Añadir nuevo Activo a este Cliente
+          </button>
+      </div>
+      </div>
+    </div>
+    
+    <!-- MODAL AÑADIR ACTIVO -->
+    <div id="modal-anadir-activo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; padding:20px;">
+        <div style="background:white; border-radius:24px; padding:24px; width:100%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
+            <h2 style="font-size:20px; font-weight:800; color:var(--brand-dark); margin:0 0 16px 0;">Añadir Nuevo Activo</h2>
+            <p style="color:var(--brand-muted); font-size:14px; margin-bottom:20px;">Este activo quedará registrado en la Torre de Control inmediatamente.</p>
+            
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Código del Activo *</label>
+                <input type="text" id="nuevo-activo-codigo" placeholder="Ej. TAB-001" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Tipo de Activo *</label>
+                <select id="nuevo-activo-tipo" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
+                    <option value="">Seleccione...</option>
+                    <option value="Tablero">Tablero</option>
+                    <option value="Transformador">Transformador</option>
+                    <option value="Planta Electrica">Planta Eléctrica</option>
+                    <option value="Subestacion">Subestación</option>
+                    <option value="UPS">UPS</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label>Nombre / Descripción</label>
+                <input type="text" id="nuevo-activo-nombre" placeholder="Opcional. Ej. Tablero Principal Piso 1" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label>Ubicación</label>
+                <input type="text" id="nuevo-activo-ubicacion" placeholder="Opcional. Ej. Cuarto de Máquinas" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
+            </div>
+            
+            <div style="display:flex; gap:12px;">
+                <button onclick="cerrarModalNuevoActivo()" style="flex:1; padding:14px; border-radius:12px; border:none; background:#F1F5F9; color:#475569; font-weight:700; cursor:pointer;">Cancelar</button>
+                <button onclick="guardarNuevoActivo()" style="flex:1; padding:14px; border-radius:12px; border:none; background:var(--brand-dark); color:var(--brand-lime); font-weight:700; cursor:pointer;">Guardar Activo</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ══════════════════════════════════════════
+         NAVEGACIÓN INFERIOR (BOTTOM TABS)
+         ══════════════════════════════════════════ -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-tab active" id="tab-acta" onclick="switchTab('acta')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Acta Nueva
+        </a>
+        <a href="#" class="nav-tab" id="tab-visitas" onclick="switchTab('visitas')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Mis Visitas
+        </a>
+    </nav>
+  </div> <!-- Fin de mobile-container -->
+
+    <!-- ══════════════════════════════════════════
        7. LÓGICA DE PROGRAMACIÓN (JAVASCRIPT)
        ══════════════════════════════════════════ -->
   <!-- Módulos de lógica de la aplicación -->
@@ -2449,5 +2952,6 @@
     })();
   </script>
   <script src="/js/pwa.js"></script>
+  <script src="/js/visitas.js"></script>
 </body>
 </html>
