@@ -162,6 +162,11 @@
     const nombre = document.getElementById('ncNombre').value.trim();
     if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
     
+    const nit = document.getElementById('ncNit') ? document.getElementById('ncNit').value.trim() : '';
+    const contacto = document.getElementById('ncContacto') ? document.getElementById('ncContacto').value.trim() : '';
+    const tel = document.getElementById('ncTel') ? document.getElementById('ncTel').value.trim() : '';
+    const email = document.getElementById('ncEmail') ? document.getElementById('ncEmail').value.trim() : '';
+    
     const direccion = document.getElementById('ncDireccion').value.trim();
     const tipo = document.getElementById('ncTipoCliente').value;
     

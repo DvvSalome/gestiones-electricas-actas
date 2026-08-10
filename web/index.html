@@ -2057,6 +2057,28 @@
     </div>
 
     <!-- Activo seleccionado -->  
+    
+    <!-- Mini panel crear activo -->  
+    <div class="create-mini" id="createMini">  
+      <div class="row2">  
+        <select class="fld" id="newType" onchange="D.typeChange()"><option value="TAB">Tablero</option><option value="ACO">Acometida</option><option value="TRF">Transformador</option><option value="SPT">SPT / Tierra</option><option value="GEN">General</option><option value="otro">+ Crear tipo nuevo…</option></select>  
+        <input class="fld" id="newNum" placeholder="2345" oninput="D.code()">  
+      </div>
+
+      <!-- Input para tipo personalizado, inicialmente oculto -->  
+      <div id="newTypeCustomWrap" style="display:none; margin-top:9px;">  
+        <label class="field-label" style="margin-top:0">Nombre del nuevo tipo <span class="opt">— (3 letras: <span id="customPrefixHint">___</span>)</span></label>  
+        <input class="fld" id="newTypeCustom" placeholder="Ej: Motor, Inversor, Planta…" oninput="D.customType()">  
+      </div>
+
+      <div class="cm-code"><div class="cc-l">Previsualización:</div><div class="cc-v" id="codePrev">TAB-</div></div>  
+
+      <div class="cm-actions">  
+        <button class="fl-btn cancel" onclick="D.closeCreate()">Cancelar</button>  
+        <button class="fl-btn save" onclick="D.createAsset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Guardar e iniciar ficha</button>  
+      </div>  
+    </div>  
+
     <div id="assetPickedWrap"></div>
 
     
@@ -2997,7 +3019,17 @@
     <!-- Datos básicos -->  
     <div class="gt">Datos del cliente</div>  
     <label class="field-label" style="margin-top:0">Nombre / Razón social <span class="req">*</span></label>  
-    <input class="fld" id="ncNombre" placeholder="Ej: Edificio Los Almendros">  
+    <input class="fld" id="ncNombre" placeholder="Ej: Edificio Los Almendros">
+
+    <label class="field-label">NIT <span class="req">*</span></label>
+    <input class="fld" id="ncNit" placeholder="Ej: 900.123.456-7">
+    <label class="field-label">Teléfono de contacto</label>
+    <input type="tel" class="fld" id="ncTel" placeholder="Ej: 300 000 0000">
+    <label class="field-label">Nombre del contacto</label>
+    <input class="fld" id="ncContacto" placeholder="Ej: Juan Pérez">
+    <label class="field-label">Correo electrónico</label>
+    <input type="email" class="fld" id="ncEmail" placeholder="Ej: admin@empresa.com">
+  
     <label class="field-label">Dirección</label>  
     <input class="fld" id="ncDireccion" placeholder="Calle 75 Cr 72 90">  
     <label class="field-label">Tipo de cliente <span class="req">*</span></label>  
