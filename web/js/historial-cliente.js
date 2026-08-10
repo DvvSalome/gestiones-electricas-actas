@@ -158,7 +158,8 @@
   };
 
   // Lógica global para guardar cliente nuevo creado desde el modal
-    window.D.saveClient = function() {
+  window.D = window.D || {};
+  window.D.saveClient = function() {
     const nombre = document.getElementById('ncNombre').value.trim();
     if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
     
