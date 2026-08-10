@@ -160,6 +160,7 @@
   // Lógica global para guardar cliente nuevo creado desde el modal
   window.D = window.D || {};
   window.D.saveClient = function() {
+try {
     const nombre = document.getElementById('ncNombre').value.trim();
     if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
     
@@ -249,6 +250,7 @@
     
     if (window.app && app.toast) app.toast('Cliente "'+nombre+'" configurado para guardar con el acta ✓');
     else if (window.D && window.D.toast) window.D.toast('Cliente configurado. Ahora selecciona o crea un activo.');
+  } catch(e) { alert("ERROR en saveClient: " + e.message); console.error(e); } 
   };
 
 
