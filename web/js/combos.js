@@ -36,8 +36,19 @@ window.D = {
   },  
   changeAsset() { if (window.changeAsset) window.changeAsset(); else { document.getElementById('assetPickedWrap').innerHTML=''; document.getElementById('assetCombo').style.display='block'; } },
 
-  openCreate() { document.getElementById('assetCombo').classList.remove('open'); document.getElementById('createMini').classList.add('open'); D.typeChange(); },  
-  closeCreate() { document.getElementById('createMini').classList.remove('open'); },  
+  
+  openClientCreate() { 
+    document.getElementById('clientCombo').classList.remove('open'); 
+    document.getElementById('overlayClient').classList.add('open'); 
+    document.getElementById('floatingClient').classList.add('open'); 
+  },
+  closeClientCreate() { 
+    document.getElementById('overlayClient').classList.remove('open'); 
+    document.getElementById('floatingClient').classList.remove('open'); 
+  },
+  openCreate() { document.getElementById('assetCombo').classList.remove('open'); document.getElementById('overlayCreateAsset').classList.add('open'); document.getElementById('floatingCreateAsset').classList.add('open'); D.typeChange(); },
+  closeCreate() { document.getElementById('overlayCreateAsset').classList.remove('open'); document.getElementById('floatingCreateAsset').classList.remove('open'); },  
+    
   typeChange() {  
     const isOtro = document.getElementById('newType').value === 'otro';  
     document.getElementById('newTypeCustomWrap').style.display = isOtro ? 'block' : 'none';  
