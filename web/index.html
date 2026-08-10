@@ -1728,8 +1728,9 @@
   /* ============ FICHA FLOTANTE ============ */  
   .overlay { position:fixed; inset:0; background:rgba(13,17,0,0.6); z-index:60; display:none; opacity:0; transition:opacity 0.25s; backdrop-filter:blur(3px); }  
   .overlay.open { display:block; opacity:1; }  
-  .floating { position:fixed; z-index:70; left:50%; top:50%; transform:translate(-50%,-46%) scale(0.96); opacity:0; width:calc(100% - 28px); max-width:460px; max-height:88vh; background:var(--surface); border-radius:20px; box-shadow:var(--shadow-lg); overflow:hidden; display:flex; flex-direction:column; transition:transform 0.3s cubic-bezier(0.34,1.3,0.5,1), opacity 0.25s; pointer-events:none; }  
+  .floating { position:fixed; z-index:70; left:50%; top:50%; transform:translate(-50%,-46%) scale(0.96); opacity:0; width:calc(100% - 28px); max-width:460px; max-height:95vh; background:var(--surface); border-radius:20px; box-shadow:var(--shadow-lg); overflow:hidden; display:flex; flex-direction:column; transition:transform 0.3s cubic-bezier(0.34,1.3,0.5,1), opacity 0.25s; pointer-events:none; }  
   .floating.open { transform:translate(-50%,-50%) scale(1); opacity:1; pointer-events:auto; }  
+  body.no-scroll { overflow: hidden; }  
   .fl-head { background:linear-gradient(135deg, var(--forest), var(--forest-soft)); padding:17px 20px; display:flex; align-items:center; gap:12px; position:relative; flex-shrink:0; }  
   .flh-tag { position:absolute; top:11px; right:14px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--forest); background:var(--lime); padding:3px 9px; border-radius:20px; }  
   .fl-ico { width:46px; height:46px; border-radius:12px; background:rgba(201,228,0,0.16); display:flex; align-items:center; justify-content:center; flex-shrink:0; }  

@@ -56,6 +56,7 @@ window.D = {
   closeClientCreate() { 
     document.getElementById('overlayClient').classList.remove('open'); 
     document.getElementById('floatingClient').classList.remove('open'); 
+    document.body.classList.remove('no-scroll');
   },
   togNC(btn, groupId, val, after) {  
     document.getElementById(groupId).querySelectorAll('button').forEach(b=>b.className='');  
@@ -199,7 +200,7 @@ window.D = {
     ['fV','fA','fV_L1N','fV_L2N','fV_L1L2','fI_A','fI_B','fI_N','fV_L1L2t','fV_L2L3t','fV_L3L1t','fV_L1Nt','fV_L2Nt','fV_L3Nt','fI_At','fI_Bt','fI_Ct','fI_Nt'].forEach(id => { d[id] = document.getElementById(id).value; });  
     return d;  
   },  
-  closeFicha() { document.getElementById('overlay').classList.remove('open'); document.getElementById('floating').classList.remove('open'); },  
+  closeFicha() { document.getElementById('overlay').classList.remove('open'); document.getElementById('floating').classList.remove('open'); document.body.classList.remove('no-scroll'); },  
   saveFicha() {  
     const code = D.activeCode || document.getElementById('flCode').textContent;  
     FICHAS[code] = D.collectFicha();  
