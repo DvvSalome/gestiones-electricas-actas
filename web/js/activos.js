@@ -103,6 +103,7 @@
   };
 
   // Asignar creación de activo desde el mini panel
+  window.D = window.D || {};
   window.D.createAsset = async function() {
     const cliente = window.clienteActual ? window.clienteActual.nombre : null;
     const num = document.getElementById("newNum").value.trim();
