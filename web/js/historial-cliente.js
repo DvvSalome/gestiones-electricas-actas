@@ -158,29 +158,66 @@
   };
 
   // Lógica global para guardar cliente nuevo creado desde el modal
-  window.D.saveClient = function() {
+    window.D.saveClient = function() {
     const nombre = document.getElementById('ncNombre').value.trim();
     if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
     
     const direccion = document.getElementById('ncDireccion').value.trim();
     const tipo = document.getElementById('ncTipoCliente').value;
     
+    // Función auxiliar para leer los toggles
+    const readTog = (id) => {
+      const g = document.getElementById(id);
+      if (!g) return 'no';
+      const btns = g.querySelectorAll('button');
+      if (btns && btns[0].classList.contains('sel-si')) return 'si';
+      return 'no';
+    };
+
     // Campos nuevos de infraestructura eléctrica
     const infra = {
       circuito: document.getElementById('ncCircuito').value,
-      tieneTrafo: (document.querySelector('#ncTrafoToggle .sel-si')) ? 'si' : 'no',
+      tieneTrafo: readTog('ncTrafoToggle'),
       trafoCap: document.getElementById('ncTrafoCap').value,
       trafoUbic: document.getElementById('ncTrafoUbic').value,
       trafoTipo: document.getElementById('ncTrafoTipo').value,
-      totalizador: document.getElementById('ncTotalizador').value
+      totalizador: document.getElementById('ncTotalizador').value,
+      
+      calibreAcometida: document.getElementById('ncCalibreAcometida').value,
+      operadorRed: document.getElementById('ncOperador').value,
+      comercializador: document.getElementById('ncComercializador').value,
+      tarifaComercializador: document.getElementById('ncTarifa').value,
+      tieneSpt: readTog('ncSptToggle'),
+      tieneSolar: readTog('ncSolarToggle'),
+      solarCap: document.getElementById('ncSolarCap').value,
+      solarTipo: document.getElementById('ncSolarTipo').value,
+      
+      // Mono
+      v_mono: document.getElementById('ncV').value,
+      i_mono: document.getElementById('ncI').value,
+      // Bi
+      v_l1n: document.getElementById('ncV_L1N').value,
+      v_l2n: document.getElementById('ncV_L2N').value,
+      v_l1l2: document.getElementById('ncV_L1L2').value,
+      i_a: document.getElementById('ncI_A').value,
+      i_b: document.getElementById('ncI_B').value,
+      i_n: document.getElementById('ncI_N').value,
+      // Tri
+      v_l1l2t: document.getElementById('ncV_L1L2t').value,
+      v_l2l3t: document.getElementById('ncV_L2L3t').value,
+      v_l3l1t: document.getElementById('ncV_L3L1t').value,
+      v_l1nt: document.getElementById('ncV_L1Nt').value,
+      v_l2nt: document.getElementById('ncV_L2Nt').value,
+      v_l3nt: document.getElementById('ncV_L3Nt').value,
+      i_at: document.getElementById('ncI_At').value,
+      i_bt: document.getElementById('ncI_Bt').value,
+      i_ct: document.getElementById('ncI_Ct').value,
+      i_nt: document.getElementById('ncI_Nt').value
     };
     
     // Almacenamos temporalmente para anexarlo al guardar el acta final
     localStorage.setItem("ge_cliente_nuevo_infra", JSON.stringify(infra));
 
-    // Como no hay endpoint POST /api/sedes, el backend crea la sede a partir
-    // del nombre que viaja en "cliente" o "siteName" al crear un activo/acta.
-    // Usamos el nombre literal como ID temporal.
     const tempSede = { id: nombre, name: nombre, city: tipo };
     
     if(window.D.closeClientCreate) window.D.closeClientCreate(); else { document.getElementById("overlayClient").classList.remove("open"); document.getElementById("floatingClient").classList.remove("open"); }
