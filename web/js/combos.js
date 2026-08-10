@@ -1,6 +1,6 @@
 window.FICHAS = window.FICHAS || {};
 window.DB = window.DB || { clients: [], assets: {} };
-window.D = {  
+window.D = Object.assign(window.D || {}, {  
   client:null, photos:0, newCode:'', activeCode:null,
 
   
@@ -392,4 +392,4 @@ window.D = {
     
       <div class="label"><img src="${canvas.toDataURL('image/png')}"><div class="code">${code}</div><div class="brand">Gestiones Eléctricas SAS</div></div></body></html>`);
   }
-};
+});
