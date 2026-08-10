@@ -73,8 +73,13 @@ module.exports = async function authRoute(req, res) {
     }
 
     if (action === 'create-user') {
+      const usersCU = await getUsers(tenant);
+      const isFirstUser = usersCU.length === 0;
+      
       const sessCU = verifyToken(body.token);
-      if (!sessCU || (sessCU.r && sessCU.r !== 'admin')) return res.status(401).json({ error: 'Sesión inválida o expirada' });
+      if (!isFirstUser && (!sessCU || (sessCU.r && sessCU.r !== 'admin'))) {
+          return res.status(401).json({ error: 'Sesión inválida o expirada' });
+      }
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
       const role = body.role === 'tecnico' ? 'tecnico' : 'admin';

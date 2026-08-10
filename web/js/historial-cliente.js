@@ -1,17 +1,11 @@
 // F6.7: identidad de sede + historial de servicios anteriores, buscable desde
-// el acta en campo — ver comentario largo en apps/actas/src/routes/historial.js.
-// Dos piezas:
-//  1. Autocompletado: al escribir en "Nombre del Cliente" se sugieren sedes
-//     YA existentes (evita duplicar la misma sede por may/min o tildes).
-//  2. Historial: si la sede quedó identificada (elegida acá, o porque un
-//     diagnóstico anterior ya la vinculó), se listan sus servicios previos,
-//     con la opción de marcar el nuevo como continuación de uno de ellos.
+// el acta en campo. Modificado para usar los nuevos componentes combobox.
 (function () {
   let sugerenciaTimer = null;
   let sedeActualId = localStorage.getItem("ge_sede_id") || null;
 
-  function inputEl() { return document.getElementById("field-cliente"); }
-  function sugerenciasEl() { return document.getElementById("sede-sugerencias"); }
+  function inputEl() { return document.querySelector("#clientCombo .combo-search input"); }
+  function sugerenciasEl() { return document.getElementById("clientList"); }
   function historialEl() { return document.getElementById("historial-cliente"); }
 
   function esc(s) {
@@ -25,41 +19,63 @@
       if (!r.ok) return [];
       const d = await r.json();
       return d.sedes || [];
-    } catch { return []; } // sin señal: el técnico sigue escribiendo libre, sin sugerencias
+    } catch { return []; } 
   }
 
-  function renderSugerencias(sedes) {
+  window.renderSugerencias = function(sedes) {
     const box = sugerenciasEl();
     if (!box) return;
-    if (!sedes.length) { box.style.display = "none"; box.innerHTML = ""; return; }
+    if (!sedes || !sedes.length) { 
+      box.innerHTML = '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin resultados</div>'; 
+      return; 
+    }
     box.innerHTML = sedes.map((s, i) => `
-      <div class="sede-sugerencia" data-idx="${i}">
-        <b>${esc(s.name)}</b>
-        <span>${esc(s.city || "")}${s.city ? " · " : ""}${s.inspecciones || 0} servicio${s.inspecciones === 1 ? "" : "s"} anterior${s.inspecciones === 1 ? "" : "es"}</span>
+      <div class="combo-opt" data-idx="${i}">
+        <div class="co-av">${esc(s.name.slice(0,2).toUpperCase())}</div>
+        <div class="co-b">
+          <div class="co-name">${esc(s.name)}</div>
+          <div class="co-meta">${esc(s.city || "")}</div>
+        </div>
+        <span class="co-count">${s.inspecciones || 0} visitas</span>
       </div>`).join("");
-    box.querySelectorAll(".sede-sugerencia").forEach((el, i) => {
-      // mousedown (no click): dispara ANTES del blur del input, si no el blur
-      // de activos.js cierra/oculta esto antes de que el click llegue a registrarse.
+      
+    box.querySelectorAll(".combo-opt").forEach((el, i) => {
       el.addEventListener("mousedown", (e) => { e.preventDefault(); seleccionarSede(sedes[i]); });
     });
-    box.style.display = "block";
   }
 
   function ocultarSugerencias() {
     const box = sugerenciasEl();
-    if (box) { box.style.display = "none"; box.innerHTML = ""; }
+    // if (box) { box.innerHTML = ""; } // No hide completely so the user sees "no results"
   }
 
   function seleccionarSede(sede) {
-    const input = inputEl();
-    if (input) input.value = sede.name;
-    ocultarSugerencias();
+    // Fill the combo input visual representation
+    const comboInput = document.querySelector('#clientCombo .combo-input');
+    comboInput.classList.add('filled');
+    const main = document.getElementById('clientMain');
+    main.classList.remove('ph'); 
+    main.textContent = sede.name;
+    const sub = document.getElementById('clientSub');
+    sub.style.display = 'block'; 
+    sub.textContent = sede.city || '';
+    
+    // Set the hidden field if needed, or global var
+    window.clienteActual = { id: sede.id, nombre: sede.name, ciudad: sede.city };
+    
+    // Cerrar el combo
+    document.getElementById('clientCombo').classList.remove('open');
+    
     sedeActualId = sede.id;
     localStorage.setItem("ge_sede_id", sede.id);
     vincularSedeActual(sede.id);
     cargarHistorial(sede.id);
-    if (typeof window.loadActivos === "function") window.loadActivos(); // refresca el desplegable de activos para esta sede
+    
+    if (typeof window.loadActivos === "function") window.loadActivos();
     if (typeof saveCurrentFormToLocal === "function") saveCurrentFormToLocal();
+    
+    // Unlock asset combo
+    document.getElementById('assetMain').textContent = 'Selecciona o crea un activo…';
   }
 
   async function vincularSedeActual(siteId, relatedActaUuid) {
@@ -98,10 +114,10 @@
       ${previos.map((s) => {
         const fecha = s.fecha ? new Date(s.fecha).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" }) : "—";
         const pill = s.conforme
-          ? `<span class="hc-pill ok">Conforme</span>`
-          : `<span class="hc-pill warn">${esc(s.estado || "en curso")}</span>`;
+          ? \`<span class="hc-pill ok">Conforme</span>\`
+          : \`<span class="hc-pill warn">${esc(s.estado || "en curso")}</span>\`;
         const vinculado = window.sedeRelacionActual === s.uuid;
-        return `
+        return \`
         <div class="hc-item">
           <div class="hc-item-info">
             <b>${esc(s.ot)} · ${esc(s.tipoServicio || "Servicio")}</b>
@@ -111,7 +127,7 @@
           <button type="button" class="hc-link-btn ${vinculado ? "activo" : ""}" data-uuid="${esc(s.uuid)}">
             ${vinculado ? "✓ Vinculado" : "Continuar este"}
           </button>
-        </div>`;
+        </div>\`;
       }).join("")}
     `;
     box.querySelectorAll(".hc-link-btn").forEach((btn) => {
@@ -130,32 +146,72 @@
     window.sedeRelacionActual = null;
     const box = historialEl();
     if (box) { box.style.display = "none"; box.innerHTML = ""; }
-    ocultarSugerencias();
+    
+    // Clear visual combo
+    const comboInput = document.querySelector('#clientCombo .combo-input');
+    if(comboInput) comboInput.classList.remove('filled');
+    const main = document.getElementById('clientMain');
+    if(main) { main.classList.add('ph'); main.textContent = "Buscar o seleccionar cliente…"; }
+    const sub = document.getElementById('clientSub');
+    if(sub) { sub.style.display = 'none'; }
+    window.clienteActual = null;
   };
+
+  // Lógica global para guardar cliente nuevo creado desde el modal
+  window.UI.saveClient = function() {
+    const nombre = document.getElementById('ncNombre').value.trim();
+    if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
+    
+    const direccion = document.getElementById('ncDireccion').value.trim();
+    const tipo = document.getElementById('ncTipoCliente').value;
+    
+    // Campos nuevos de infraestructura eléctrica
+    const infra = {
+      circuito: document.getElementById('ncCircuito').value,
+      tieneTrafo: (document.querySelector('#ncTrafoToggle .sel-si')) ? 'si' : 'no',
+      trafoCap: document.getElementById('ncTrafoCap').value,
+      trafoUbic: document.getElementById('ncTrafoUbic').value,
+      trafoTipo: document.getElementById('ncTrafoTipo').value,
+      totalizador: document.getElementById('ncTotalizador').value
+    };
+    
+    // Almacenamos temporalmente para anexarlo al guardar el acta final
+    localStorage.setItem("ge_cliente_nuevo_infra", JSON.stringify(infra));
+
+    // Como no hay endpoint POST /api/sedes, el backend crea la sede a partir
+    // del nombre que viaja en "cliente" o "siteName" al crear un activo/acta.
+    // Usamos el nombre literal como ID temporal.
+    const tempSede = { id: nombre, name: nombre, city: tipo };
+    
+    UI.closeClientCreate();
+    seleccionarSede(tempSede);
+    
+    if(document.getElementById('field-direccion')) {
+      document.getElementById('field-direccion').value = direccion;
+    }
+    
+    if (window.app && app.toast) app.toast('Cliente "'+nombre+'" configurado para guardar con el acta ✓');
+  };
+
 
   document.addEventListener("DOMContentLoaded", () => {
     const input = inputEl();
     if (!input) return;
 
     input.addEventListener("input", () => {
-      // si el técnico sigue escribiendo después de haber elegido una sede,
-      // asume que ya no es esa — se re-vincula solo si vuelve a elegir otra.
-      if (sedeActualId) { sedeActualId = null; localStorage.removeItem("ge_sede_id"); window.ocultarHistorialCliente(); }
+      if (sedeActualId) { 
+          // Si el técnico escribe de nuevo, resetea el cliente actual
+          window.ocultarHistorialCliente(); 
+      }
       clearTimeout(sugerenciaTimer);
       const q = input.value.trim();
       if (q.length < 2) { ocultarSugerencias(); return; }
       sugerenciaTimer = setTimeout(async () => {
-        renderSugerencias(await buscarSedes(q));
+        window.renderSugerencias(await buscarSedes(q));
       }, 300);
     });
 
-    // blur con demora: si no, el mousedown de la sugerencia nunca alcanza a
-    // ejecutarse porque el blur ya la escondió (por eso arriba se usa
-    // mousedown + preventDefault en vez de click).
     input.addEventListener("blur", () => setTimeout(ocultarSugerencias, 150));
-
-    // sede ya vinculada de una sesión anterior en este mismo dispositivo
-    // (ver restoreFromServer en autosave.js) — muestra el historial directo.
     if (sedeActualId) cargarHistorial(sedeActualId);
   });
 })();

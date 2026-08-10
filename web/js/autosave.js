@@ -23,7 +23,9 @@ function buildCurrentFormData() {
       desc: tr.querySelector(".desc-input").value,
       cant: tr.querySelector(".cant-input").value,
       ref: tr.querySelector(".ref-input").value
-    }))
+    })),
+    // El cliente ahora no es un select tradicional, leemos del global o del input subyacente
+    clienteGlobal: window.clienteActual ? window.clienteActual.nombre : ""
   };
 }
 
@@ -82,9 +84,15 @@ async function flushDraftToServer() {
 }
 
 function buildDraftPayload(data) {
+  let infraStr = localStorage.getItem("ge_cliente_nuevo_infra");
+  let infraData = null;
+  if (infraStr) {
+    try { infraData = JSON.parse(infraStr); } catch(e){}
+  }
+  
   return {
         data: {
-          servicioTipo: data.servicioTipo, cliente: data.cliente, direccion: data.direccion,
+          servicioTipo: data.servicioTipo, cliente: data.clienteGlobal || data.cliente, direccion: data.direccion,
           telefono: data.telefono, email: data.email, tecnico: data.tecnico,
           matricula: data.matricula, diagnostico: data.diagnostico, tension: data.tension,
           corriente: data.corriente, acciones: data.acciones, norma: data.norma,
@@ -93,6 +101,7 @@ function buildDraftPayload(data) {
           activo_id: data.activoId || "", activo_codigo: data.activoCodigo || "",
           ot: localStorage.getItem("ge_current_ot") || "",
           gps: window.gpsLat != null ? `${window.gpsLat},${window.gpsLng}` : (data.gps || ""),
+          infra_electrica: infraData
         },
         checklist: (data.checklist || []).map(c => ({ item_id: c.id, estado: c.state })),
         materiales: (data.materials || []).filter(m => m.desc).map(m => ({
@@ -187,9 +196,9 @@ function loadLocalStorageData() {
             localItem.state = savedItem.state;
             
             // Actualizar interfaz visual
-            const checkDiv = document.querySelector(`.check-item[data-index="${window.checklistItems.indexOf(localItem)}"]`);
+            const checkDiv = document.querySelector(`.chk-item[data-index="${window.checklistItems.indexOf(localItem)}"]`);
             if (checkDiv) {
-              const statusSpan = checkDiv.querySelector(".check-status");
+              const statusSpan = checkDiv.querySelector(".chk-state");
               checkDiv.classList.remove("ok", "fail");
               if (savedItem.state === "ok") {
                 checkDiv.classList.add("ok");
@@ -293,9 +302,9 @@ function resetForm() {
     if (activoSel) { activoSel.value = ""; document.getElementById("activo-nuevo-row").style.display = "none"; }
 
     window.checklistItems.forEach(item => item.state = "");
-    document.querySelectorAll(".check-item").forEach(el => {
+    document.querySelectorAll(".chk-item").forEach(el => {
       el.classList.remove("ok", "fail");
-      el.querySelector(".check-status").textContent = "";
+      el.querySelector(".chk-state").textContent = "";
     });
     
     window.materialsTbody.innerHTML = "";

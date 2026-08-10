@@ -1,0 +1,477 @@
+<!-- ============ NUEVO CLIENTE — INFRAESTRUCTURA ELÉCTRICA ============ -->  
+<div class="overlay" id="overlayClient" onclick="D.closeClientCreate()"></div>  
+<div class="floating" id="floatingClient">  
+  <div class="fl-head">  
+    <span class="flh-tag">Nuevo cliente</span>  
+    <div class="fl-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></div>  
+    <div><div class="fl-code">Registro de cliente</div><div class="fl-desc">Datos \+ infraestructura eléctrica</div></div>  
+  </div>  
+  <div class="fl-body">
+
+    <!-- Datos básicos -->  
+    <div class="gt">Datos del cliente</div>  
+    <label class="field-label" style="margin-top:0">Nombre / Razón social <span class="req">\*</span></label>  
+    <input class="fld" id="ncNombre" placeholder="Ej: Edificio Los Almendros">  
+    <label class="field-label">Dirección</label>  
+    <input class="fld" id="ncDireccion" placeholder="Calle 75 Cr 72 90">  
+    <label class="field-label">Tipo de cliente <span class="req">\*</span></label>  
+    <select class="fld" id="ncTipoCliente"><option value="Residencial">Residencial</option><option value="Comercial" selected>Comercial</option><option value="Industrial">Industrial</option></select>
+
+    <!-- Infraestructura eléctrica -->  
+    <div class="gt spt gt-mt">Infraestructura eléctrica</div>
+
+    <label class="field-label" style="margin-top:0">Tipo de circuito <span class="req">\*</span></label>  
+    <select class="fld" id="ncCircuito" onchange="D.showSysFields()"><option value="mono">Monofásico</option><option value="bi">Bifásico</option><option value="tri" selected>Trifásico</option></select>
+
+    <div class="spt-check" style="margin-top:12px;">  
+      <span class="sc-q">¿Tiene transformador propio?</span>  
+      <div class="spt-toggle" id="ncTrafoToggle"><button class="sel-si" onclick="D.togNC(this,'ncTrafoToggle','si',D.showTrafo)">Sí</button><button onclick="D.togNC(this,'ncTrafoToggle','no',D.showTrafo)">No</button></div>  
+    </div>
+
+    <!-- Si SÍ tiene transformador propio -->  
+    <div id="ncTrafoFields">  
+      <div class="row2" style="margin-top:12px;">  
+        <div class="meas-w"><label class="field-label" style="margin-top:0">Capacidad del transformador</label><input class="fld" id="ncTrafoCap" placeholder="75"><span class="unit" style="top:31px">kVA</span></div>  
+        <div><label class="field-label" style="margin-top:0">Ubicación del transformador</label>  
+          <select class="fld" id="ncTrafoUbic"><option>Subestación</option><option>Poste</option></select></div>  
+      </div>  
+      <label class="field-label">Tipo de transformador</label>  
+      <select class="fld" id="ncTrafoTipo"><option value="aceite">Sumergido en aceite</option><option value="seco">Seco</option></select>  
+    </div>
+
+    <!-- Si NO tiene transformador propio -->  
+    <div id="ncTotalizadorFields" style="display:none;">  
+      <label class="field-label">Totalizador general</label>  
+      <input class="fld" id="ncTotalizador" placeholder="N.º de totalizador / medidor">  
+      <div class="hint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Sin transformador propio: la energía llega desde un totalizador compartido del operador de red.</div>  
+    </div>
+
+    <label class="field-label gt-mt" style="margin-top:18px;">Calibre de la acometida</label>  
+    <input class="fld" id="ncCalibreAcometida" placeholder="Ej: 4/0 AWG, 2 AWG, 500 MCM…">
+
+    <!-- ===== Mediciones del sistema — dinámico según tipo de circuito ===== -->  
+    <div class="sys-meas">  
+      <label class="field-label gt-mt" style="margin-top:18px;">Voltajes y corrientes del sistema</label>
+
+      <!-- MONOFÁSICO: una fila -->  
+      <div id="sysMono" style="display:none;">  
+        <div class="row2">  
+          <div class="meas-w"><input class="fld" id="ncV" placeholder="120"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="ncI" placeholder="15"><span class="unit">A</span></div>  
+        </div>  
+        <div class="sys-caption">Voltaje (V) · Corriente (A)</div>  
+      </div>
+
+      <!-- BIFÁSICO: dos bloques -->  
+      <div id="sysBi" style="display:none;">  
+        <div class="sys-block">  
+          <div class="sys-block-t">Voltajes (V)</div>  
+          <div class="row3">  
+            <div class="meas-w"><input class="fld" id="ncV_L1N" placeholder="120"><span class="unit">V</span></div>  
+            <div class="meas-w"><input class="fld" id="ncV_L2N" placeholder="120"><span class="unit">V</span></div>  
+            <div class="meas-w"><input class="fld" id="ncV_L1L2" placeholder="240"><span class="unit">V</span></div>  
+          </div>  
+          <div class="sys-caption">Fase1-N · Fase2-N · Fase-Fase</div>  
+        </div>  
+        <div class="sys-block">  
+          <div class="sys-block-t">Corrientes (A)</div>  
+          <div class="row3">  
+            <div class="meas-w"><input class="fld" id="ncI_A" placeholder="20"><span class="unit">A</span></div>  
+            <div class="meas-w"><input class="fld" id="ncI_B" placeholder="20"><span class="unit">A</span></div>  
+            <div class="meas-w"><input class="fld" id="ncI_N" placeholder="2"><span class="unit">A</span></div>  
+          </div>  
+          <div class="sys-caption">Fase 1 · Fase 2 · Neutro</div>  
+        </div>  
+      </div>
+
+      <!-- TRIFÁSICO: cuadrícula compacta -->  
+      <div id="sysTri" style="display:none;">  
+        <div class="sys-block">  
+          <div class="sys-block-t">Voltajes (V) · Línea-Línea</div>  
+          <div class="row3">  
+            <div class="meas-w"><input class="fld" id="ncV_L1L2t" placeholder="220"><span class="unit">V</span></div>  
+            <div class="meas-w"><input class="fld" id="ncV_L2L3t" placeholder="220"><span class="unit">V</span></div>  
+            <div class="meas-w"><input class="fld" id="ncV_L3L1t" placeholder="220"><span class="unit">V</span></div>  
+          </div>  
+          <div class="sys-caption">L1-L2 · L2-L3 · L3-L1</div>  
+        </div>  
+        <div class="sys-block">  
+          <div class="sys-block-t">Voltajes (V) · Línea-Neutro</div>  
+          <div class="row3">  
+            <div class="meas-w"><input class="fld" id="ncV_L1Nt" placeholder="127"><span class="unit">V</span></div>  
+            <div class="meas-w"><input class="fld" id="ncV_L2Nt" placeholder="127"><span class="unit">V</span></div>  
+            <div class="meas-w"><input class="fld" id="ncV_L3Nt" placeholder="127"><span class="unit">V</span></div>  
+          </div>  
+          <div class="sys-caption">L1-N · L2-N · L3-N</div>  
+        </div>  
+        <div class="sys-block">  
+          <div class="sys-block-t">Corrientes (A)</div>  
+          <div class="row4">  
+            <div class="meas-w"><input class="fld" id="ncI_At" placeholder="30"><span class="unit">A</span></div>  
+            <div class="meas-w"><input class="fld" id="ncI_Bt" placeholder="30"><span class="unit">A</span></div>  
+            <div class="meas-w"><input class="fld" id="ncI_Ct" placeholder="30"><span class="unit">A</span></div>  
+            <div class="meas-w"><input class="fld" id="ncI_Nt" placeholder="3"><span class="unit">A</span></div>  
+          </div>  
+          <div class="sys-caption">Fase A · Fase B · Fase C · Neutro</div>  
+        </div>  
+      </div>  
+    </div>
+
+    <label class="field-label gt-mt" style="margin-top:18px;">Operador de red</label>  
+    <input class="fld" id="ncOperador" placeholder="Ej: Air-e, Afinia…">
+
+    <label class="field-label">Comercializador de energía</label>  
+    <input class="fld" id="ncComercializador" placeholder="Ej: Air-e, Vatia, Ruitoque…">
+
+    <label class="field-label">Tarifa del comercializador <span class="opt">— $/kWh</span></label>  
+    <div class="meas-w"><input class="fld" id="ncTarifa" placeholder="850"><span class="unit">$/kWh</span></div>
+
+    <div class="spt-check" style="margin-top:16px;">  
+      <span class="sc-q">¿Tiene sistema de puesta a tierra?</span>  
+      <div class="spt-toggle" id="ncSptToggle"><button class="sel-si" onclick="D.togNC(this,'ncSptToggle','si')">Sí</button><button onclick="D.togNC(this,'ncSptToggle','no')">No</button></div>  
+    </div>
+
+    <div class="spt-check" style="margin-top:10px;">  
+      <span class="sc-q">¿Tiene sistema de generación solar?</span>  
+      <div class="spt-toggle" id="ncSolarToggle"><button onclick="D.togNC(this,'ncSolarToggle','si',D.showSolar)">Sí</button><button class="sel-no" onclick="D.togNC(this,'ncSolarToggle','no',D.showSolar)">No</button></div>  
+    </div>
+
+    <!-- Si SÍ tiene generación solar -->  
+    <div id="ncSolarFields" style="display:none; margin-top:12px;">  
+      <div class="row2">  
+        <div class="meas-w"><label class="field-label" style="margin-top:0">Capacidad del sistema</label><input class="fld" id="ncSolarCap" placeholder="15"><span class="unit" style="top:31px">kWp</span></div>  
+        <div><label class="field-label" style="margin-top:0">Tipo de sistema</label>  
+          <select class="fld" id="ncSolarTipo"><option value="ongrid">On-grid</option><option value="offgrid">Off-grid</option></select></div>  
+      </div>  
+      <div class="hint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>On-grid: conectado a la red, con posible inyección. Off-grid: autónomo, no depende del operador de red.</div>  
+    </div>
+
+    <div class="hint" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Esta infraestructura se guarda una sola vez con el cliente y contextualiza el diagnóstico de todos sus activos.</div>  
+  </div>  
+  <div class="fl-foot">  
+    <button class="fl-btn cancel" onclick="D.closeClientCreate()">Cancelar</button>  
+    <button class="fl-btn save" onclick="D.saveClient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Crear cliente</button>  
+  </div>  
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg"></span></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  
+<script>  
+/\* ====== DATOS (vendrían de la API) ====== \*/  
+const DB = {  
+  clients: \[  
+    { id:'c1', name:'ATENAS', type:'Comercial', assets:3, address:'Calle 75 Cr 72 90' },  
+    { id:'c2', name:'Edificio Torres del Parque', type:'Propiedad horizontal', assets:12, address:'Cra 51B \# 80-25' },  
+    { id:'c3', name:'Industrias del Caribe SAS', type:'Industrial', assets:58, address:'Vía 40 \# 76-120' }  
+  \],  
+  assets: {  
+    c1:\[ {code:'TAB-2340', type:'Tablero', desc:'Tablero recepción'}, {code:'ACO-0011', type:'Acometida', desc:'Acometida principal'} \],  
+    c2:\[ {code:'TAB-01', type:'Tablero', desc:'General sótano'}, {code:'TRF-01', type:'Transformador', desc:'75 kVA'} \],  
+    c3:\[ {code:'TRF-02', type:'Transformador', desc:'Subestación 2'} \]  
+  }  
+};  
+const TYPE_NAME = { TAB:'Tablero', ACO:'Acometida', TRF:'Transformador', SPT:'SPT / Tierra', GEN:'General' };  
+const FICHAS = {}; // { 'TAB-2345': {marca, ano, cap, unit, ohm, v, a, conx, barraje, conductor, conexiones} } — vendría de GET /activos/:codigo  
+const CHECKLIST = \['Tablero eléctrico principal','Protecciones termomagnéticas (Breakers)','Acometida y medidores de energía','Conductores eléctricos y canalizaciones','Sistema de puesta a tierra (SPT)','Tomacorrientes y salidas GFCI','Iluminación y luminarias','Señalización de seguridad eléctrica'\];  
+const toKW = { kW:1, kVA:0.92, HP:0.746, W:0.001 };
+
+const D = {  
+  client:null, photos:0, newCode:'', activeCode:null,
+
+  init() {  
+    D.renderClients();  
+    D.renderChecklist();  
+    D.calc(); D.checkSpt();  
+  },
+
+  seg(btn) { \[...btn.parentElement.children\].forEach(b=>b.classList.remove('on')); btn.classList.add('on'); },
+
+  togCombo(id) { const c=document.getElementById(id); document.querySelectorAll('.combo').forEach(x=>{if(x.id!==id)x.classList.remove('open');}); c.classList.toggle('open'); },  
+  togAsset() { if(!D.client){D.toast('Primero selecciona el cliente');return;} D.togCombo('assetCombo'); },
+
+  renderClients(f='') {  
+    const list = DB.clients.filter(c=>c.name.toLowerCase().includes(f.toLowerCase()));  
+    document.getElementById('clientList').innerHTML = list.map(c=>\`<div class="combo-opt" onclick="D.pickClient('${c.id}')"><div class="co-av">${c.name.slice(0,2).toUpperCase()}</div><div class="co-b"><div class="co-name">${c.name}</div><div class="co-meta">${c.type}</div></div><span class="co-count">${c.assets} activos</span></div>\`).join('') || '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin resultados</div>';  
+  },  
+  filterClients(v){ D.renderClients(v); },  
+  pickClient(id) {  
+    D.client = DB.clients.find(c=>c.id===id);  
+    document.querySelector('\#clientCombo .combo-input').classList.add('filled');  
+    const m=document.getElementById('clientMain'); m.classList.remove('ph'); m.textContent=D.client.name;  
+    const s=document.getElementById('clientSub'); s.style.display='block'; s.textContent=D.client.type;  
+    document.getElementById('clientCombo').classList.remove('open');  
+    document.getElementById('dir').value = D.client.address || '';  
+    document.getElementById('assetMain').textContent='Selecciona o crea un activo…';  
+    D.renderAssets();  
+  },  
+  renderAssets() {  
+    const arr = DB.assets\[D.client.id\]||\[\];  
+    document.getElementById('assetList').innerHTML = arr.length ? arr.map(a=>\`<div class="combo-opt" onclick="D.pickAsset('${a.code}','${a.type}','${a.desc}')"><div class="co-av">${a.code.slice(0,3)}</div><div class="co-b"><div class="co-name">${a.code}</div><div class="co-meta">${a.type} · ${a.desc}</div></div></div>\`).join('') : '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin activos aún · crea el primero</div>';  
+  },  
+  pickAsset(code,type,desc) {  
+    document.getElementById('assetCombo').classList.remove('open');  
+    document.getElementById('assetCombo').style.display='none';  
+    const hasFicha = !!FICHAS\[code\];  
+    const descTxt = hasFicha ? 'Ficha guardada · en base de datos' : \`${type} · ${desc}\`;  
+    document.getElementById('assetPickedWrap').innerHTML = \`<div class="asset-picked"><div class="ap-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2"/></svg></div><div><div class="ap-code">${code}</div><div class="ap-desc">${descTxt}</div></div><div class="ap-btns"><button class="ap-view" onclick="D.viewFicha('${code}','${type}')">${hasFicha?'Ver / Editar':'Completar ficha'}</button><button class="ap-change" onclick="D.changeAsset()">Cambiar activo</button></div></div>\`;  
+  },  
+  changeAsset() { document.getElementById('assetPickedWrap').innerHTML=''; document.getElementById('assetCombo').style.display='block'; },
+
+  openCreate() { document.getElementById('assetCombo').classList.remove('open'); document.getElementById('createMini').classList.add('open'); D.typeChange(); },  
+  closeCreate() { document.getElementById('createMini').classList.remove('open'); },  
+  typeChange() {  
+    const isOtro = document.getElementById('newType').value === 'otro';  
+    document.getElementById('newTypeCustomWrap').style.display = isOtro ? 'block' : 'none';  
+    D.code();  
+  },  
+  customType() { D.code(); },  
+  prefixFrom(name) {  
+    // Genera un prefijo de 3 letras a partir del nombre escrito (Ej: "Motor" -> "MOT")  
+    const clean = name.trim().toUpperCase().replace(/\[^A-ZÑ \]/g,'');  
+    return clean ? clean.slice(0,3) || 'GEN' : '';  
+  },  
+  code() {  
+    const t=document.getElementById('newType').value, n=document.getElementById('newNum').value.trim();  
+    let prefix = t;  
+    if (t === 'otro') {  
+      const custom = document.getElementById('newTypeCustom').value;  
+      prefix = D.prefixFrom(custom) || '___';  
+      document.getElementById('customPrefixHint').textContent = prefix;  
+      document.getElementById('customPrefixHint2').textContent = prefix;  
+    }  
+    D.newCode = \`${prefix}-${n||'____'}\`;  
+    document.getElementById('codePrev').textContent = D.newCode;  
+  },  
+  createAsset() {  
+    const t=document.getElementById('newType').value, n=document.getElementById('newNum').value.trim();  
+    if(!n){ D.toast('Escribe el número del activo'); return; }  
+    let prefix = t, typeName = TYPE_NAME\[t\];  
+    if (t === 'otro') {  
+      const custom = document.getElementById('newTypeCustom').value.trim();  
+      if (!custom) { D.toast('Escribe el nombre del nuevo tipo de activo'); return; }  
+      prefix = D.prefixFrom(custom);  
+      typeName = custom;  
+      TYPE_NAME\[prefix\] = custom; // registra el tipo nuevo para reutilizarlo  
+    }  
+    const code=\`${prefix}-${n}\`;  
+    DB.assets\[D.client.id\]=DB.assets\[D.client.id\]||\[\];  
+    DB.assets\[D.client.id\].push({code,type:typeName,desc:'Nuevo activo'});  
+    D.closeCreate();  
+    D.openFicha(code, typeName, true);  
+  },
+
+  /\* ===== Abrir / ver / editar ficha flotante (identidad \+ SPT \+ rendimiento) ===== \*/  
+  openFicha(code, typeName, isNew) {  
+    D.activeCode = code;  
+    document.getElementById('flCode').textContent = code;  
+    document.getElementById('flDesc').textContent = \`${typeName} · ${D.client ? D.client.name : ''}\`;  
+    document.querySelector('.flh-tag').textContent = isNew ? 'Recién creado' : 'Editando ficha';
+
+    const saved = FICHAS\[code\];  
+    if (saved) { D.applyFicha(saved); }  
+    else { D.resetFichaFields(); }
+
+    document.getElementById('overlay').classList.add('open');  
+    document.getElementById('floating').classList.add('open');  
+    D.calc(); D.checkSpt(); D.calcManten();  
+    D.generateQR(code);  
+  },  
+  viewFicha(code, type) { D.openFicha(code, type, false); },  
+  resetFichaFields() {  
+    document.getElementById('fObs').value = '';  
+    document.getElementById('fMarca').value=''; document.getElementById('fAno').value='';  
+    document.getElementById('fCap').value=''; document.getElementById('fUnit').value='kVA';  
+    document.getElementById('ohm').value='12';  
+    document.getElementById('conx').value='tri';  
+    document.getElementById('fV').value='120'; document.getElementById('fA').value='15';  
+    document.getElementById('fV_L1N').value='120'; document.getElementById('fV_L2N').value='120'; document.getElementById('fV_L1L2').value='240';  
+    document.getElementById('fI_A').value='20'; document.getElementById('fI_B').value='20'; document.getElementById('fI_N').value='2';  
+    document.getElementById('fV_L1L2t').value='220'; document.getElementById('fV_L2L3t').value='220'; document.getElementById('fV_L3L1t').value='220';  
+    document.getElementById('fV_L1Nt').value='127'; document.getElementById('fV_L2Nt').value='127'; document.getElementById('fV_L3Nt').value='127';  
+    document.getElementById('fI_At').value='177'; document.getElementById('fI_Bt').value='177'; document.getElementById('fI_Ct').value='177'; document.getElementById('fI_Nt').value='8';  
+    D.showAssetSysFields();  
+    \['flBarraje','flConductor','flConexiones'\].forEach(id=>document.getElementById(id).querySelectorAll('button').forEach(b=>b.className=''));  
+    D.npFiles = \[\]; D.renderNpFiles();  
+    D.evPhotos = \[\]; D.renderEvPhotos();  
+    D.mantFiles = \[\]; D.renderMantFiles();  
+    document.getElementById('fMantUltima').value = ''; document.getElementById('fMantFrec').value = '180';  
+    D.calcManten();  
+    const t = document.getElementById('noPlateToggle');  
+    if (t.classList.contains('on')) D.toggleNoPlate();  
+  },  
+  applyFicha(d) {  
+    document.getElementById('fObs').value = d.obs || '';  
+    document.getElementById('fMarca').value=d.marca||''; document.getElementById('fAno').value=d.ano||'';  
+    document.getElementById('fCap').value=d.cap||''; document.getElementById('fUnit').value=d.unit||'kVA';  
+    document.getElementById('ohm').value=d.ohm||'12';  
+    document.getElementById('conx').value=d.conx||'tri';  
+    const M = \['fV','fA','fV_L1N','fV_L2N','fV_L1L2','fI_A','fI_B','fI_N','fV_L1L2t','fV_L2L3t','fV_L3L1t','fV_L1Nt','fV_L2Nt','fV_L3Nt','fI_At','fI_Bt','fI_Ct','fI_Nt'\];  
+    M.forEach(id => { if (d\[id\] !== undefined) document.getElementById(id).value = d\[id\]; });  
+    D.showAssetSysFields();  
+    document.getElementById('fMantUltima').value=d.mantUltima||''; document.getElementById('fMantFrec').value=d.mantFrec||'180';  
+    D.mantFiles = d.mantFiles || \[\]; D.renderMantFiles();  
+    D.evPhotos = d.evPhotos || \[\]; D.renderEvPhotos();  
+    const setTog = (id,val) => { const g=document.getElementById(id); g.querySelectorAll('button').forEach((b,i)=>{ b.className = (val==='si'&\&i===0)||(val==='no'&\&i===1) ? (val==='si'?'sel-si':'sel-no') : ''; }); };  
+    setTog('flBarraje', d.barraje); setTog('flConductor', d.conductor); setTog('flConexiones', d.conexiones);  
+  },  
+  readTog(id) {  
+    const g = document.getElementById(id).querySelectorAll('button');  
+    if (g\[0\].className==='sel-si') return 'si';  
+    if (g\[1\].className==='sel-no') return 'no';  
+    return null;  
+  },  
+  collectFicha() {  
+    const d = {  
+      obs: document.getElementById('fObs').value,  
+      marca: document.getElementById('fMarca').value, ano: document.getElementById('fAno').value,  
+      cap: document.getElementById('fCap').value, unit: document.getElementById('fUnit').value,  
+      ohm: document.getElementById('ohm').value, conx: document.getElementById('conx').value,  
+      barraje: D.readTog('flBarraje'), conductor: D.readTog('flConductor'), conexiones: D.readTog('flConexiones'),  
+      mantUltima: document.getElementById('fMantUltima').value, mantFrec: document.getElementById('fMantFrec').value,  
+      mantFiles: D.mantFiles.slice(), evPhotos: D.evPhotos.slice()  
+    };  
+    \['fV','fA','fV_L1N','fV_L2N','fV_L1L2','fI_A','fI_B','fI_N','fV_L1L2t','fV_L2L3t','fV_L3L1t','fV_L1Nt','fV_L2Nt','fV_L3Nt','fI_At','fI_Bt','fI_Ct','fI_Nt'\].forEach(id => { d\[id\] = document.getElementById(id).value; });  
+    return d;  
+  },  
+  closeFicha() { document.getElementById('overlay').classList.remove('open'); document.getElementById('floating').classList.remove('open'); },  
+  saveFicha() {  
+    const code = D.activeCode || document.getElementById('flCode').textContent;  
+    FICHAS\[code\] = D.collectFicha();  
+    D.closeFicha();  
+    document.getElementById('assetCombo').style.display='none';  
+    document.getElementById('assetPickedWrap').innerHTML = \`<div class="asset-picked"><div class="ap-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2"/></svg></div><div><div class="ap-code">${code}</div><div class="ap-desc">Ficha guardada · en base de datos</div></div><div class="ap-btns"><button class="ap-view" onclick="D.viewFicha('${code}','')">Ver / Editar</button><button class="ap-change" onclick="D.changeAsset()">Cambiar activo</button></div></div>\`;  
+    D.toast('Activo '+code+' guardado en base de datos ✓');  
+  },
+
+  readPlate() {  
+    document.getElementById('fCap').value='75';  
+    document.getElementById('fUnit').value='kVA';  
+    document.getElementById('fMarca').value='Siemens';  
+    document.getElementById('fAno').value='2020';  
+    D.calc();  
+    D.toast('Placa leída: 75 kVA · 220V · FP 0.92 ✓');  
+  },
+
+  /\* ===== Sin placa visible — registro fotográfico \+ documentos ===== \*/  
+  npFiles: \[\],  
+  toggleNoPlate() {  
+    const t = document.getElementById('noPlateToggle');  
+    const on = t.classList.toggle('on');  
+    document.getElementById('noPlateCheck').querySelector('svg').style.opacity = on?1:0;  
+    document.getElementById('noPlatePanel').classList.toggle('open', on);  
+    document.getElementById('plateCapBtn').style.opacity = on ? '0.4' : '1';  
+    document.getElementById('plateCapBtn').style.pointerEvents = on ? 'none' : 'auto';  
+  },  
+  uploadEquipoFotos() {  
+    D.npFiles.push({name:'foto_equipo_'+(D.npFiles.length+1)+'.jpg', icon:'foto'});  
+    D.renderNpFiles();  
+    D.toast('Foto agregada · la IA la analizará para estimar características');  
+  },  
+  uploadEquipoDocs() {  
+    D.npFiles.push({name:'ficha_tecnica.pdf', icon:'pdf'});  
+    D.renderNpFiles();  
+    D.toast('Documento agregado · la IA extraerá datos del PDF');  
+  },  
+  renderNpFiles() {  
+    document.getElementById('npFilesList').innerHTML = D.npFiles.map(f=>\`<div class="np-file"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${f.icon==='pdf'?'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>':'<rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/>'}</svg>${f.name}</div>\`).join('');  
+  },
+
+  /\* ===== Evidencia fotográfica general del activo (además de la foto de placa) ===== \*/  
+  evPhotos: \[\],  
+  addEvidenceFoto() {  
+    D.evPhotos.push('evidencia_'+(D.evPhotos.length+1)+'.jpg');  
+    D.renderEvPhotos();  
+    D.toast('Foto de evidencia agregada al activo');  
+  },  
+  removeEvidenceFoto(i) { D.evPhotos.splice(i,1); D.renderEvPhotos(); },  
+  renderEvPhotos() {  
+    document.getElementById('evPhotos').innerHTML = D.evPhotos.map((f,i)=>\`<div class="ev-thumb"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/></svg>${f}<span class="ev-x" onclick="event.stopPropagation();D.removeEvidenceFoto(${i})">×</span></div>\`).join('');  
+    document.getElementById('evCountTxt').textContent = D.evPhotos.length \+ (D.evPhotos.length===1?' foto agregada':' fotos agregadas');  
+  },
+
+  /\* ===== Mantenimiento — barra interactiva de alerta ===== \*/  
+  mantFiles: \[\],  
+  calcManten() {  
+    const fechaStr = document.getElementById('fMantUltima').value;  
+    const freqDias = parseInt(document.getElementById('fMantFrec').value, 10);  
+    const fill = document.getElementById('mantFill');  
+    const status = document.getElementById('mantStatus');  
+    const pctEl = document.getElementById('mantPct');  
+    if (!fechaStr) {  
+      fill.style.width = '0%'; fill.style.background = 'var(--border-strong)';  
+      status.className = 'mant-status neutral'; status.textContent = 'Ingresa la última fecha para calcular';  
+      pctEl.textContent = '—';  
+      return;  
+    }  
+    const ultima = new Date(fechaStr);  
+    const hoy = new Date();  
+    const diasTranscurridos = Math.floor((hoy - ultima) / 86400000);  
+    const diasRestantes = freqDias - diasTranscurridos;  
+    const pct = Math.max(0, Math.min((diasTranscurridos / freqDias) \* 100, 130));
+
+    fill.style.width = Math.min(pct, 100\) \+ '%';
+
+    if (diasRestantes < 0\) {  
+      fill.style.background = 'var(--red)';  
+      status.className = 'mant-status bad';  
+      status.textContent = \`Vencido hace ${Math.abs(diasRestantes)} días · alerta activa\`;  
+      pctEl.textContent = pct.toFixed(0)+'%';  
+    } else if (diasRestantes <= 15\) {  
+      fill.style.background = 'var(--amber)';  
+      status.className = 'mant-status warn';  
+      status.textContent = \`Próximo mantenimiento en ${diasRestantes} días\`;  
+      pctEl.textContent = pct.toFixed(0)+'%';  
+    } else {  
+      fill.style.background = 'var(--green)';  
+      status.className = 'mant-status ok';  
+      status.textContent = \`Próximo mantenimiento en ${diasRestantes} días\`;  
+      pctEl.textContent = pct.toFixed(0)+'%';  
+    }  
+  },  
+  uploadMantDoc() {  
+    D.mantFiles.push({name:'informe_mantenimiento_'+(D.mantFiles.length+1)+'.pdf', icon:'pdf'});  
+    D.renderMantFiles();  
+    D.toast('Informe de mantenimiento agregado');  
+  },  
+  renderMantFiles() {  
+    document.getElementById('mantFilesList').innerHTML = D.mantFiles.map(f=>\`<div class="np-file"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>${f.name}</div>\`).join('');  
+  },
+
+  /\* ===== Etiqueta QR — genera y liga al código del activo ===== \*/  
+  qrInstance: null,  
+  generateQR(code) {  
+    document.getElementById('qrCodeTxt').textContent = code;  
+    const url = \`https://actas.gestioneselectricas.com/activo/${code}\`; // GET /activos/:codigo → hoja de vida  
+    const box = document.getElementById('qrPreview');  
+    box.innerHTML = '';  
+    if (typeof QRCode === 'undefined') {  
+      box.innerHTML = \`<div style="font-size:9px;color:var(--text-faint);text-align:center;padding:6px">QR no disponible sin conexión</div>\`;  
+      return;  
+    }  
+    D.qrInstance = new QRCode(box, { text:url, width:80, height:80, colorDark:'\#2B3000', colorLight:'\#FFFFFF', correctLevel:QRCode.CorrectLevel.M });  
+  },  
+  downloadQR() {  
+    const canvas = document.querySelector('\#qrPreview canvas');  
+    if (!canvas) { D.toast('Genera el QR primero'); return; }  
+    const code = document.getElementById('qrCodeTxt').textContent;  
+    const link = document.createElement('a');  
+    link.download = \`etiqueta-${code}.png\`;  
+    link.href = canvas.toDataURL('image/png');  
+    link.click();  
+    D.toast('Etiqueta QR de '+code+' descargada ✓');  
+  },  
+  printQR() {  
+    const canvas = document.querySelector('\#qrPreview canvas');  
+    if (!canvas) { D.toast('Genera el QR primero'); return; }  
+    const code = document.getElementById('qrCodeTxt').textContent;  
+    const win = window.open('', '_blank', 'width=420,height=520');  
+    win.document.write(\`<html><head><title>Etiqueta ${code}</title><style>  
+      body{font-family:sans-serif;text-align:center;padding:30px;}  
+      .label{border:2px solid \#2B3000;border-radius:14px;padding:20px;display:inline-block;}  
+      img{width:160px;height:160px;}  
+      .code{font-size:18px;font-weight:800;color:\#2B3000;margin-top:10px;letter-spacing:1px;}  
+      .brand{font-size:10px;color:\#6E7553;margin-top:4px;}  
+    </style></head><body>  
+      <div class="label"><img src="${canvas.toDataURL('image/png')}"><div class="code">${code}</div><div class="brand">Gestiones Eléctricas SAS</div></div>  
+      
