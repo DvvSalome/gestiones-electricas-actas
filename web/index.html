@@ -2761,7 +2761,230 @@
       });
     })();
   </script>
-  <!-- ============ NUEVO CLIENTE — INFRAESTRUCTURA ELÉCTRICA ============ -->  
+  
+<!-- ============ FICHA FLOTANTE ============ -->  
+<div class="overlay" id="overlay" onclick="D.closeFicha()"></div>  
+<div class="floating" id="floating">  
+  <div class="fl-head">  
+    <span class="flh-tag">Recién creado</span>  
+    <div class="fl-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2M14 10h2v4h-2z"/></svg></div>  
+    <div><div class="fl-code" id="flCode">TAB-2345</div><div class="fl-desc" id="flDesc">Tablero · nuevo activo</div></div>  
+  </div>  
+  <div class="fl-body">
+
+    <!-- Identidad \+ placa -->  
+    <div class="gt">Identidad del activo</div>  
+    <div class="plate-cap" id="plateCapBtn" onclick="D.readPlate()">  
+      <div class="pc-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h4M7 13h6"/></svg></div>  
+      <div><div class="pc-t">Foto de la placa</div><div class="pc-s">La IA extrae capacidad, voltaje y FP</div></div>  
+      <span class="pc-b">OCR IA</span>  
+    </div>
+
+    <!-- Sin placa visible -->  
+    <div class="noplate-toggle" id="noPlateToggle" onclick="D.toggleNoPlate()">  
+      <div class="np-check" id="noPlateCheck"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>  
+      <div><div class="np-t">El equipo no tiene placa o no es visible</div><div class="np-s">Usa fotos y documentos del equipo en su lugar</div></div>  
+    </div>
+
+    <!-- Panel alternativo: registro fotográfico \+ documentos -->  
+    <div class="noplate-panel" id="noPlatePanel">  
+      <div class="npp-msg"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9l-8 14A2 2 0 004 21h16a2 2 0 001.7-3l-8-14a2 2 0 00-3.4 0z"/></svg><span>Sube fotos del equipo y cualquier documento disponible (manual, ficha técnica en PDF). La IA analizará este material para determinar las características del equipo y sugerir los campos.</span></div>
+
+      <div class="np-upload-row">  
+        <div class="np-upload" onclick="D.uploadEquipoFotos()">  
+          <div class="pc-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg></div>  
+          <div class="pc-t">Registro fotográfico</div><div class="pc-s">Fotos generales del equipo</div>  
+        </div>  
+        <div class="np-upload" onclick="D.uploadEquipoDocs()">  
+          <div class="pc-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div>  
+          <div class="pc-t">Documentos (PDF)</div><div class="pc-s">Manual, ficha técnica</div>  
+        </div>  
+      </div>  
+      <div class="np-files" id="npFilesList"></div>
+
+      <div class="npp-later"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>También puedes completar esta información manualmente después, desde el Centro de Control</div>  
+    </div>
+
+    <div class="facts">  
+      <div class="fact"><div class="f-l">Marca</div><input class="fld" id="fMarca" placeholder="Siemens"></div>  
+      <div class="fact"><div class="f-l">Año instalación</div><input class="fld" id="fAno" placeholder="2020"></div>  
+      <div class="fact auto"><div class="f-l">Capacidad nominal</div><input class="fld" id="fCap" value="" placeholder="75" oninput="D.calc()"></div>  
+      <div class="fact auto"><div class="f-l">Unidad</div>  
+        <select class="fld" id="fUnit" onchange="D.calc()"><option>kVA</option><option>kW</option><option>HP</option><option>W</option></select></div>  
+    </div>
+
+    <!-- Evidencia fotográfica general del activo (distinta de la foto de placa) -->  
+    <label class="field-label" style="margin-top:14px;">Evidencia fotográfica del activo <span class="opt">— fotos generales, no la placa</span></label>  
+    <div class="ev-photos" id="evPhotos"></div>  
+    <div class="np-upload" style="margin-top:8px;" onclick="D.addEvidenceFoto()">  
+      <div class="pc-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>  
+      <div class="pc-t">Agregar foto</div><div class="pc-s" id="evCountTxt">0 fotos agregadas</div>  
+    </div>
+
+    <label class="field-label" style="margin-top:14px;">Observaciones del activo <span class="opt">— ubicación exacta, color, otros detalles</span></label>  
+    <textarea class="fld" id="fObs" rows="3" placeholder="Ej: ubicado en la esquina noreste del cuarto eléctrico; gabinete color gris; junto a la columna 4…"></textarea>
+
+    <!-- Mantenimiento -->  
+    <div class="gt mant gt-mt">Mantenimiento</div>  
+    <div class="mant-block">  
+      <div class="row2">  
+        <div><label class="field-label" style="margin-top:0">Última fecha de mantenimiento</label>  
+          <input class="fld" id="fMantUltima" type="date" onchange="D.calcManten()"></div>  
+        <div><label class="field-label" style="margin-top:0">Frecuencia</label>  
+          <select class="fld" id="fMantFrec" onchange="D.calcManten()"><option value="30">Mensual</option><option value="90">Trimestral</option><option value="180" selected>Semestral</option><option value="365">Anual</option></select></div>  
+      </div>
+
+      <!-- Barra interactiva de alerta -->  
+      <div class="mant-bar-wrap">  
+        <div class="mant-bar-top"><span class="mb-l">Tiempo hasta el próximo mantenimiento</span><span class="mb-v" id="mantPct">—</span></div>  
+        <div class="mant-track">  
+          <div class="mant-fill" id="mantFill" style="width:0%"></div>  
+        </div>  
+        <div class="mant-status" id="mantStatus">Ingresa la última fecha para calcular</div>  
+      </div>
+
+      <label class="field-label">Documentación de mantenimiento <span class="opt">— informes anteriores y futuros</span></label>  
+      <div class="np-files" id="mantFilesList"></div>  
+      <div class="np-upload" onclick="D.uploadMantDoc()">  
+        <div class="pc-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h4"/></svg></div>  
+        <div class="pc-t">Agregar informe</div><div class="pc-s">PDF · anterior o programado</div>  
+      </div>  
+    </div>
+
+    <!-- SPT -->  
+    <div class="gt spt gt-mt">Sistema de puesta a tierra (SPT)</div>  
+    <div class="spt-block">  
+      <div class="spt-h">  
+        <div class="sh-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v9M6 11h12M9 11v4M15 11v4M12 11v7M8 18h8"/></svg></div>  
+        <div class="sh-t">Puesta a tierra</div>  
+        <div class="spt-norms"><span class="spt-norm">RETIE</span><span class="spt-norm">NTC 2050</span><span class="spt-norm">RETILAP</span></div>  
+      </div>  
+      <label class="field-label" style="margin-top:0">Resistencia medida</label>  
+      <div class="meas-w"><input class="fld" id="ohm" value="12" inputmode="decimal" oninput="D.checkSpt()"><span class="unit">Ω</span></div>  
+      <div class="res-verdict ok" id="ohmVerdict">  
+        <div class="rv-ico" id="ohmIco"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>  
+        <div><div class="rv-t" id="ohmT">Cumple · ≤ 25 Ω</div><div class="rv-s" id="ohmS">Dentro del máximo normativo.</div></div>  
+      </div>  
+      <div class="spt-checks">  
+        <div class="spt-check"><span class="sc-q">¿Tiene barraje equipotencial?</span><div class="spt-toggle" id="flBarraje"><button onclick="D.togSpt(this,'si')">Sí</button><button class="sel-no" onclick="D.togSpt(this,'no')">No</button></div></div>  
+        <div class="spt-check"><span class="sc-q">¿Conductor de tierra continuo y visible?</span><div class="spt-toggle" id="flConductor"><button class="sel-si" onclick="D.togSpt(this,'si')">Sí</button><button onclick="D.togSpt(this,'no')">No</button></div></div>  
+        <div class="spt-check"><span class="sc-q">¿Conexiones firmes y sin corrosión?</span><div class="spt-toggle" id="flConexiones"><button class="sel-si" onclick="D.togSpt(this,'si')">Sí</button><button onclick="D.togSpt(this,'no')">No</button></div></div>  
+      </div>  
+    </div>
+
+    <!-- Rendimiento -->  
+    <div class="gt perf gt-mt">Rendimiento del equipo · medición en sitio</div>
+
+    <label class="field-label" style="margin-top:0">Tipo de sistema</label>  
+    <select class="fld" id="conx" onchange="D.showAssetSysFields()"><option value="mono">Monofásico</option><option value="bi">Bifásico</option><option value="tri" selected>Trifásico</option></select>
+
+    <!-- MONOFÁSICO: una fila -->  
+    <div id="assetSysMono" style="display:none; margin-top:10px;">  
+      <div class="row2">  
+        <div class="meas-w"><input class="fld" id="fV" value="120" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+        <div class="meas-w"><input class="fld" id="fA" value="15" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+      </div>  
+      <div class="sys-caption">Voltaje (V) · Corriente (A)</div>  
+    </div>
+
+    <!-- BIFÁSICO: dos bloques -->  
+    <div id="assetSysBi" style="display:none; margin-top:10px;">  
+      <div class="sys-block">  
+        <div class="sys-block-t">Voltajes (V)</div>  
+        <div class="row3">  
+          <div class="meas-w"><input class="fld" id="fV_L1N" value="120" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="fV_L2N" value="120" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="fV_L1L2" value="240" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+        </div>  
+        <div class="sys-caption">Fase1-N · Fase2-N · Fase-Fase</div>  
+      </div>  
+      <div class="sys-block">  
+        <div class="sys-block-t">Corrientes (A)</div>  
+        <div class="row3">  
+          <div class="meas-w"><input class="fld" id="fI_A" value="20" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+          <div class="meas-w"><input class="fld" id="fI_B" value="20" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+          <div class="meas-w"><input class="fld" id="fI_N" value="2" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+        </div>  
+        <div class="sys-caption">Fase 1 · Fase 2 · Neutro</div>  
+      </div>  
+    </div>
+
+    <!-- TRIFÁSICO: cuadrícula compacta -->  
+    <div id="assetSysTri" style="margin-top:10px;">  
+      <div class="sys-block">  
+        <div class="sys-block-t">Voltajes (V) · Línea-Línea</div>  
+        <div class="row3">  
+          <div class="meas-w"><input class="fld" id="fV_L1L2t" value="220" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="fV_L2L3t" value="220" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="fV_L3L1t" value="220" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+        </div>  
+        <div class="sys-caption">L1-L2 · L2-L3 · L3-L1</div>  
+      </div>  
+      <div class="sys-block">  
+        <div class="sys-block-t">Voltajes (V) · Línea-Neutro</div>  
+        <div class="row3">  
+          <div class="meas-w"><input class="fld" id="fV_L1Nt" value="127" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="fV_L2Nt" value="127" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+          <div class="meas-w"><input class="fld" id="fV_L3Nt" value="127" inputmode="decimal" oninput="D.calc()"><span class="unit">V</span></div>  
+        </div>  
+        <div class="sys-caption">L1-N · L2-N · L3-N</div>  
+      </div>  
+      <div class="sys-block">  
+        <div class="sys-block-t">Corrientes (A)</div>  
+        <div class="row4">  
+          <div class="meas-w"><input class="fld" id="fI_At" value="177" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+          <div class="meas-w"><input class="fld" id="fI_Bt" value="177" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+          <div class="meas-w"><input class="fld" id="fI_Ct" value="177" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+          <div class="meas-w"><input class="fld" id="fI_Nt" value="8" inputmode="decimal" oninput="D.calc()"><span class="unit">A</span></div>  
+        </div>  
+        <div class="sys-caption">Fase A · Fase B · Fase C · Neutro</div>  
+      </div>  
+    </div>
+
+    <div class="perf">  
+      <div class="perf-grid">  
+        <div class="perf-cell"><div class="pc-v" id="rKw">—</div><div class="pc-l">Potencia kW</div></div>  
+        <div class="perf-cell"><div class="pc-v" id="rCarga">—</div><div class="pc-l">Nivel de carga</div></div>  
+      </div>  
+      <div class="gbar">  
+        <div class="gtrack">  
+          <div class="gz" style="width:30%; background:linear-gradient(90deg,\#C99A2E,\#D9B14A)"></div>  
+          <div class="gz" style="width:55%; background:linear-gradient(90deg,\#5FA83A,\#3B9B4A)"></div>  
+          <div class="gz" style="width:15%; background:linear-gradient(90deg,\#D9A227,\#C05A2E)"></div>  
+          <div class="gover" style="background:linear-gradient(90deg,\#C0402E,\#A32D2D)"></div>  
+          <div class="gneedle" id="gNeedle" style="left:68%"><div class="gval" id="gVal">88%</div></div>  
+        </div>  
+        <div class="gscale"><span style="left:0%">0</span><span style="left:30%">30</span><span style="left:85%">85</span><span style="left:100%">100</span></div>  
+      </div>  
+      <div class="veff good" id="vEff">  
+        <div class="ve-ico" id="veIco"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>  
+        <div><div class="ve-t" id="veT">Equipo eficiente</div><div class="ve-s" id="veS">Opera en buen rango. No requiere reemplazo.</div></div>  
+      </div>  
+      <div class="missing" id="missing"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 20h20L12 2zM12 9v5M12 17h.01"/></svg><div><div class="mt">Falta información</div><div class="ms" id="missingTxt">Ingresa la capacidad nominal para calcular.</div></div></div>  
+    </div>
+
+    <!-- Etiqueta QR -->  
+    <div class="gt qr gt-mt">Etiqueta QR del activo</div>  
+    <div class="qr-block">  
+      <div class="qr-preview" id="qrPreview"></div>  
+      <div class="qr-info">  
+        <div class="qr-code-txt" id="qrCodeTxt">TAB-2345</div>  
+        <div class="qr-hint">Al escanear, abre la hoja de vida completa de este activo en el portal.</div>  
+        <div class="qr-actions">  
+          <button class="qr-btn" onclick="D.downloadQR()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Descargar etiqueta</button>  
+          <button class="qr-btn ghost" onclick="D.printQR()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg>Imprimir</button>  
+        </div>  
+      </div>  
+    </div>  
+  </div>  
+  <div class="fl-foot">  
+    <button class="fl-btn cancel" onclick="D.closeFicha()">Después</button>  
+    <button class="fl-btn save" onclick="D.saveFicha()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Guardar y continuar</button>  
+  </div>  
+</div>
+
+
+<!-- ============ NUEVO CLIENTE — INFRAESTRUCTURA ELÉCTRICA ============ -->  
 <div class="overlay" id="overlayClient" onclick="D.closeClientCreate()"></div>  
 <div class="floating" id="floatingClient">  
   <div class="fl-head">  
@@ -2927,34 +3150,7 @@
 
 
     <!-- Modal para crear activo inicial -->
-    <div class="overlay" id="overlayCreateAsset" onclick="D.closeCreate()"></div>
-    <div class="floating" id="floatingCreateAsset" style="max-width: 400px; padding: 20px;">
-      <div class="fl-head" style="margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
-        <span class="flh-tag">Nuevo activo</span>
-        <div class="fl-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div>
-          <div class="fl-code" style="font-size:16px;">Crear activo</div>
-          <div class="fl-desc" style="font-size:13px;">Selecciona el tipo y código inicial</div>
-        </div>
-      </div>
-      <div class="fl-body">
-        <div class="row2">  
-          <select class="fld" id="newType" onchange="D.typeChange()"><option value="TAB">Tablero</option><option value="ACO">Acometida</option><option value="TRF">Transformador</option><option value="SPT">SPT / Tierra</option><option value="GEN">General</option><option value="otro">+ Crear tipo nuevo…</option></select>  
-          <input class="fld" id="newNum" placeholder="2345" oninput="D.code()">  
-        </div>
-        <div id="newTypeCustomWrap" style="display:none; margin-top:9px;">  
-          <label class="field-label" style="margin-top:0">Nombre del tipo de activo <span class="req">*</span></label>  
-          <input class="fld" id="newTypeCustom" placeholder="Ej: Motor, Bomba, UPS…" oninput="D.customType()">  
-          <div class="hint" style="margin-top:6px; font-size:12px; color:var(--text-faint);"><svg viewBox="0 0 24 24" style="width:14px;height:14px;vertical-align:-3px;" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Los activos se llamarán <b id="customPrefixHint">PREFIJO</b>-1...</div>  
-        </div>
-        <div class="cm-code" style="margin-top:12px; font-weight:600; font-size:14px;"><span class="cc-l">Código: </span><span class="cc-v" id="codePrev" style="color:var(--brand)">TAB-____</span></div>  
-      </div>
-      <div class="fl-foot" style="margin-top:20px; display:flex; justify-content:flex-end; gap:8px;">
-        <button class="fl-btn cancel" onclick="D.closeCreate()">Cancelar</button>
-        <button class="fl-btn save" onclick="D.createAsset()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;margin-right:6px;vertical-align:-3px;"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Crear y abrir ficha</button>
-      </div>
-    </div>
-
+    
 
 </body>
 </html>
