@@ -83,33 +83,17 @@
     }
   };
 
+
   window.pickAsset = function(id, codigo, nombre, semaforo) {
-    document.getElementById('assetCombo').classList.remove('open');
-    document.getElementById('assetCombo').style.display = 'none';
-    
-    // Si era la caja nueva, mostrar la ficha
     window.activoActual = { id, codigo, nombre };
-    
-    // UI del activo Picked
-    document.getElementById('assetPickedWrap').innerHTML = `
-      <div class="asset-picked">
-        <div class="ap-ico">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2"/>
-          </svg>
-        </div>
-        <div>
-          <div class="ap-code">${codigo}</div>
-          <div class="ap-desc">${nombre} ${semaforo}</div>
-        </div>
-        <div class="ap-btns">
-          <button class="ap-change" onclick="window.changeAsset()">Cambiar activo</button>
-        </div>
-      </div>
-    `;
-    
     if (typeof saveCurrentFormToLocal === "function") saveCurrentFormToLocal();
+    
+    // Call the reference UI function to show the picked asset and floating buttons
+    if (window.D && window.D.pickAsset) {
+        window.D.pickAsset(codigo, nombre || 'Activo', semaforo || '');
+    }
   };
+
 
   window.changeAsset = function() {
     document.getElementById('assetPickedWrap').innerHTML = ''; 
@@ -119,7 +103,7 @@
   };
 
   // Asignar creación de activo desde el mini panel
-  window.UI.createAsset = async function() {
+  window.D.createAsset = async function() {
     const cliente = window.clienteActual ? window.clienteActual.nombre : null;
     const num = document.getElementById("newNum").value.trim();
     const t = document.getElementById("newType").value;
@@ -140,7 +124,7 @@
     // Si es "otro", primero creamos el tipo
     if (t === 'otro') {
       try {
-        const prefijo = window.UI.prefixFrom(custom);
+        const prefijo = window.D.prefixFrom(custom);
         const r1 = await fetch("/api/activos/tipos", {
           method: "POST",
           headers: window.geHeaders({ "Content-Type": "application/json" }),
@@ -156,7 +140,7 @@
     }
     
     // Crear el activo
-    let finalPrefix = (t === 'otro') ? window.UI.prefixFrom(custom) : tipo;
+    let finalPrefix = (t === 'otro') ? window.D.prefixFrom(custom) : tipo;
     const finalCode = `${finalPrefix}-${num}`;
 
     try {
@@ -172,7 +156,7 @@
       }
       const { activo } = await r.json();
       
-      window.UI.closeCreateAssetMini();
+      if(window.D.closeCreate) window.D.closeCreate();
       window.pickAsset(activo.id, activo.codigo, 'Nuevo activo', '');
       window.loadActivos();
       if(window.app && app.toast) app.toast('Activo creado y seleccionado ✓');
