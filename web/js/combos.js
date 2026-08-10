@@ -1,3 +1,5 @@
+window.FICHAS = window.FICHAS || {};
+window.DB = window.DB || { clients: [], assets: {} };
 window.D = {  
   client:null, photos:0, newCode:'', activeCode:null,
 
@@ -6,13 +8,16 @@ window.D = {
   seg(btn) { [...btn.parentElement.children].forEach(b=>b.classList.remove('on')); btn.classList.add('on'); },
 
   togCombo(id) { const c=document.getElementById(id); document.querySelectorAll('.combo').forEach(x=>{if(x.id!==id)x.classList.remove('open');}); c.classList.toggle('open'); },  
-  togAsset() { if(!D.client){D.toast('Primero selecciona el cliente');return;} D.togCombo('assetCombo'); },
+  togAsset() { if(!window.clienteActual && !D.client){D.toast('Primero selecciona el cliente');return;} D.togCombo('assetCombo'); },
 
-  renderClients(f='') {  
-    const list = DB.clients.filter(c=>c.name.toLowerCase().includes(f.toLowerCase()));  
-    document.getElementById('clientList').innerHTML = list.map(c=>`<div class="combo-opt" onclick="D.pickClient('${c.id}')"><div class="co-av">${c.name.slice(0,2).toUpperCase()}</div><div class="co-b"><div class="co-name">${c.name}</div><div class="co-meta">${c.type}</div></div><span class="co-count">${c.assets} activos</span></div>`).join('') || '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin resultados</div>';  
+  async filterClients(v){
+    if (window.buscarSedes) {
+      const list = await window.buscarSedes(v);
+      if (window.renderSugerencias) {
+        window.renderSugerencias(list);
+      }
+    }
   },  
-  filterClients(v){ D.renderClients(v); },  
   pickClient(id) {  
     D.client = DB.clients.find(c=>c.id===id);  
     document.querySelector('#clientCombo .combo-input').classList.add('filled');  
@@ -23,6 +28,12 @@ window.D = {
     document.getElementById('assetMain').textContent='Selecciona o crea un activo…';  
     D.renderAssets();  
   },  
+  filterAssets(v){
+    // Utiliza la lógica real de activos.js que llama a la base de datos
+    if (window.loadActivos) {
+      window.loadActivos();
+    }
+  },
   renderAssets() {  
     const arr = DB.assets[D.client.id]||[];  
     document.getElementById('assetList').innerHTML = arr.length ? arr.map(a=>`<div class="combo-opt" onclick="D.pickAsset('${a.code}','${a.type}','${a.desc}')"><div class="co-av">${a.code.slice(0,3)}</div><div class="co-b"><div class="co-name">${a.code}</div><div class="co-meta">${a.type} · ${a.desc}</div></div></div>`).join('') : '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin activos aún · crea el primero</div>';  

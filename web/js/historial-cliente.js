@@ -13,14 +13,14 @@
   }
 
   // ── autocompletado ──
-  async function buscarSedes(q) {
+  window.buscarSedes = async function(q) {
     try {
       const r = await fetch(`/api/sedes/buscar?q=${encodeURIComponent(q)}`, { headers: window.geHeaders() });
       if (!r.ok) return [];
       const d = await r.json();
       return d.sedes || [];
     } catch { return []; } 
-  }
+  };
 
   window.renderSugerencias = function(sedes) {
     const box = sugerenciasEl();
