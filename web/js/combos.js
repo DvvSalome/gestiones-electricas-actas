@@ -57,6 +57,31 @@ window.D = {
     document.getElementById('overlayClient').classList.remove('open'); 
     document.getElementById('floatingClient').classList.remove('open'); 
   },
+  togNC(btn, groupId, val, after) {  
+    document.getElementById(groupId).querySelectorAll('button').forEach(b=>b.className='');  
+    btn.className = val==='si' ? 'sel-si' : 'sel-no';  
+    if (after) after(val);  
+  },  
+  showTrafo(val) {  
+    document.getElementById('ncTrafoFields').style.display = val==='si' ? 'block' : 'none';  
+    document.getElementById('ncTotalizadorFields').style.display = val==='no' ? 'block' : 'none';  
+  },  
+  showSolar(val) {  
+    document.getElementById('ncSolarFields').style.display = val==='si' ? 'block' : 'none';  
+  },  
+  showSysFields() {  
+    const t = document.getElementById('ncCircuito').value;  
+    document.getElementById('sysMono').style.display = t==='mono' ? 'block' : 'none';  
+    document.getElementById('sysBi').style.display   = t==='bi'   ? 'block' : 'none';  
+    document.getElementById('sysTri').style.display  = t==='tri'  ? 'block' : 'none';  
+  },  
+  showAssetSysFields() {  
+    const t = document.getElementById('conx').value;  
+    document.getElementById('assetSysMono').style.display = t==='mono' ? 'block' : 'none';  
+    document.getElementById('assetSysBi').style.display   = t==='bi'   ? 'block' : 'none';  
+    document.getElementById('assetSysTri').style.display  = t==='tri'  ? 'block' : 'none';  
+    D.calc();  
+  },
   openCreate() { document.getElementById('assetCombo').classList.remove('open'); document.getElementById('overlayCreateAsset').classList.add('open'); document.getElementById('floatingCreateAsset').classList.add('open'); D.typeChange(); },
   closeCreate() { document.getElementById('overlayCreateAsset').classList.remove('open'); document.getElementById('floatingCreateAsset').classList.remove('open'); },  
     
