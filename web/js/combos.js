@@ -184,13 +184,28 @@ window.D = {
     D.toast('Activo '+code+' guardado en base de datos ✓');  
   },
 
-  readPlate() {  
-    document.getElementById('fCap').value='75';  
-    document.getElementById('fUnit').value='kVA';  
-    document.getElementById('fMarca').value='Siemens';  
-    document.getElementById('fAno').value='2020';  
-    D.calc();  
-    D.toast('Placa leída: 75 kVA · 220V · FP 0.92 ✓');  
+    readPlate() {  
+    // Create a hidden file input to capture photo
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        D.toast('Analizando placa con IA...');
+        // Simulate network delay for OCR
+        setTimeout(() => {
+          document.getElementById('fCap').value='75';  
+          document.getElementById('fUnit').value='kVA';  
+          document.getElementById('fMarca').value='Siemens';  
+          document.getElementById('fAno').value='2020';  
+          D.calc();  
+          D.toast('Placa procesada: 75 kVA · Siemens · 2020 ✓');
+        }, 2000);
+      }
+    };
+    input.click();
   },
 
   /* ===== Sin placa visible — registro fotográfico + documentos ===== */  
@@ -203,15 +218,33 @@ window.D = {
     document.getElementById('plateCapBtn').style.opacity = on ? '0.4' : '1';  
     document.getElementById('plateCapBtn').style.pointerEvents = on ? 'none' : 'auto';  
   },  
-  uploadEquipoFotos() {  
-    D.npFiles.push({name:'foto_equipo_'+(D.npFiles.length+1)+'.jpg', icon:'foto'});  
-    D.renderNpFiles();  
-    D.toast('Foto agregada · la IA la analizará para estimar características');  
+    uploadEquipoFotos() {  
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = (e) => {
+      if (e.target.files[0]) {
+        D.npFiles.push({name:'foto_equipo_'+(D.npFiles.length+1)+'.jpg', icon:'foto'});  
+        D.renderNpFiles();  
+        D.toast('Foto agregada · la IA la analizará para estimar características');
+      }
+    };
+    input.click();
   },  
-  uploadEquipoDocs() {  
-    D.npFiles.push({name:'ficha_tecnica.pdf', icon:'pdf'});  
-    D.renderNpFiles();  
-    D.toast('Documento agregado · la IA extraerá datos del PDF');  
+    uploadEquipoDocs() {  
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        D.npFiles.push({name: file.name || 'ficha_tecnica.pdf', icon:'pdf'});  
+        D.renderNpFiles();  
+        D.toast('Documento agregado · la IA extraerá datos del PDF');
+      }
+    };
+    input.click();
   },  
   renderNpFiles() {  
     document.getElementById('npFilesList').innerHTML = D.npFiles.map(f=>`<div class="np-file"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${f.icon==='pdf'?'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>':'<rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/>'}</svg>${f.name}</div>`).join('');  
@@ -219,10 +252,19 @@ window.D = {
 
   /* ===== Evidencia fotográfica general del activo (además de la foto de placa) ===== */  
   evPhotos: [],  
-  addEvidenceFoto() {  
-    D.evPhotos.push('evidencia_'+(D.evPhotos.length+1)+'.jpg');  
-    D.renderEvPhotos();  
-    D.toast('Foto de evidencia agregada al activo');  
+    addEvidenceFoto() {  
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = (e) => {
+      if (e.target.files[0]) {
+        D.evPhotos.push('evidencia_'+(D.evPhotos.length+1)+'.jpg');  
+        D.renderEvPhotos();  
+        D.toast('Foto de evidencia agregada al activo');
+      }
+    };
+    input.click();
   },  
   removeEvidenceFoto(i) { D.evPhotos.splice(i,1); D.renderEvPhotos(); },  
   renderEvPhotos() {  
@@ -269,10 +311,19 @@ window.D = {
       pctEl.textContent = pct.toFixed(0)+'%';  
     }  
   },  
-  uploadMantDoc() {  
-    D.mantFiles.push({name:'informe_mantenimiento_'+(D.mantFiles.length+1)+'.pdf', icon:'pdf'});  
-    D.renderMantFiles();  
-    D.toast('Informe de mantenimiento agregado');  
+    uploadMantDoc() {  
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/pdf';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        D.mantFiles.push({name: file.name || 'informe_mantenimiento_'+(D.mantFiles.length+1)+'.pdf', icon:'pdf'});  
+        D.renderMantFiles();  
+        D.toast('Informe de mantenimiento agregado');
+      }
+    };
+    input.click();
   },  
   renderMantFiles() {  
     document.getElementById('mantFilesList').innerHTML = D.mantFiles.map(f=>`<div class="np-file"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>${f.name}</div>`).join('');  
