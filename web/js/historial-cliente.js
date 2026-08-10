@@ -114,10 +114,10 @@
       ${previos.map((s) => {
         const fecha = s.fecha ? new Date(s.fecha).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" }) : "—";
         const pill = s.conforme
-          ? \`<span class="hc-pill ok">Conforme</span>\`
-          : \`<span class="hc-pill warn">${esc(s.estado || "en curso")}</span>\`;
+          ? `<span class="hc-pill ok">Conforme</span>`
+          : `<span class="hc-pill warn">${esc(s.estado || "en curso")}</span>`;
         const vinculado = window.sedeRelacionActual === s.uuid;
-        return \`
+        return `
         <div class="hc-item">
           <div class="hc-item-info">
             <b>${esc(s.ot)} · ${esc(s.tipoServicio || "Servicio")}</b>
@@ -127,7 +127,7 @@
           <button type="button" class="hc-link-btn ${vinculado ? "activo" : ""}" data-uuid="${esc(s.uuid)}">
             ${vinculado ? "✓ Vinculado" : "Continuar este"}
           </button>
-        </div>\`;
+        </div>`;
       }).join("")}
     `;
     box.querySelectorAll(".hc-link-btn").forEach((btn) => {
@@ -158,7 +158,7 @@
   };
 
   // Lógica global para guardar cliente nuevo creado desde el modal
-  window.UI.saveClient = function() {
+  window.D.saveClient = function() {
     const nombre = document.getElementById('ncNombre').value.trim();
     if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
     
@@ -183,7 +183,7 @@
     // Usamos el nombre literal como ID temporal.
     const tempSede = { id: nombre, name: nombre, city: tipo };
     
-    UI.closeClientCreate();
+    if(window.D.closeClientCreate) window.D.closeClientCreate(); else { document.getElementById("overlayClient").classList.remove("open"); document.getElementById("floatingClient").classList.remove("open"); }
     seleccionarSede(tempSede);
     
     if(document.getElementById('field-direccion')) {

@@ -4,7 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Acta Técnica Digital — Gestiones Eléctricas</title>
-  <!-- Anti-flash desactivado en dev -->
+  <!-- Anti-flash: si no hay sesión válida, bloquea el acta ANTES del primer paint
+       (corre síncrono, antes de que se pinte el body). pin-gate.js quita el bloqueo
+       al confirmar sesión y lo repone al cerrar. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('ge_tecnico_token'), ok = false;
+        if (t && t.indexOf('.') > 0) {
+          var p = t.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+          while (p.length % 4) p += '=';
+          var d = JSON.parse(atob(p));
+          ok = !!d.exp && Date.now() < d.exp;
+        }
+        if (!ok) document.documentElement.classList.add('ge-locked');
+      } catch (e) { document.documentElement.classList.add('ge-locked'); }
+    })();
+  </script>
   <link rel="icon" type="image/png" href="/images/icon-192.png">
   <link rel="apple-touch-icon" href="/images/icon-192.png">
   <link rel="manifest" href="/manifest.json">
@@ -15,7 +31,7 @@
   <!-- Font Google: Outfit para look premium y moderno -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   
   <!-- PDF generation: html2canvas + jsPDF (sin intermediario html2pdf) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -35,43 +51,38 @@
        TOKENS DE DISEÑO E IDENTIDAD DE MARCA
        Gestiones Eléctricas SAS - Paleta EnergyTech
        ════════════════════════════════════════════ */
-    
     :root {
-      /* Brand Accents */
-      --brand-lime: #C9E400; 
-      --brand-lime-hover: #B5CD00;
-      --brand-olive: #8EA100; 
-      --olive-dark: #5E6B00;
+      --brand-dark:     #0D1100; /* Fondo general e institucional profundo */
+      --brand-dark-card:#1C2203; /* Tarjetas oscuras */
+      --brand-olive:    #283000; /* Verde oliva principal */
+      --brand-lime:     #C7E52F; /* Amarillo lima / chartreuse brillante (acento) */
+      --brand-lime-rgb: 199, 229, 47;
+      --brand-lime-hover: #D7F53F;
+      --brand-bg:       #F5F6F2; /* Fondo gris claro verdoso para el form */
+      --brand-white:    #FFFFFF;
+      --brand-border:   #DCE0D4;
+      --brand-text:     #1E230B;
+      --brand-muted:    #656C51;
+      --brand-ok:       #10B981; /* Verde esmeralda (Conforme) */
+      --brand-warn:     #F59E0B; /* Naranja (No Conforme) */
+      --brand-neutral:  #9CA3AF;
       
-      /* Brand Darks */
-      --brand-dark: #2B3000; 
-      --brand-dark-card: #0D1100;
+      --radius-sm:  8px;
+      --radius-md:  16px;
+      --radius-lg:  24px;
+      --shadow-sm:  0 2px 8px rgba(13, 17, 0, 0.05);
+      --shadow-md:  0 8px 24px rgba(13, 17, 0, 0.08);
+      --shadow-lg:  0 16px 40px rgba(13, 17, 0, 0.12);
       
-      /* Backgrounds & Surfaces */
-      --brand-bg: #EFF1E4; 
-      --brand-white: #FFFFFF;
-      --surface-2: #F2F4E6; 
-      --field-bg: #F4F6EA;
-      
-      /* Text */
-      --brand-text: #232815;
-      --brand-muted: #6E7553;
-      --text-faint: #9AA178;
-      
-      /* Semantic */
-      --brand-ok: #3B6D11; 
-      --brand-warn: #995B00; 
-      --brand-border: rgba(43,48,0,0.12);
-      
-      --font-main: 'Hanken Grotesk', sans-serif;
+      --font-main:  'Outfit', sans-serif;
+      --font-code:  'Space Grotesk', monospace;
     }
-
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Hanken Grotesk', sans-serif;
+      font-family: var(--font-main);
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -475,7 +486,7 @@
       color: var(--brand-text);
       transition: all 0.2s ease;
       -webkit-appearance: none;
-      font-family: 'Hanken Grotesk', sans-serif;
+      font-family: var(--font-main);
     }
 
     .input:focus, .textarea:focus, .select:focus {
@@ -636,7 +647,7 @@
       padding: 4px;
       font-size: 13px;
       color: var(--brand-text);
-      font-family: 'Hanken Grotesk', sans-serif;
+      font-family: var(--font-main);
     }
 
     .mat-input-field:focus {
@@ -1547,440 +1558,28 @@
       font-weight: bold;
     }
   
-    
-    /* --- INJECTED OVERRIDES FOR NEW DESIGN (POLISHED) --- */
-    body { 
-        background-color: var(--brand-bg) !important; 
-        color: var(--brand-text) !important; 
-        font-family: var(--font-main) !important;
-        -webkit-font-smoothing: antialiased;
-    }
-    
-    .form-content {
-        gap: 24px !important; /* Más espacio para respirar */
-    }
-
-    .card, .section-card {
-        background: var(--brand-white) !important;
-        border-radius: 20px !important; /* Mucho más suave */
-        box-shadow: 0 10px 40px rgba(13, 17, 0, 0.03), 0 2px 10px rgba(13, 17, 0, 0.02) !important;
-        border: none !important;
-        padding: 24px !important;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease !important;
-    }
-    
-    .card-title {
-        border-bottom: none !important; /* Quitar línea rústica */
-        padding-bottom: 0 !important;
-        margin-bottom: 24px !important;
-    }
-    
-    .card-title h2 {
-        font-size: 16px !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.02em !important;
-        color: var(--brand-dark) !important;
-    }
-    
-    .card-icon {
-        background-color: rgba(201, 228, 0, 0.15) !important; /* Lima translúcido en vez de negro */
-        color: var(--brand-dark) !important;
-    }
-    
-    /* Inputs Fluidos */
-    input[type="text"], input[type="email"], input[type="number"], select, textarea, .fld {
-        background: var(--field-bg) !important;
-        border: 1px solid transparent !important;
-        border-radius: 12px !important;
-        padding: 16px 16px !important;
-        font-family: var(--font-main) !important;
-        font-size: 15px !important;
-        color: var(--brand-text) !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        width: 100%;
-        box-shadow: inset 0 1px 2px rgba(0,0,0,0.01) !important;
-    }
-    input:focus, select:focus, textarea:focus, .fld:focus {
-        background: var(--brand-white) !important;
-        border-color: var(--brand-lime) !important;
-        box-shadow: 0 0 0 4px rgba(201, 228, 0, 0.2), 0 4px 12px rgba(0,0,0,0.03) !important;
-        outline: none !important;
-        transform: translateY(-1px);
-    }
-    
-    label, .field-label, .field label {
-        text-transform: uppercase !important;
-        font-size: 11px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.05em !important;
-        color: var(--brand-muted) !important;
-        margin-bottom: 8px !important;
-        display: block;
-    }
-    
-    /* Checklist refinado */
-    .check-item {
-        background: var(--surface-2) !important;
-        border: 1px solid transparent !important;
-        border-radius: 16px !important;
-        padding: 16px 20px !important;
-        margin-bottom: 12px !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-    }
-    .check-item:active { transform: scale(0.98); }
-    .check-item.ok {
-        background: #F1F6EA !important; /* Más sutil */
-        border-color: var(--brand-lime) !important;
-        box-shadow: 0 4px 12px rgba(201, 228, 0, 0.1) !important;
-    }
-    .check-item.fail {
-        background: #FFF9F2 !important;
-        border-color: var(--brand-warn) !important;
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.08) !important;
-    }
-    
-    /* Progress Bar */
-    .progress-bar {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 10px 20px 0 !important;
-    }
-    .progress-dot {
-        border-radius: 30px !important;
-        padding: 8px 16px !important;
-        background: var(--brand-white) !important;
-        border: 1px solid var(--brand-border) !important;
-        transition: all 0.4s ease !important;
-    }
-    .progress-dot.active {
-        background: var(--brand-dark) !important;
-        border-color: var(--brand-dark) !important;
-        color: var(--brand-lime) !important;
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(13, 17, 0, 0.15) !important;
-    }
-    
-    /* Botones primarios redondos y flotantes */
-    .btn-primary, button.btn-save {
-        background: var(--brand-lime) !important;
-        color: var(--brand-dark) !important;
-        border-radius: 100px !important; /* Botón tipo píldora */
-        font-weight: 800 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.03em !important;
-        border: none !important;
-        padding: 18px 32px !important;
-        box-shadow: 0 8px 24px rgba(201, 228, 0, 0.4) !important;
-        transition: all 0.3s ease !important;
-    }
-    .btn-primary:active { transform: scale(0.96); box-shadow: 0 4px 12px rgba(201, 228, 0, 0.3) !important; }
-    
-    .app-header { 
-        background: var(--brand-dark) !important; 
-        border-bottom: none !important;
-    }
-    .gps-bar {
-        border-radius: 16px !important;
-        background: rgba(255,255,255,0.05) !important;
-        border: none !important;
-    }
-
-    /* --- UX/UI INYECTADO PARA CAMPO --- */
-    
-    /* 1. Tap Targets y Anti-Zoom */
-    input[type="text"], input[type="email"], input[type="number"], select, textarea, .fld {
-        min-height: 56px !important;
-        font-size: 16px !important; /* Anti-zoom en iOS */
-        padding: 18px 20px !important;
-    }
-    
-    /* 2. Checklist (Pulgares grandes) */
-    .check-item {
-        min-height: 56px !important;
-        padding: 12px 20px !important;
-    }
-    .check-box {
-        width: 32px !important;
-        height: 32px !important;
-        border-width: 3px !important;
-    }
-    .check-box svg {
-        width: 18px !important;
-        height: 18px !important;
-    }
-    
-    /* 3. Alto Contraste para Sol Directo */
-    label, .field-label, .field label {
-        color: #3A4205 !important; /* Verde muy oscuro y sólido */
-        font-size: 12px !important; 
-        font-weight: 800 !important;
-    }
-    .card-title h2 {
-        font-size: 18px !important;
-    }
-    
-    /* 4. Barra de Acción Flotante (Sticky Bottom) */
-    body {
-        padding-bottom: 120px !important; /* Espacio para que no tape contenido al final */
-    }
-    .btn-main {
-        position: fixed !important;
-        bottom: 24px !important;
-        left: 24px !important;
-        width: calc(100% - 48px) !important;
-        z-index: 9999 !important;
-        box-shadow: 0 16px 40px rgba(201, 228, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.2) !important;
-        min-height: 64px !important;
-        font-size: 17px !important;
-    }
-    
-    /* Mejoras en Fotos (Zonas más grandes) */
-    .pslot {
-        min-height: 120px !important;
-    }
-    .pslot .empty-state {
-        font-size: 14px !important;
-        font-weight: 700 !important;
-        color: var(--brand-dark) !important;
-    }
-
-    /* --- CORRECCIONES DE DISTRIBUCIÓN MÓVIL --- */
-    @media (max-width: 600px) {
-        /* 1. Colapsar columnas a fila única (1fr) para que los campos no queden aplastados */
-        .field-row, .subform-campos {
-            grid-template-columns: 1fr !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 16px !important;
-        }
-        
-        /* 2. Ajustar padding de las tarjetas para maximizar espacio en pantallas chicas */
-        .card, .section-card {
-            padding: 16px !important;
-            border-radius: 16px !important;
-        }
-        
-        /* 3. Asegurar que los botones fijos quepan perfectamente */
-        .btn-main {
-            bottom: 16px !important;
-            left: 16px !important;
-            width: calc(100% - 32px) !important;
-            min-height: 64px !important;
-            padding: 14px 20px !important;
-            white-space: normal !important;
-            line-height: 1.2 !important;
-        }
-        
-        /* 4. Evitar que el canvas (firma) se desborde del celular */
-        .signature-box canvas, .signature-wrapper canvas {
-            max-width: 100% !important;
-            width: 100% !important;
-        }
-        
-        /* 5. Asegurar que los botones secundarios (limpiar, agregar foto) ocupen todo el ancho */
-        .btn-secondary, .add-photo-btn, .btn-subform, .btn-principal {
-            width: 100% !important;
-            min-height: 56px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            margin-top: 8px !important;
-        }
-        
-        /* 6. Espaciado extra abajo para que el teclado y botón fijo no tapen */
-        body {
-            padding-bottom: 140px !important;
-        }
-    }
-
-    /* --- SPA NAVIGATION & GALLERY VIEWS --- */
-    #view-acta, #view-visitas {
-        display: none;
-        animation: fadeIn 0.3s ease;
-    }
-    #view-acta.active, #view-visitas.active {
-        display: block;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    /* Bottom Navigation Bar */
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: var(--brand-white);
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-        display: flex;
-        justify-content: space-around;
-        padding: 12px 16px 30px 16px; /* Extra padding for iOS home bar */
-        z-index: 10000;
-        border-top: 1px solid var(--brand-border);
-    }
-    .nav-tab {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        color: var(--brand-muted);
-        text-decoration: none;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        transition: all 0.2s ease;
-        padding: 8px;
-        border-radius: 12px;
-    }
-    .nav-tab svg {
-        width: 24px;
-        height: 24px;
-        stroke-width: 2;
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .nav-tab.active {
-        color: var(--brand-lime) !important;
-    }
-    .nav-tab.active svg {
-        stroke: var(--brand-lime) !important;
-        fill: rgba(201, 228, 0, 0.1);
-        transform: translateY(-2px);
-    }
-    .nav-tab:active {
-        transform: scale(0.95);
-    }
-
-    /* Gallery Grid (Mis Visitas) */
-    .gallery-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 16px;
-        padding: 20px;
-    }
-    .gallery-card {
-        background: var(--brand-white);
-        border-radius: 16px;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(13, 17, 0, 0.03);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 2px solid transparent;
-    }
-    .gallery-card:active {
-        transform: scale(0.96);
-        box-shadow: 0 2px 8px rgba(13, 17, 0, 0.02);
-    }
-    .gallery-icon {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: rgba(201, 228, 0, 0.15);
-        color: var(--brand-dark);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-        font-weight: 800;
-        margin-bottom: 12px;
-    }
-    .gallery-card h3 {
-        font-size: 14px;
-        font-weight: 800;
-        color: var(--brand-dark);
-        margin: 0 0 4px 0;
-        line-height: 1.2;
-    }
-    .gallery-card p {
-        font-size: 12px;
-        color: var(--brand-muted);
-        margin: 0;
-    }
-    .gallery-badge {
-        margin-top: 10px;
-        background: var(--surface-2);
-        color: var(--brand-text);
-        font-size: 10px;
-        font-weight: 800;
-        padding: 4px 8px;
-        border-radius: 20px;
-    }
-
-    /* Detalle de Cliente (Hoja de Vida) */
-    #detail-cliente {
-        background: var(--brand-bg);
-    }
-    .hoja-vida-header {
-        background: var(--brand-dark);
-        color: white;
-        padding: 30px 24px 20px 24px;
-        border-radius: 20px;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-    .hoja-vida-header h1 {
-        font-size: 24px;
-        font-weight: 800;
-        margin: 0 0 8px 0;
-        color: var(--brand-white);
-    }
-    .hoja-vida-header p {
-        color: #A3A3A3;
-        font-size: 14px;
-        margin: 0;
-    }
-    .hoja-vida-stats {
-        display: flex;
-        gap: 20px;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,0.1);
-    }
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-    }
-    .stat-val { font-size: 20px; font-weight: 800; color: var(--brand-lime); }
-    .stat-lbl { font-size: 10px; text-transform: uppercase; color: #A3A3A3; letter-spacing: 0.05em; }
-
-    /* Botón flotante para el historial y re-ajuste del main */
-    .btn-main {
-        bottom: 100px !important; /* Levantar el botón del acta sobre las tabs */
-    }
-
     /* ==========================================
        NUEVOS ESTILOS PARA COMBOBOX Y MODALES
        ========================================== */
   
   :root {  
-    --lime:\#C9E400; --lime-dim:\#B5CD00; --olive:\#8EA100; --olive-dark:\#5E6B00;  
-    --forest:\#2B3000; --forest-soft:\#3A4205; --dark:\#0D1100; --dark-2:\#141A05; --white:\#FFFFFF;  
-    --bg:\#EFF1E4; --surface:\#FFFFFF; --surface-2:\#F2F4E6; --surface-3:\#E8EBD6; --field:\#F4F6EA;  
-    --text:\#232815; --text-muted:\#6E7553; --text-faint:\#9AA178;  
+    --lime:#C9E400; --lime-dim:#B5CD00; --olive:#8EA100; --olive-dark:#5E6B00;  
+    --forest:#2B3000; --forest-soft:#3A4205; --dark:#0D1100; --dark-2:#141A05; --white:#FFFFFF;  
+    --bg:#EFF1E4; --surface:#FFFFFF; --surface-2:#F2F4E6; --surface-3:#E8EBD6; --field:#F4F6EA;  
+    --text:#232815; --text-muted:#6E7553; --text-faint:#9AA178;  
     --border:rgba(43,48,0,0.12); --border-strong:rgba(43,48,0,0.22);  
-    --green:\#3B6D11; --green-bg:\#EAF3DE; --amber:\#A96A0B; --amber-bg:\#FBEFD8; --red:\#A32D2D; --red-bg:\#FBEAEA;  
-    --measure:\#185FA5; --measure-bg:\#E9EFF9; --ai:\#12B886; --ai-bg:\#E1F7F0; --spt:\#7A4E1D; --spt-bg:\#F3EADD;  
+    --green:#3B6D11; --green-bg:#EAF3DE; --amber:#A96A0B; --amber-bg:#FBEFD8; --red:#A32D2D; --red-bg:#FBEAEA;  
+    --measure:#185FA5; --measure-bg:#E9EFF9; --ai:#12B886; --ai-bg:#E1F7F0; --spt:#7A4E1D; --spt-bg:#F3EADD;  
     --radius:14px; --radius-sm:10px;  
     --font:'Gill Sans','Gill Sans MT','Hanken Grotesk',system-ui,sans-serif;  
     --shadow:0 6px 24px rgba(43,48,0,0.12); --shadow-lg:0 24px 60px rgba(13,17,0,0.4);  
   }  
-  \* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }  
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }  
   body { font-family:var(--font); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; }  
   button,input,select,textarea { font-family:inherit; }  
   svg { display:block; }
 
-  /\* HEADER \*/  
+  /* HEADER */  
   .app-top { background:var(--dark); padding:14px 18px 16px; position:sticky; top:0; z-index:30; }  
   .top-row { display:flex; align-items:center; justify-content:space-between; }  
   .logo { display:flex; align-items:center; gap:9px; }  
@@ -1998,7 +1597,7 @@
   .gps-info .g2 { font-size:11px; color:rgba(255,255,255,0.5); margin-top:1px; }  
   .gps-dot { margin-left:auto; width:9px; height:9px; border-radius:50%; background:var(--amber); box-shadow:0 0 8px var(--amber); }
 
-  /\* Progreso pasos \*/  
+  /* Progreso pasos */  
   .steps-bar { display:flex; gap:5px; padding:12px 18px; background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:20; }  
   .step-pip { flex:1; text-align:center; }  
   .step-pip .sp-bar { height:4px; border-radius:3px; background:var(--surface-3); margin-bottom:5px; transition:background 0.3s; }  
@@ -2030,12 +1629,12 @@
   .meas-w .unit { position:absolute; right:11px; top:50%; transform:translateY(-50%); font-size:12px; font-weight:700; color:var(--text-faint); pointer-events:none; }  
   .meas-w .fld { padding-right:40px; }
 
-  /\* Segmented (tipo servicio) \*/  
+  /* Segmented (tipo servicio) */  
   .seg { display:grid; grid-template-columns:1fr 1fr; gap:7px; }  
   .seg button { border:1.5px solid var(--border); background:var(--white); border-radius:10px; padding:11px; font-size:13px; font-weight:600; color:var(--text-muted); transition:all 0.14s; }  
   .seg button.on { background:var(--forest); color:var(--white); border-color:var(--forest); }
 
-  /\* SELECTOR CLIENTE / ACTIVO \*/  
+  /* SELECTOR CLIENTE / ACTIVO */  
   .combo { position:relative; }  
   .combo-input { display:flex; align-items:center; gap:10px; background:var(--field); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px 13px; cursor:pointer; }  
   .combo-input:hover { border-color:var(--olive); }  
@@ -2075,7 +1674,7 @@
   .ap-btns .ap-view { margin-left:0; }  
   .ap-btns .ap-change { font-size:10.5px; font-weight:600; color:var(--text-faint); background:none; border:none; text-decoration:underline; }
 
-  /\* CHECKLIST \*/  
+  /* CHECKLIST */  
   .chk-hint { font-size:11.5px; color:var(--text-muted); margin-bottom:12px; }  
   .chk-item { display:flex; align-items:center; gap:11px; padding:12px 13px; border:1px solid var(--border); border-radius:11px; margin-bottom:8px; cursor:pointer; transition:all 0.14s; }  
   .chk-item .chk-box { width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.14s; }  
@@ -2088,7 +1687,7 @@
   .chk-item.fail .chk-state { background:var(--red-bg); color:var(--red); }  
   .chk-item.neutral .chk-state { background:var(--surface-2); color:var(--text-faint); }
 
-  /\* Foto \*/  
+  /* Foto */  
   .photos { display:grid; grid-template-columns:1fr 1fr; gap:9px; }  
   .pslot { border:1.5px dashed var(--border-strong); border-radius:11px; padding:14px 8px; text-align:center; cursor:pointer; background:var(--surface-2); transition:all 0.15s; position:relative; }  
   .pslot:hover { border-color:var(--olive); }  
@@ -2101,24 +1700,24 @@
   .photo-add svg { width:14px; height:14px; }  
   .photo-count { font-size:11px; color:var(--text-faint); text-align:center; margin-top:8px; }
 
-  /\* Firma \*/  
+  /* Firma */  
   .firma-box { border:1.5px dashed var(--border-strong); border-radius:12px; height:120px; display:flex; align-items:center; justify-content:center; background:var(--surface-2); color:var(--text-faint); font-size:13px; cursor:crosshair; position:relative; }  
   .firma-actions { display:flex; gap:9px; margin-top:10px; }  
   .firma-actions button { flex:1; padding:11px; border-radius:10px; font-size:12.5px; font-weight:700; border:1.5px solid var(--border-strong); background:var(--white); color:var(--text-muted); }  
   .firma-actions button.confirm { background:var(--forest); color:white; border-color:var(--forest); }
 
-  /\* Botones finales \*/  
+  /* Botones finales */  
   .final-actions { display:flex; flex-direction:column; gap:9px; }
 
-  /\* Tarjeta "Solicita la reseña al cliente" \*/  
+  /* Tarjeta "Solicita la reseña al cliente" */  
   .review-card { border-top:1px solid var(--border); padding-top:18px; margin-top:6px; text-align:center; }  
   .review-h { display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:10px; }  
-  .review-g { font-size:19px; font-weight:800; font-family:Georgia,serif; background:linear-gradient(90deg,\#4285F4 0%,\#4285F4 25%,\#EA4335 25%,\#EA4335 50%,\#FBBC05 50%,\#FBBC05 75%,\#34A853 75%,\#34A853 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }  
+  .review-g { font-size:19px; font-weight:800; font-family:Georgia,serif; background:linear-gradient(90deg,#4285F4 0%,#4285F4 25%,#EA4335 25%,#EA4335 50%,#FBBC05 50%,#FBBC05 75%,#34A853 75%,#34A853 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }  
   .review-t { font-size:15px; font-weight:800; color:var(--forest); }  
   .review-s { font-size:13px; color:var(--text-muted); line-height:1.5; max-width:340px; margin:0 auto 16px; }  
   .review-input { text-align:center; margin-bottom:14px; }  
   .review-send { background:var(--green-bg); color:var(--green); }  
-  .review-send:hover { background:\#DCEFC7; }  
+  .review-send:hover { background:#DCEFC7; }  
   .fa-btn { display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; font-size:14px; font-weight:800; border:none; }  
   .fa-btn.primary { background:var(--lime); color:var(--forest); } .fa-btn.primary:hover { background:var(--lime-dim); }  
   .fa-btn.dark { background:var(--forest); color:white; }  
@@ -2126,7 +1725,7 @@
   .fa-btn svg { width:16px; height:16px; }  
   .fa-split { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
 
-  /\* ============ FICHA FLOTANTE ============ \*/  
+  /* ============ FICHA FLOTANTE ============ */  
   .overlay { position:fixed; inset:0; background:rgba(13,17,0,0.6); z-index:60; display:none; opacity:0; transition:opacity 0.25s; backdrop-filter:blur(3px); }  
   .overlay.open { display:block; opacity:1; }  
   .floating { position:fixed; z-index:70; left:50%; top:50%; transform:translate(-50%,-46%) scale(0.96); opacity:0; width:calc(100% - 28px); max-width:460px; max-height:88vh; background:var(--surface); border-radius:20px; box-shadow:var(--shadow-lg); overflow:hidden; display:flex; flex-direction:column; transition:transform 0.3s cubic-bezier(0.34,1.3,0.5,1), opacity 0.25s; pointer-events:none; }  
@@ -2144,7 +1743,7 @@
   .gt::after { content:''; flex:1; height:1px; background:var(--border); }  
   .gt-mt { margin-top:20px; }
 
-  /\* Etiqueta QR \*/  
+  /* Etiqueta QR */  
   .qr-block { display:flex; gap:14px; align-items:center; background:var(--surface-2); border:1px solid var(--border); border-radius:13px; padding:14px; }  
   .qr-preview { width:92px; height:92px; background:var(--white); border:1px solid var(--border); border-radius:9px; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:6px; }  
   .qr-preview img, .qr-preview canvas { width:100%; height:100%; }  
@@ -2156,7 +1755,7 @@
   .qr-btn svg { width:13px; height:13px; }  
   .qr-btn.ghost { background:var(--white); border:1.5px solid var(--border-strong); color:var(--text-muted); }
 
-  /\* Mantenimiento \*/  
+  /* Mantenimiento */  
   .mant-block { background:linear-gradient(180deg, var(--measure-bg), var(--surface) 70%); border:1.5px solid rgba(24,95,165,0.2); border-radius:13px; padding:15px; }  
   .mant-bar-wrap { margin:14px 0; }  
   .mant-bar-top { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:7px; }  
@@ -2178,7 +1777,7 @@
   .fact.auto { background:var(--ai-bg); }  
   .fact.auto .f-l { color:var(--ai); }
 
-  /\* Placa IA \*/  
+  /* Placa IA */  
   .plate-cap { display:flex; align-items:center; gap:11px; border:1.5px dashed var(--ai); background:var(--ai-bg); border-radius:11px; padding:12px; cursor:pointer; margin-bottom:12px; }  
   .plate-cap .pc-ico { width:36px; height:36px; border-radius:9px; background:var(--white); display:flex; align-items:center; justify-content:center; flex-shrink:0; }  
   .plate-cap .pc-ico svg { width:19px; height:19px; stroke:var(--ai); }  
@@ -2186,7 +1785,7 @@
   .plate-cap .pc-s { font-size:10.5px; color:var(--text-muted); }  
   .plate-cap .pc-b { margin-left:auto; font-size:9px; font-weight:700; background:var(--ai); color:white; padding:3px 8px; border-radius:20px; }
 
-  /\* No hay placa — panel alternativo \*/  
+  /* No hay placa — panel alternativo */  
   .noplate-toggle { display:flex; align-items:center; gap:11px; padding:11px 13px; background:var(--surface-2); border:1px solid var(--border); border-radius:11px; margin-bottom:10px; cursor:pointer; }  
   .noplate-toggle .np-check { width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }  
   .noplate-toggle.on .np-check { background:var(--amber); border-color:var(--amber); }  
@@ -2196,7 +1795,7 @@
   .noplate-toggle .np-s { font-size:10.5px; color:var(--text-faint); }  
   .noplate-panel { display:none; margin-bottom:12px; padding:13px; background:var(--amber-bg); border:1px dashed rgba(169,106,11,0.35); border-radius:12px; }  
   .noplate-panel.open { display:block; }  
-  .npp-msg { display:flex; align-items:flex-start; gap:9px; font-size:11.5px; color:\#6E5A14; line-height:1.5; margin-bottom:12px; }  
+  .npp-msg { display:flex; align-items:flex-start; gap:9px; font-size:11.5px; color:#6E5A14; line-height:1.5; margin-bottom:12px; }  
   .npp-msg svg { width:15px; height:15px; stroke:var(--amber); flex-shrink:0; margin-top:1px; }  
   .np-upload-row { display:grid; grid-template-columns:1fr 1fr; gap:9px; }  
   .np-upload { background:var(--white); border:1.5px dashed var(--border-strong); border-radius:11px; padding:12px 8px; text-align:center; cursor:pointer; transition:all 0.15s; }  
@@ -2211,14 +1810,14 @@
   .npp-later { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:600; color:var(--amber); background:var(--white); border-radius:9px; padding:10px 12px; margin-top:10px; }  
   .npp-later svg { width:15px; height:15px; flex-shrink:0; }
 
-  /\* Evidencia fotográfica general del activo \*/  
+  /* Evidencia fotográfica general del activo */  
   .ev-photos { display:flex; flex-wrap:wrap; gap:8px; }  
   .ev-photos:not(:empty) { margin-bottom:2px; }  
   .ev-thumb { display:flex; align-items:center; gap:6px; background:var(--green-bg); border:1px solid var(--green); border-radius:8px; padding:6px 10px; font-size:10.5px; font-weight:600; color:var(--green); }  
   .ev-thumb svg { width:13px; height:13px; stroke:var(--green); flex-shrink:0; }  
   .ev-thumb .ev-x { margin-left:2px; cursor:pointer; color:var(--text-faint); font-weight:800; }
 
-  /\* SPT \*/  
+  /* SPT */  
   .spt-block { background:linear-gradient(180deg, var(--spt-bg), var(--surface) 70%); border:1.5px solid rgba(122,78,29,0.22); border-radius:13px; padding:15px; }  
   .spt-h { display:flex; align-items:center; gap:10px; margin-bottom:13px; }  
   .spt-h .sh-ico { width:36px; height:36px; border-radius:9px; background:var(--spt); display:flex; align-items:center; justify-content:center; flex-shrink:0; }  
@@ -2240,12 +1839,12 @@
   .spt-toggle button { border:none; background:none; font-size:11px; font-weight:700; padding:5px 10px; border-radius:5px; color:var(--text-faint); cursor:pointer; }  
   .spt-toggle button.sel-si { background:var(--green); color:white; } .spt-toggle button.sel-no { background:var(--red); color:white; }
 
-  /\* Rendimiento \*/  
+  /* Rendimiento */  
   .perf { background:var(--forest); border-radius:13px; padding:16px; }  
   .perf-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:13px; }  
   .perf-cell { background:rgba(255,255,255,0.07); border-radius:10px; padding:12px; text-align:center; }  
   .perf-cell .pc-v { font-size:23px; font-weight:800; color:var(--white); line-height:1; letter-spacing:-0.7px; }  
-  .perf-cell .pc-v.warn { color:\#F5C46B; } .perf-cell .pc-v.bad { color:\#F09393; } .perf-cell .pc-v.good { color:\#9FE870; }  
+  .perf-cell .pc-v.warn { color:#F5C46B; } .perf-cell .pc-v.bad { color:#F09393; } .perf-cell .pc-v.good { color:#9FE870; }  
   .perf-cell .pc-l { font-size:9.5px; color:rgba(255,255,255,0.55); margin-top:4px; text-transform:uppercase; }  
   .gbar { margin-bottom:13px; }  
   .gtrack { position:relative; height:14px; border-radius:8px; overflow:hidden; display:flex; }  
@@ -2259,21 +1858,21 @@
   .veff .ve-ico { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }  
   .veff.good .ve-ico { background:var(--green); } .veff.bad .ve-ico { background:var(--red); }  
   .veff .ve-ico svg { width:17px; height:17px; stroke:white; }  
-  .veff .ve-t { font-size:12.5px; font-weight:800; } .veff.good .ve-t { color:\#BEF29A; } .veff.bad .ve-t { color:\#F5B0B0; }  
+  .veff .ve-t { font-size:12.5px; font-weight:800; } .veff.good .ve-t { color:#BEF29A; } .veff.bad .ve-t { color:#F5B0B0; }  
   .veff .ve-s { font-size:10.5px; margin-top:1px; } .veff.good .ve-s { color:rgba(190,242,154,0.75); } .veff.bad .ve-s { color:rgba(240,147,147,0.75); }
 
   .missing { display:none; align-items:flex-start; gap:9px; background:var(--red-bg); border:1px solid rgba(163,45,45,0.25); border-radius:10px; padding:11px 13px; margin-top:11px; }  
   .missing.show { display:flex; }  
   .missing svg { width:17px; height:17px; stroke:var(--red); flex-shrink:0; margin-top:1px; }  
   .missing .mt { font-size:12px; font-weight:700; color:var(--red); }  
-  .missing .ms { font-size:11px; color:\#7A2020; margin-top:1px; }
+  .missing .ms { font-size:11px; color:#7A2020; margin-top:1px; }
 
   .fl-foot { display:flex; gap:9px; padding:14px 20px; border-top:1px solid var(--border); flex-shrink:0; }  
   .fl-btn { padding:12px; border-radius:11px; font-size:13px; font-weight:800; border:none; display:flex; align-items:center; justify-content:center; gap:7px; }  
   .fl-btn.save { flex:1; background:var(--forest); color:white; } .fl-btn.save svg { width:15px; height:15px; }  
   .fl-btn.cancel { flex:0 0 auto; padding:12px 15px; background:transparent; border:1.5px solid var(--border-strong); color:var(--text-muted); }
 
-  /\* Crear activo mini panel \*/  
+  /* Crear activo mini panel */  
   .create-mini { background:var(--surface-2); border:1px dashed var(--border-strong); border-radius:12px; padding:14px; margin-top:9px; display:none; }  
   .create-mini.open { display:block; }  
   .cm-code { display:flex; align-items:center; gap:8px; background:var(--white); border:1px dashed var(--olive); border-radius:9px; padding:10px 12px; margin-top:9px; }  
@@ -2332,7 +1931,6 @@
     <!-- ══════════════════════════════════════════
          1. CABECERA E INTEGRACIÓN GPS
          ══════════════════════════════════════════ -->
-    <div id="view-acta" class="active">
     <header class="app-header">
       <div class="header-top">
         <div class="logo-container">
@@ -2426,7 +2024,7 @@
 
         
 <!-- CLIENTE -->  
-    <label class="field-label">Cliente / Empresa <span class="req">\*</span></label>  
+    <label class="field-label">Cliente / Empresa <span class="req">*</span></label>  
     <div class="combo" id="clientCombo">  
       <div class="combo-input" onclick="D.togCombo('clientCombo')">  
         <div class="ci-ico" id="clientIco"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg></div>  
@@ -2440,7 +2038,7 @@
       </div>  
     </div>
 
-    <label class="field-label">Dirección del Servicio <span class="req">\*</span></label>  
+    <label class="field-label">Dirección del Servicio <span class="req">*</span></label>  
     <input class="fld" id="dir" placeholder="Calle 75 Cr 72 90">
 
     <!-- ACTIVO -->  
@@ -2467,7 +2065,7 @@
 
       <!-- Aparece solo si el tipo no está en la lista -->  
       <div id="newTypeCustomWrap" style="display:none; margin-top:9px;">  
-        <label class="field-label" style="margin-top:0">Nombre del tipo de activo <span class="req">\*</span></label>  
+        <label class="field-label" style="margin-top:0">Nombre del tipo de activo <span class="req">*</span></label>  
         <input class="fld" id="newTypeCustom" placeholder="Ej: Motor, Bomba, UPS…" oninput="D.customType()">  
         <div class="hint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Los activos de este tipo se llamarán <b id="customPrefixHint">PREFIJO</b>-1, <b id="customPrefixHint2">PREFIJO</b>-2…</div>  
       </div>
@@ -3124,108 +2722,7 @@
   </div>
 
 
-  
-    <!-- ══════════════════════════════════════════
-         NUEVA VISTA: MIS VISITAS / HISTORIAL
-         ══════════════════════════════════════════ -->
-    <div id="view-visitas">
-      <!-- Pantalla 1: Galería -->
-      <div id="pantalla-galeria">
-          <div class="card" style="background:transparent; box-shadow:none; padding:0 0 16px 0;">
-              <h2 style="font-size:22px; font-weight:800; color:var(--brand-dark); margin:0;">Mis Visitas (Ruta)</h2>
-              <p style="color:var(--brand-muted); font-size:14px; margin-top:6px;">Registro de clientes y activos trabajados hoy.</p>
-          </div>
-          <div class="gallery-grid" id="gallery-container">
-              <!-- Cargado dinámicamente -->
-          </div>
-      </div>
-      
-      <!-- Pantalla 2: Detalle Cliente (Hoja de Vida) -->
-      <div id="pantalla-detalle" style="display:none;">
-          <div style="margin-bottom: 16px;">
-              <button onclick="cerrarDetalleCliente()" style="background:transparent; border:none; color:var(--brand-dark); font-weight:800; font-size:16px; display:flex; align-items:center; gap:8px; padding:0; cursor:pointer;">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                  Volver a Galería
-              </button>
-          </div>
-          
-          <div class="hoja-vida-header" id="hdv-header">
-              <!-- Cargado dinámicamente -->
-          </div>
-          
-          <div class="card" style="margin-bottom: 24px;">
-              <div class="card-title">
-                  <h2>Activos del Cliente (Hoja de Vida)</h2>
-              </div>
-              <div id="hdv-servicios">
-                 <!-- Cargado dinámicamente -->
-              </div>
-          </div>
-          
-          <button class="btn-main" onclick="anadirActivoDesdeHdv()" style="position:static !important; width:100% !important; margin-top:20px;">
-              + Añadir nuevo Activo a este Cliente
-          </button>
-      </div>
-      </div>
-    </div>
-    
-    <!-- MODAL AÑADIR ACTIVO -->
-    <div id="modal-anadir-activo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; padding:20px;">
-        <div style="background:white; border-radius:24px; padding:24px; width:100%; max-width:400px; box-shadow:0 20px 40px rgba(0,0,0,0.2);">
-            <h2 style="font-size:20px; font-weight:800; color:var(--brand-dark); margin:0 0 16px 0;">Añadir Nuevo Activo</h2>
-            <p style="color:var(--brand-muted); font-size:14px; margin-bottom:20px;">Este activo quedará registrado en la Torre de Control inmediatamente.</p>
-            
-            <div class="form-group" style="margin-bottom:16px;">
-                <label>Código del Activo *</label>
-                <input type="text" id="nuevo-activo-codigo" placeholder="Ej. TAB-001" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
-            </div>
-            
-            <div class="form-group" style="margin-bottom:16px;">
-                <label>Tipo de Activo *</label>
-                <select id="nuevo-activo-tipo" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
-                    <option value="">Seleccione...</option>
-                    <option value="Tablero">Tablero</option>
-                    <option value="Transformador">Transformador</option>
-                    <option value="Planta Electrica">Planta Eléctrica</option>
-                    <option value="Subestacion">Subestación</option>
-                    <option value="UPS">UPS</option>
-                    <option value="Otro">Otro</option>
-                </select>
-            </div>
-
-            <div class="form-group" style="margin-bottom:16px;">
-                <label>Nombre / Descripción</label>
-                <input type="text" id="nuevo-activo-nombre" placeholder="Opcional. Ej. Tablero Principal Piso 1" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
-            </div>
-
-            <div class="form-group" style="margin-bottom:24px;">
-                <label>Ubicación</label>
-                <input type="text" id="nuevo-activo-ubicacion" placeholder="Opcional. Ej. Cuarto de Máquinas" style="width:100%; padding:12px; border-radius:12px; border:1px solid #E2E8F0; background:#F8FAFC;">
-            </div>
-            
-            <div style="display:flex; gap:12px;">
-                <button onclick="cerrarModalNuevoActivo()" style="flex:1; padding:14px; border-radius:12px; border:none; background:#F1F5F9; color:#475569; font-weight:700; cursor:pointer;">Cancelar</button>
-                <button onclick="guardarNuevoActivo()" style="flex:1; padding:14px; border-radius:12px; border:none; background:var(--brand-dark); color:var(--brand-lime); font-weight:700; cursor:pointer;">Guardar Activo</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ══════════════════════════════════════════
-         NAVEGACIÓN INFERIOR (BOTTOM TABS)
-         ══════════════════════════════════════════ -->
-    <nav class="bottom-nav">
-        <a href="#" class="nav-tab active" id="tab-acta" onclick="switchTab('acta')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-            Acta Nueva
-        </a>
-        <a href="#" class="nav-tab" id="tab-visitas" onclick="switchTab('visitas')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Mis Visitas
-        </a>
-    </nav>
-  </div> <!-- Fin de mobile-container -->
-
-    <!-- ══════════════════════════════════════════
+  <!-- ══════════════════════════════════════════
        7. LÓGICA DE PROGRAMACIÓN (JAVASCRIPT)
        ══════════════════════════════════════════ -->
   <!-- Módulos de lógica de la aplicación -->
@@ -3297,17 +2794,17 @@
 
     <!-- Datos básicos -->  
     <div class="gt">Datos del cliente</div>  
-    <label class="field-label" style="margin-top:0">Nombre / Razón social <span class="req">\*</span></label>  
+    <label class="field-label" style="margin-top:0">Nombre / Razón social <span class="req">*</span></label>  
     <input class="fld" id="ncNombre" placeholder="Ej: Edificio Los Almendros">  
     <label class="field-label">Dirección</label>  
     <input class="fld" id="ncDireccion" placeholder="Calle 75 Cr 72 90">  
-    <label class="field-label">Tipo de cliente <span class="req">\*</span></label>  
+    <label class="field-label">Tipo de cliente <span class="req">*</span></label>  
     <select class="fld" id="ncTipoCliente"><option value="Residencial">Residencial</option><option value="Comercial" selected>Comercial</option><option value="Industrial">Industrial</option></select>
 
     <!-- Infraestructura eléctrica -->  
     <div class="gt spt gt-mt">Infraestructura eléctrica</div>
 
-    <label class="field-label" style="margin-top:0">Tipo de circuito <span class="req">\*</span></label>  
+    <label class="field-label" style="margin-top:0">Tipo de circuito <span class="req">*</span></label>  
     <select class="fld" id="ncCircuito" onchange="D.showSysFields()"><option value="mono">Monofásico</option><option value="bi">Bifásico</option><option value="tri" selected>Trifásico</option></select>
 
     <div class="spt-check" style="margin-top:12px;">  
@@ -3443,327 +2940,10 @@
 
 <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg"></span></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  
-<script>  
-/\* ====== DATOS (vendrían de la API) ====== \*/  
-const DB = {  
-  clients: \[  
-    { id:'c1', name:'ATENAS', type:'Comercial', assets:3, address:'Calle 75 Cr 72 90' },  
-    { id:'c2', name:'Edificio Torres del Parque', type:'Propiedad horizontal', assets:12, address:'Cra 51B \# 80-25' },  
-    { id:'c3', name:'Industrias del Caribe SAS', type:'Industrial', assets:58, address:'Vía 40 \# 76-120' }  
-  \],  
-  assets: {  
-    c1:\[ {code:'TAB-2340', type:'Tablero', desc:'Tablero recepción'}, {code:'ACO-0011', type:'Acometida', desc:'Acometida principal'} \],  
-    c2:\[ {code:'TAB-01', type:'Tablero', desc:'General sótano'}, {code:'TRF-01', type:'Transformador', desc:'75 kVA'} \],  
-    c3:\[ {code:'TRF-02', type:'Transformador', desc:'Subestación 2'} \]  
-  }  
-};  
-const TYPE_NAME = { TAB:'Tablero', ACO:'Acometida', TRF:'Transformador', SPT:'SPT / Tierra', GEN:'General' };  
-const FICHAS = {}; // { 'TAB-2345': {marca, ano, cap, unit, ohm, v, a, conx, barraje, conductor, conexiones} } — vendría de GET /activos/:codigo  
-const CHECKLIST = \['Tablero eléctrico principal','Protecciones termomagnéticas (Breakers)','Acometida y medidores de energía','Conductores eléctricos y canalizaciones','Sistema de puesta a tierra (SPT)','Tomacorrientes y salidas GFCI','Iluminación y luminarias','Señalización de seguridad eléctrica'\];  
-const toKW = { kW:1, kVA:0.92, HP:0.746, W:0.001 };
 
-const D = {  
-  client:null, photos:0, newCode:'', activeCode:null,
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  init() {  
-    D.renderClients();  
-    D.renderChecklist();  
-    D.calc(); D.checkSpt();  
-  },
-
-  seg(btn) { \[...btn.parentElement.children\].forEach(b=>b.classList.remove('on')); btn.classList.add('on'); },
-
-  togCombo(id) { const c=document.getElementById(id); document.querySelectorAll('.combo').forEach(x=>{if(x.id!==id)x.classList.remove('open');}); c.classList.toggle('open'); },  
-  togAsset() { if(!D.client){D.toast('Primero selecciona el cliente');return;} D.togCombo('assetCombo'); },
-
-  renderClients(f='') {  
-    const list = DB.clients.filter(c=>c.name.toLowerCase().includes(f.toLowerCase()));  
-    document.getElementById('clientList').innerHTML = list.map(c=>\`<div class="combo-opt" onclick="D.pickClient('${c.id}')"><div class="co-av">${c.name.slice(0,2).toUpperCase()}</div><div class="co-b"><div class="co-name">${c.name}</div><div class="co-meta">${c.type}</div></div><span class="co-count">${c.assets} activos</span></div>\`).join('') || '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin resultados</div>';  
-  },  
-  filterClients(v){ D.renderClients(v); },  
-  pickClient(id) {  
-    D.client = DB.clients.find(c=>c.id===id);  
-    document.querySelector('\#clientCombo .combo-input').classList.add('filled');  
-    const m=document.getElementById('clientMain'); m.classList.remove('ph'); m.textContent=D.client.name;  
-    const s=document.getElementById('clientSub'); s.style.display='block'; s.textContent=D.client.type;  
-    document.getElementById('clientCombo').classList.remove('open');  
-    document.getElementById('dir').value = D.client.address || '';  
-    document.getElementById('assetMain').textContent='Selecciona o crea un activo…';  
-    D.renderAssets();  
-  },  
-  renderAssets() {  
-    const arr = DB.assets\[D.client.id\]||\[\];  
-    document.getElementById('assetList').innerHTML = arr.length ? arr.map(a=>\`<div class="combo-opt" onclick="D.pickAsset('${a.code}','${a.type}','${a.desc}')"><div class="co-av">${a.code.slice(0,3)}</div><div class="co-b"><div class="co-name">${a.code}</div><div class="co-meta">${a.type} · ${a.desc}</div></div></div>\`).join('') : '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin activos aún · crea el primero</div>';  
-  },  
-  pickAsset(code,type,desc) {  
-    document.getElementById('assetCombo').classList.remove('open');  
-    document.getElementById('assetCombo').style.display='none';  
-    const hasFicha = !!FICHAS\[code\];  
-    const descTxt = hasFicha ? 'Ficha guardada · en base de datos' : \`${type} · ${desc}\`;  
-    document.getElementById('assetPickedWrap').innerHTML = \`<div class="asset-picked"><div class="ap-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2"/></svg></div><div><div class="ap-code">${code}</div><div class="ap-desc">${descTxt}</div></div><div class="ap-btns"><button class="ap-view" onclick="D.viewFicha('${code}','${type}')">${hasFicha?'Ver / Editar':'Completar ficha'}</button><button class="ap-change" onclick="D.changeAsset()">Cambiar activo</button></div></div>\`;  
-  },  
-  changeAsset() { document.getElementById('assetPickedWrap').innerHTML=''; document.getElementById('assetCombo').style.display='block'; },
-
-  openCreate() { document.getElementById('assetCombo').classList.remove('open'); document.getElementById('createMini').classList.add('open'); D.typeChange(); },  
-  closeCreate() { document.getElementById('createMini').classList.remove('open'); },  
-  typeChange() {  
-    const isOtro = document.getElementById('newType').value === 'otro';  
-    document.getElementById('newTypeCustomWrap').style.display = isOtro ? 'block' : 'none';  
-    D.code();  
-  },  
-  customType() { D.code(); },  
-  prefixFrom(name) {  
-    // Genera un prefijo de 3 letras a partir del nombre escrito (Ej: "Motor" -> "MOT")  
-    const clean = name.trim().toUpperCase().replace(/\[^A-ZÑ \]/g,'');  
-    return clean ? clean.slice(0,3) || 'GEN' : '';  
-  },  
-  code() {  
-    const t=document.getElementById('newType').value, n=document.getElementById('newNum').value.trim();  
-    let prefix = t;  
-    if (t === 'otro') {  
-      const custom = document.getElementById('newTypeCustom').value;  
-      prefix = D.prefixFrom(custom) || '___';  
-      document.getElementById('customPrefixHint').textContent = prefix;  
-      document.getElementById('customPrefixHint2').textContent = prefix;  
-    }  
-    D.newCode = \`${prefix}-${n||'____'}\`;  
-    document.getElementById('codePrev').textContent = D.newCode;  
-  },  
-  createAsset() {  
-    const t=document.getElementById('newType').value, n=document.getElementById('newNum').value.trim();  
-    if(!n){ D.toast('Escribe el número del activo'); return; }  
-    let prefix = t, typeName = TYPE_NAME\[t\];  
-    if (t === 'otro') {  
-      const custom = document.getElementById('newTypeCustom').value.trim();  
-      if (!custom) { D.toast('Escribe el nombre del nuevo tipo de activo'); return; }  
-      prefix = D.prefixFrom(custom);  
-      typeName = custom;  
-      TYPE_NAME\[prefix\] = custom; // registra el tipo nuevo para reutilizarlo  
-    }  
-    const code=\`${prefix}-${n}\`;  
-    DB.assets\[D.client.id\]=DB.assets\[D.client.id\]||\[\];  
-    DB.assets\[D.client.id\].push({code,type:typeName,desc:'Nuevo activo'});  
-    D.closeCreate();  
-    D.openFicha(code, typeName, true);  
-  },
-
-  /\* ===== Abrir / ver / editar ficha flotante (identidad \+ SPT \+ rendimiento) ===== \*/  
-  openFicha(code, typeName, isNew) {  
-    D.activeCode = code;  
-    document.getElementById('flCode').textContent = code;  
-    document.getElementById('flDesc').textContent = \`${typeName} · ${D.client ? D.client.name : ''}\`;  
-    document.querySelector('.flh-tag').textContent = isNew ? 'Recién creado' : 'Editando ficha';
-
-    const saved = FICHAS\[code\];  
-    if (saved) { D.applyFicha(saved); }  
-    else { D.resetFichaFields(); }
-
-    document.getElementById('overlay').classList.add('open');  
-    document.getElementById('floating').classList.add('open');  
-    D.calc(); D.checkSpt(); D.calcManten();  
-    D.generateQR(code);  
-  },  
-  viewFicha(code, type) { D.openFicha(code, type, false); },  
-  resetFichaFields() {  
-    document.getElementById('fObs').value = '';  
-    document.getElementById('fMarca').value=''; document.getElementById('fAno').value='';  
-    document.getElementById('fCap').value=''; document.getElementById('fUnit').value='kVA';  
-    document.getElementById('ohm').value='12';  
-    document.getElementById('conx').value='tri';  
-    document.getElementById('fV').value='120'; document.getElementById('fA').value='15';  
-    document.getElementById('fV_L1N').value='120'; document.getElementById('fV_L2N').value='120'; document.getElementById('fV_L1L2').value='240';  
-    document.getElementById('fI_A').value='20'; document.getElementById('fI_B').value='20'; document.getElementById('fI_N').value='2';  
-    document.getElementById('fV_L1L2t').value='220'; document.getElementById('fV_L2L3t').value='220'; document.getElementById('fV_L3L1t').value='220';  
-    document.getElementById('fV_L1Nt').value='127'; document.getElementById('fV_L2Nt').value='127'; document.getElementById('fV_L3Nt').value='127';  
-    document.getElementById('fI_At').value='177'; document.getElementById('fI_Bt').value='177'; document.getElementById('fI_Ct').value='177'; document.getElementById('fI_Nt').value='8';  
-    D.showAssetSysFields();  
-    \['flBarraje','flConductor','flConexiones'\].forEach(id=>document.getElementById(id).querySelectorAll('button').forEach(b=>b.className=''));  
-    D.npFiles = \[\]; D.renderNpFiles();  
-    D.evPhotos = \[\]; D.renderEvPhotos();  
-    D.mantFiles = \[\]; D.renderMantFiles();  
-    document.getElementById('fMantUltima').value = ''; document.getElementById('fMantFrec').value = '180';  
-    D.calcManten();  
-    const t = document.getElementById('noPlateToggle');  
-    if (t.classList.contains('on')) D.toggleNoPlate();  
-  },  
-  applyFicha(d) {  
-    document.getElementById('fObs').value = d.obs || '';  
-    document.getElementById('fMarca').value=d.marca||''; document.getElementById('fAno').value=d.ano||'';  
-    document.getElementById('fCap').value=d.cap||''; document.getElementById('fUnit').value=d.unit||'kVA';  
-    document.getElementById('ohm').value=d.ohm||'12';  
-    document.getElementById('conx').value=d.conx||'tri';  
-    const M = \['fV','fA','fV_L1N','fV_L2N','fV_L1L2','fI_A','fI_B','fI_N','fV_L1L2t','fV_L2L3t','fV_L3L1t','fV_L1Nt','fV_L2Nt','fV_L3Nt','fI_At','fI_Bt','fI_Ct','fI_Nt'\];  
-    M.forEach(id => { if (d\[id\] !== undefined) document.getElementById(id).value = d\[id\]; });  
-    D.showAssetSysFields();  
-    document.getElementById('fMantUltima').value=d.mantUltima||''; document.getElementById('fMantFrec').value=d.mantFrec||'180';  
-    D.mantFiles = d.mantFiles || \[\]; D.renderMantFiles();  
-    D.evPhotos = d.evPhotos || \[\]; D.renderEvPhotos();  
-    const setTog = (id,val) => { const g=document.getElementById(id); g.querySelectorAll('button').forEach((b,i)=>{ b.className = (val==='si'&\&i===0)||(val==='no'&\&i===1) ? (val==='si'?'sel-si':'sel-no') : ''; }); };  
-    setTog('flBarraje', d.barraje); setTog('flConductor', d.conductor); setTog('flConexiones', d.conexiones);  
-  },  
-  readTog(id) {  
-    const g = document.getElementById(id).querySelectorAll('button');  
-    if (g\[0\].className==='sel-si') return 'si';  
-    if (g\[1\].className==='sel-no') return 'no';  
-    return null;  
-  },  
-  collectFicha() {  
-    const d = {  
-      obs: document.getElementById('fObs').value,  
-      marca: document.getElementById('fMarca').value, ano: document.getElementById('fAno').value,  
-      cap: document.getElementById('fCap').value, unit: document.getElementById('fUnit').value,  
-      ohm: document.getElementById('ohm').value, conx: document.getElementById('conx').value,  
-      barraje: D.readTog('flBarraje'), conductor: D.readTog('flConductor'), conexiones: D.readTog('flConexiones'),  
-      mantUltima: document.getElementById('fMantUltima').value, mantFrec: document.getElementById('fMantFrec').value,  
-      mantFiles: D.mantFiles.slice(), evPhotos: D.evPhotos.slice()  
-    };  
-    \['fV','fA','fV_L1N','fV_L2N','fV_L1L2','fI_A','fI_B','fI_N','fV_L1L2t','fV_L2L3t','fV_L3L1t','fV_L1Nt','fV_L2Nt','fV_L3Nt','fI_At','fI_Bt','fI_Ct','fI_Nt'\].forEach(id => { d\[id\] = document.getElementById(id).value; });  
-    return d;  
-  },  
-  closeFicha() { document.getElementById('overlay').classList.remove('open'); document.getElementById('floating').classList.remove('open'); },  
-  saveFicha() {  
-    const code = D.activeCode || document.getElementById('flCode').textContent;  
-    FICHAS\[code\] = D.collectFicha();  
-    D.closeFicha();  
-    document.getElementById('assetCombo').style.display='none';  
-    document.getElementById('assetPickedWrap').innerHTML = \`<div class="asset-picked"><div class="ap-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2"/></svg></div><div><div class="ap-code">${code}</div><div class="ap-desc">Ficha guardada · en base de datos</div></div><div class="ap-btns"><button class="ap-view" onclick="D.viewFicha('${code}','')">Ver / Editar</button><button class="ap-change" onclick="D.changeAsset()">Cambiar activo</button></div></div>\`;  
-    D.toast('Activo '+code+' guardado en base de datos ✓');  
-  },
-
-  readPlate() {  
-    document.getElementById('fCap').value='75';  
-    document.getElementById('fUnit').value='kVA';  
-    document.getElementById('fMarca').value='Siemens';  
-    document.getElementById('fAno').value='2020';  
-    D.calc();  
-    D.toast('Placa leída: 75 kVA · 220V · FP 0.92 ✓');  
-  },
-
-  /\* ===== Sin placa visible — registro fotográfico \+ documentos ===== \*/  
-  npFiles: \[\],  
-  toggleNoPlate() {  
-    const t = document.getElementById('noPlateToggle');  
-    const on = t.classList.toggle('on');  
-    document.getElementById('noPlateCheck').querySelector('svg').style.opacity = on?1:0;  
-    document.getElementById('noPlatePanel').classList.toggle('open', on);  
-    document.getElementById('plateCapBtn').style.opacity = on ? '0.4' : '1';  
-    document.getElementById('plateCapBtn').style.pointerEvents = on ? 'none' : 'auto';  
-  },  
-  uploadEquipoFotos() {  
-    D.npFiles.push({name:'foto_equipo_'+(D.npFiles.length+1)+'.jpg', icon:'foto'});  
-    D.renderNpFiles();  
-    D.toast('Foto agregada · la IA la analizará para estimar características');  
-  },  
-  uploadEquipoDocs() {  
-    D.npFiles.push({name:'ficha_tecnica.pdf', icon:'pdf'});  
-    D.renderNpFiles();  
-    D.toast('Documento agregado · la IA extraerá datos del PDF');  
-  },  
-  renderNpFiles() {  
-    document.getElementById('npFilesList').innerHTML = D.npFiles.map(f=>\`<div class="np-file"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${f.icon==='pdf'?'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>':'<rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/>'}</svg>${f.name}</div>\`).join('');  
-  },
-
-  /\* ===== Evidencia fotográfica general del activo (además de la foto de placa) ===== \*/  
-  evPhotos: \[\],  
-  addEvidenceFoto() {  
-    D.evPhotos.push('evidencia_'+(D.evPhotos.length+1)+'.jpg');  
-    D.renderEvPhotos();  
-    D.toast('Foto de evidencia agregada al activo');  
-  },  
-  removeEvidenceFoto(i) { D.evPhotos.splice(i,1); D.renderEvPhotos(); },  
-  renderEvPhotos() {  
-    document.getElementById('evPhotos').innerHTML = D.evPhotos.map((f,i)=>\`<div class="ev-thumb"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/></svg>${f}<span class="ev-x" onclick="event.stopPropagation();D.removeEvidenceFoto(${i})">×</span></div>\`).join('');  
-    document.getElementById('evCountTxt').textContent = D.evPhotos.length \+ (D.evPhotos.length===1?' foto agregada':' fotos agregadas');  
-  },
-
-  /\* ===== Mantenimiento — barra interactiva de alerta ===== \*/  
-  mantFiles: \[\],  
-  calcManten() {  
-    const fechaStr = document.getElementById('fMantUltima').value;  
-    const freqDias = parseInt(document.getElementById('fMantFrec').value, 10);  
-    const fill = document.getElementById('mantFill');  
-    const status = document.getElementById('mantStatus');  
-    const pctEl = document.getElementById('mantPct');  
-    if (!fechaStr) {  
-      fill.style.width = '0%'; fill.style.background = 'var(--border-strong)';  
-      status.className = 'mant-status neutral'; status.textContent = 'Ingresa la última fecha para calcular';  
-      pctEl.textContent = '—';  
-      return;  
-    }  
-    const ultima = new Date(fechaStr);  
-    const hoy = new Date();  
-    const diasTranscurridos = Math.floor((hoy - ultima) / 86400000);  
-    const diasRestantes = freqDias - diasTranscurridos;  
-    const pct = Math.max(0, Math.min((diasTranscurridos / freqDias) \* 100, 130));
-
-    fill.style.width = Math.min(pct, 100\) \+ '%';
-
-    if (diasRestantes < 0\) {  
-      fill.style.background = 'var(--red)';  
-      status.className = 'mant-status bad';  
-      status.textContent = \`Vencido hace ${Math.abs(diasRestantes)} días · alerta activa\`;  
-      pctEl.textContent = pct.toFixed(0)+'%';  
-    } else if (diasRestantes <= 15\) {  
-      fill.style.background = 'var(--amber)';  
-      status.className = 'mant-status warn';  
-      status.textContent = \`Próximo mantenimiento en ${diasRestantes} días\`;  
-      pctEl.textContent = pct.toFixed(0)+'%';  
-    } else {  
-      fill.style.background = 'var(--green)';  
-      status.className = 'mant-status ok';  
-      status.textContent = \`Próximo mantenimiento en ${diasRestantes} días\`;  
-      pctEl.textContent = pct.toFixed(0)+'%';  
-    }  
-  },  
-  uploadMantDoc() {  
-    D.mantFiles.push({name:'informe_mantenimiento_'+(D.mantFiles.length+1)+'.pdf', icon:'pdf'});  
-    D.renderMantFiles();  
-    D.toast('Informe de mantenimiento agregado');  
-  },  
-  renderMantFiles() {  
-    document.getElementById('mantFilesList').innerHTML = D.mantFiles.map(f=>\`<div class="np-file"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>${f.name}</div>\`).join('');  
-  },
-
-  /\* ===== Etiqueta QR — genera y liga al código del activo ===== \*/  
-  qrInstance: null,  
-  generateQR(code) {  
-    document.getElementById('qrCodeTxt').textContent = code;  
-    const url = \`https://actas.gestioneselectricas.com/activo/${code}\`; // GET /activos/:codigo → hoja de vida  
-    const box = document.getElementById('qrPreview');  
-    box.innerHTML = '';  
-    if (typeof QRCode === 'undefined') {  
-      box.innerHTML = \`<div style="font-size:9px;color:var(--text-faint);text-align:center;padding:6px">QR no disponible sin conexión</div>\`;  
-      return;  
-    }  
-    D.qrInstance = new QRCode(box, { text:url, width:80, height:80, colorDark:'\#2B3000', colorLight:'\#FFFFFF', correctLevel:QRCode.CorrectLevel.M });  
-  },  
-  downloadQR() {  
-    const canvas = document.querySelector('\#qrPreview canvas');  
-    if (!canvas) { D.toast('Genera el QR primero'); return; }  
-    const code = document.getElementById('qrCodeTxt').textContent;  
-    const link = document.createElement('a');  
-    link.download = \`etiqueta-${code}.png\`;  
-    link.href = canvas.toDataURL('image/png');  
-    link.click();  
-    D.toast('Etiqueta QR de '+code+' descargada ✓');  
-  },  
-  printQR() {  
-    const canvas = document.querySelector('\#qrPreview canvas');  
-    if (!canvas) { D.toast('Genera el QR primero'); return; }  
-    const code = document.getElementById('qrCodeTxt').textContent;  
-    const win = window.open('', '_blank', 'width=420,height=520');  
-    win.document.write(\`<html><head><title>Etiqueta ${code}</title><style>  
-      body{font-family:sans-serif;text-align:center;padding:30px;}  
-      .label{border:2px solid \#2B3000;border-radius:14px;padding:20px;display:inline-block;}  
-      img{width:160px;height:160px;}  
-      .code{font-size:18px;font-weight:800;color:\#2B3000;margin-top:10px;letter-spacing:1px;}  
-      .brand{font-size:10px;color:\#6E7553;margin-top:4px;}  
-    </style></head><body>  
-      <div class="label"><img src="${canvas.toDataURL('image/png')}"><div class="code">${code}</div><div class="brand">Gestiones Eléctricas SAS</div></div>  
-      
   <script src="/js/combos.js"></script>
   <script src="/js/pwa.js"></script>
-  <script src="/js/visitas.js"></script>
 </body>
 </html>
