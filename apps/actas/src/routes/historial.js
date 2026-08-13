@@ -109,18 +109,20 @@ async function sedesRecientes(req, res) {
   if (!sess) return res.status(401).json({ error: 'No autorizado' });
 
   try {
-    // JOIN con public.sites para asegurar que son sedes reales del Motor
+    // Sin JOIN a public.sites a propósito: el rol de Postgres del acta
+    // (actas_app) no tiene SELECT sobre esa tabla del Motor (solo sobre su
+    // propio schema actas.*). El nombre del cliente ya vive duplicado en
+    // actas.actas.data->>'cliente' (lo guarda autosave.js en cada acta), así
+    // que no hace falta cruzar de schema para armar la galería.
     const { rows } = await getPool().query(
       `SELECT
-         s.id AS id,
-         s.name AS name,
-         s.city AS city,
+         a.site_id AS id,
+         MAX(a.data->>'cliente') AS name,
          COUNT(a.uuid) AS "numServicios",
          MAX(a.created_at) AS "ultimaVisita"
        FROM actas.actas a
-       JOIN public.sites s ON a.site_id = s.id
-       WHERE a.data->>'tecnico' = $1
-       GROUP BY s.id, s.name, s.city
+       WHERE a.data->>'tecnico' = $1 AND a.site_id IS NOT NULL
+       GROUP BY a.site_id
        ORDER BY MAX(a.created_at) DESC
        LIMIT 300`,
       [sess.u],
