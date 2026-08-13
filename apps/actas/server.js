@@ -92,6 +92,14 @@ app.get('/api/sedes/:siteId/servicios-previos', requireAuth, historialRoute.serv
 app.get('/api/sedes/:siteId/hoja-vida', requireAuth, historialRoute.hojaVidaSede);
 app.post('/api/sedes/:siteId/activos', requireAuth, historialRoute.anadirActivo);
 app.patch('/api/actas/:uuid/sede', requireAuth, historialRoute.vincularSede);
+// F8: alta de cliente con ficha de infraestructura eléctrica ("Nuevo Cliente")
+app.post('/api/sedes', requireAuth, historialRoute.crearSede);
+// F8: ficha del activo (identidad, SPT, rendimiento, mantenimiento) + adjuntos + OCR de placa
+app.get('/api/activos/:id/ficha', requireAuth, activosRoute.obtenerFicha);
+app.patch('/api/activos/:id/ficha', requireAuth, activosRoute.guardarFicha);
+app.get('/api/activos/:id/adjuntos', requireAuth, activosRoute.listarAdjuntos);
+app.post('/api/activos/:id/adjuntos', requireAuth, activosRoute.uploadAdjuntoMw, activosRoute.subirAdjunto);
+app.post('/api/activos/ocr-placa', requireAuth, activosRoute.uploadPlacaMw, activosRoute.ocrPlaca);
 app.get('/api/health', async (_req, res) => {
   res.json({ status: 'ok', service: 'ge-actas', version: '3.0.0', db: await ping(), time: new Date().toISOString() });
 });

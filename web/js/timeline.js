@@ -6,7 +6,9 @@ function updateTimelineProgress() {
   const dotSign = document.getElementById("dot-sign");
 
   // Paso 1: Datos cliente y técnico
-  const cliente = document.getElementById("field-cliente").value.trim();
+  // #field-cliente ya no existe (rediseño combo) — la identidad del cliente
+  // vive en window.clienteActual, no en un input de texto (ver historial-cliente.js).
+  const cliente = window.clienteActual ? window.clienteActual.nombre.trim() : "";
   const tecnico = document.getElementById("field-tecnico").value.trim();
   const infoOk = cliente.length > 2 && tecnico.length > 2;
 

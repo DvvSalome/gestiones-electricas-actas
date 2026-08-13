@@ -157,22 +157,24 @@
     window.clienteActual = null;
   };
 
-  // Lógica global para guardar cliente nuevo creado desde el modal
+  // Lógica global para guardar cliente nuevo creado desde el modal — persiste
+  // de verdad en el motor (POST /api/sedes → sites, con su ficha de
+  // infraestructura eléctrica). Antes esto solo guardaba en localStorage y
+  // generaba un id falso ('c'+Date.now()) que el motor rechazaba al vincular
+  // la sede al acta (siteId inválido) — el cliente nunca quedaba creado.
   window.D = window.D || {};
-  window.D.saveClient = function() {
-try {
+  window.D.saveClient = async function() {
     const nombre = document.getElementById('ncNombre').value.trim();
-    if (!nombre) { if(window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
-    
+    if (!nombre) { if (window.app && app.toast) app.toast('Escribe el nombre del cliente'); return; }
+
     const nit = document.getElementById('ncNit') ? document.getElementById('ncNit').value.trim() : '';
     const contacto = document.getElementById('ncContacto') ? document.getElementById('ncContacto').value.trim() : '';
     const tel = document.getElementById('ncTel') ? document.getElementById('ncTel').value.trim() : '';
     const email = document.getElementById('ncEmail') ? document.getElementById('ncEmail').value.trim() : '';
-    
+
     const direccion = document.getElementById('ncDireccion').value.trim();
     const tipo = document.getElementById('ncTipoCliente').value;
-    
-    // Función auxiliar para leer los toggles
+
     const readTog = (id) => {
       const g = document.getElementById(id);
       if (!g) return 'no';
@@ -181,7 +183,8 @@ try {
       return 'no';
     };
 
-    // Campos nuevos de infraestructura eléctrica
+    // Infraestructura eléctrica — se guarda UNA vez con el cliente y
+    // contextualiza el diagnóstico de todos sus activos futuros.
     const infra = {
       circuito: document.getElementById('ncCircuito').value,
       tieneTrafo: readTog('ncTrafoToggle'),
@@ -189,7 +192,6 @@ try {
       trafoUbic: document.getElementById('ncTrafoUbic').value,
       trafoTipo: document.getElementById('ncTrafoTipo').value,
       totalizador: document.getElementById('ncTotalizador').value,
-      
       calibreAcometida: document.getElementById('ncCalibreAcometida').value,
       operadorRed: document.getElementById('ncOperador').value,
       comercializador: document.getElementById('ncComercializador').value,
@@ -198,18 +200,14 @@ try {
       tieneSolar: readTog('ncSolarToggle'),
       solarCap: document.getElementById('ncSolarCap').value,
       solarTipo: document.getElementById('ncSolarTipo').value,
-      
-      // Mono
       v_mono: document.getElementById('ncV').value,
       i_mono: document.getElementById('ncI').value,
-      // Bi
       v_l1n: document.getElementById('ncV_L1N').value,
       v_l2n: document.getElementById('ncV_L2N').value,
       v_l1l2: document.getElementById('ncV_L1L2').value,
       i_a: document.getElementById('ncI_A').value,
       i_b: document.getElementById('ncI_B').value,
       i_n: document.getElementById('ncI_N').value,
-      // Tri
       v_l1l2t: document.getElementById('ncV_L1L2t').value,
       v_l2l3t: document.getElementById('ncV_L2L3t').value,
       v_l3l1t: document.getElementById('ncV_L3L1t').value,
@@ -219,38 +217,45 @@ try {
       i_at: document.getElementById('ncI_At').value,
       i_bt: document.getElementById('ncI_Bt').value,
       i_ct: document.getElementById('ncI_Ct').value,
-      i_nt: document.getElementById('ncI_Nt').value
+      i_nt: document.getElementById('ncI_Nt').value,
     };
-    
-        // Almacenamos temporalmente para anexarlo al guardar el acta final
-    localStorage.setItem("ge_cliente_nuevo_infra", JSON.stringify(infra));
 
-    const id = 'c' + Date.now();
-    const tempSede = { id: id, name: nombre, city: tipo, type: tipo, assets: 0, address: direccion };
-    
-    // Push to DB so it appears in the dropdown
-    if (window.DB && window.DB.clients) {
-        window.DB.clients.push(tempSede);
-    }
-    
-    if(window.D.closeClientCreate) window.D.closeClientCreate(); else { document.getElementById("overlayClient").classList.remove("open"); document.getElementById("floatingClient").classList.remove("open"); }
-    
-    seleccionarSede(tempSede);
-    
-    if(document.getElementById('field-direccion')) {
-      document.getElementById('field-direccion').value = direccion;
-    }
-    
-    if(window.D) {
-      window.D.client = tempSede;
-      if(document.getElementById('assetCombo')) {
-        document.getElementById('assetCombo').style.display = 'block';
+    try {
+      const r = await fetch('/api/sedes', {
+        method: 'POST',
+        headers: window.geHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          nombre, direccion, tipoCliente: tipo,
+          nit, contacto, telefono: tel, email,
+          infraestructura: infra,
+        }),
+      });
+      const d = await r.json().catch(() => null);
+      if (!r.ok) {
+        const msg = d?.error || 'No se pudo crear el cliente';
+        if (window.app && app.toast) app.toast(msg); else alert(msg);
+        return;
       }
+      const sede = d.sede; // { id: uuid REAL, name, city, address, ... }
+
+      if (window.D.closeClientCreate) window.D.closeClientCreate();
+      else { document.getElementById('overlayClient').classList.remove('open'); document.getElementById('floatingClient').classList.remove('open'); }
+
+      seleccionarSede(sede);
+
+      if (document.getElementById('field-direccion')) {
+        document.getElementById('field-direccion').value = direccion;
+      }
+      window.D.client = sede;
+      if (document.getElementById('assetCombo')) document.getElementById('assetCombo').style.display = 'block';
+
+      if (window.app && app.toast) app.toast('Cliente "' + nombre + '" creado ✓');
+      else if (window.D.toast) window.D.toast('Cliente creado. Ahora selecciona o crea un activo.');
+    } catch (e) {
+      console.error('[saveClient]', e);
+      const msg = 'Sin conexión: no se pudo crear el cliente';
+      if (window.app && app.toast) app.toast(msg); else alert(msg);
     }
-    
-    if (window.app && app.toast) app.toast('Cliente "'+nombre+'" configurado para guardar con el acta ✓');
-    else if (window.D && window.D.toast) window.D.toast('Cliente configurado. Ahora selecciona o crea un activo.');
-  } catch(e) { alert("ERROR en saveClient: " + e.message); console.error(e); } 
   };
 
 

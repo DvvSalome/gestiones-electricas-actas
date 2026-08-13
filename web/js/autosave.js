@@ -2,8 +2,13 @@
 function buildCurrentFormData() {
   return {
     servicioTipo: document.getElementById("field-servicio-tipo").value,
-    cliente: document.getElementById("field-cliente").value,
-    direccion: document.getElementById("field-direccion").value,
+    // #field-cliente/#field-direccion ya no existen desde el rediseño del combo
+    // (ver combos.js/historial-cliente.js) — leerlos con getElementById(...).value
+    // lanzaba TypeError en CADA autoguardado, abortando en silencio el resto de
+    // este objeto (checklist, materiales, activo seleccionado...) porque el catch
+    // de loadLocalStorageData() se lo tragaba sin avisar.
+    cliente: window.clienteActual ? window.clienteActual.nombre : "",
+    direccion: document.getElementById("dir")?.value || "",
     telefono: document.getElementById("field-telefono").value,
     email: document.getElementById("field-email").value,
     tecnico: document.getElementById("field-tecnico").value,
@@ -168,8 +173,11 @@ function loadLocalStorageData() {
       const data = JSON.parse(draftStr);
       
       document.getElementById("field-servicio-tipo").value = data.servicioTipo || "Diagnóstico";
-      document.getElementById("field-cliente").value = data.cliente || "";
-      document.getElementById("field-direccion").value = data.direccion || "";
+      // El cliente se restaura seleccionándolo de nuevo en el combo (identidad real
+      // por sede, no un input de texto) — ver historial-cliente.js. Aquí solo se
+      // repuebla la dirección, que sigue siendo un campo simple (#dir).
+      const dirEl = document.getElementById("dir");
+      if (dirEl) dirEl.value = data.direccion || "";
       document.getElementById("field-telefono").value = data.telefono || "";
       document.getElementById("field-email").value = data.email || "";
       document.getElementById("field-tecnico").value = data.tecnico || "";

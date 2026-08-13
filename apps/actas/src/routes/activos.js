@@ -1,8 +1,25 @@
 // F4.2: activos (hoja de vida) — proxy al motor con el service token.
 // El browser nunca ve el motor; la sede se resuelve por el nombre canónico
 // del cliente (mismo criterio que el diagnóstico F3).
+const multer = require('multer');
 const MOTOR_URL = process.env.MOTOR_URL || 'https://electroscan.gestioneselectricas.com';
 const TOKEN = process.env.MOTOR_SERVICE_TOKEN || '';
+
+// Adjuntos de ficha (evidencia/placa/mantenimiento) y foto para OCR — mismo
+// límite y filtro que las fotos del acta (actas.js), en memoria porque solo
+// se reenvían al motor, nunca se escriben a disco aquí.
+const ALLOWED_ADJ = { 'image/jpeg': 1, 'image/png': 1, 'image/webp': 1, 'application/pdf': 1 };
+const uploadAdjunto = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, cb) => cb(null, !!ALLOWED_ADJ[file.mimetype]),
+});
+const ALLOWED_IMG = { 'image/jpeg': 1, 'image/png': 1, 'image/webp': 1 };
+const uploadPlaca = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, cb) => cb(null, !!ALLOWED_IMG[file.mimetype]),
+});
 
 // Los tipos de activo VIVEN EN EL MOTOR, no aquí.
 //
@@ -125,4 +142,108 @@ async function crearTipo(req, res) {
   }
 }
 
-module.exports = { listar, crear, tipos, crearTipo };
+// ── GET /api/activos/:id/ficha · repoblar la ficha al reabrir el activo ──
+async function obtenerFicha(req, res) {
+  const id = String(req.params.id || '').trim();
+  if (!id) return res.status(400).json({ error: 'id inválido' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const r = await fetch(`${MOTOR_URL}/api/assets/${encodeURIComponent(id)}/ficha`, { headers: svcHeaders() });
+    if (!r.ok) return res.status(502).json({ error: 'Motor no disponible' });
+    const d = await r.json();
+    return res.json(d);
+  } catch (e) {
+    console.error('[activos:obtenerFicha]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+// ── PATCH /api/activos/:id/ficha · guardar la ficha del activo (identidad, SPT, rendimiento, mantenimiento) ──
+async function guardarFicha(req, res) {
+  const id = String(req.params.id || '').trim();
+  if (!id) return res.status(400).json({ error: 'id inválido' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const r = await fetch(`${MOTOR_URL}/api/assets/${encodeURIComponent(id)}/ficha`, {
+      method: 'PATCH',
+      headers: svcHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(req.body || {}),
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok) {
+      return res.status(r.status === 400 ? 400 : 502).json({ error: d?.error || 'El motor no aceptó la ficha', issues: d?.issues });
+    }
+    return res.json(d);
+  } catch (e) {
+    console.error('[activos:guardarFicha]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+// ── GET /api/activos/:id/adjuntos · listar adjuntos del activo ──
+async function listarAdjuntos(req, res) {
+  const id = String(req.params.id || '').trim();
+  if (!id) return res.status(400).json({ error: 'id inválido' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const r = await fetch(`${MOTOR_URL}/api/assets/${encodeURIComponent(id)}/attachments`, { headers: svcHeaders() });
+    if (!r.ok) return res.status(502).json({ error: 'Motor no disponible' });
+    const d = await r.json();
+    return res.json(d);
+  } catch (e) {
+    console.error('[activos:listarAdjuntos]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+// ── POST /api/activos/:id/adjuntos · evidencia/placa/mantenimiento (multipart, proxy al motor) ──
+async function subirAdjunto(req, res) {
+  const id = String(req.params.id || '').trim();
+  const kind = String(req.body?.kind || '').trim();
+  if (!id || !kind) return res.status(400).json({ error: 'id y kind son obligatorios' });
+  if (!req.file) return res.status(400).json({ error: 'falta el archivo' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const form = new FormData();
+    form.set('kind', kind);
+    form.set('file', new Blob([req.file.buffer], { type: req.file.mimetype }), req.file.originalname || 'adjunto');
+    const r = await fetch(`${MOTOR_URL}/api/assets/${encodeURIComponent(id)}/attachments`, {
+      method: 'POST',
+      headers: svcHeaders(),
+      body: form,
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok) return res.status(r.status === 400 ? 400 : 502).json({ error: d?.error || 'El motor no aceptó el adjunto' });
+    return res.json(d);
+  } catch (e) {
+    console.error('[activos:subirAdjunto]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+// ── POST /api/activos/ocr-placa · lectura de placa por IA (multipart, proxy al motor) ──
+async function ocrPlaca(req, res) {
+  if (!req.file) return res.status(400).json({ error: 'falta el archivo' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const form = new FormData();
+    form.set('file', new Blob([req.file.buffer], { type: req.file.mimetype }), req.file.originalname || 'placa.jpg');
+    const r = await fetch(`${MOTOR_URL}/api/assets/ocr-placa`, {
+      method: 'POST',
+      headers: svcHeaders(),
+      body: form,
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok) return res.status(r.status === 400 ? 400 : 502).json({ error: d?.error || 'No se pudo leer la placa' });
+    return res.json(d);
+  } catch (e) {
+    console.error('[activos:ocrPlaca]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+module.exports = {
+  listar, crear, tipos, crearTipo, obtenerFicha, guardarFicha, listarAdjuntos, subirAdjunto, ocrPlaca,
+  uploadAdjuntoMw: uploadAdjunto.single('file'),
+  uploadPlacaMw: uploadPlaca.single('file'),
+};

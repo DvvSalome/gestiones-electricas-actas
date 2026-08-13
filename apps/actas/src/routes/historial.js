@@ -185,4 +185,40 @@ async function anadirActivo(req, res) {
   }
 }
 
-module.exports = { buscarSedes, serviciosPrevios, vincularSede, sedesRecientes, hojaVidaSede, anadirActivo };
+// ── POST /api/sedes · alta explícita de cliente + infraestructura eléctrica (proxy al motor) ──
+// Distinto de la resolución "al vuelo" por nombre que hace POST /api/activos: aquí el
+// técnico está creando el cliente a propósito desde "Nuevo Cliente", con NIT, contacto
+// y toda la ficha de infraestructura (transformador/totalizador, mediciones, SPT, solar).
+async function crearSede(req, res) {
+  const { nombre, direccion, tipoCliente, nit, contacto, telefono, email, infraestructura } = req.body || {};
+  const name = String(nombre || '').trim().slice(0, 200);
+  if (!name) return res.status(400).json({ error: 'El nombre del cliente es obligatorio' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const r = await fetch(`${MOTOR_URL}/api/sites`, {
+      method: 'POST',
+      headers: svcHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({
+        name,
+        city: 'Barranquilla',
+        ...(direccion ? { address: String(direccion).slice(0, 300) } : {}),
+        ...(nit ? { nit: String(nit).slice(0, 40) } : {}),
+        ...(contacto ? { contactName: String(contacto).slice(0, 150) } : {}),
+        ...(telefono ? { contactPhone: String(telefono).slice(0, 40) } : {}),
+        ...(email ? { contactEmail: String(email).slice(0, 150) } : {}),
+        ...(tipoCliente ? { tipoCliente: String(tipoCliente).slice(0, 40) } : {}),
+        ...(infraestructura && typeof infraestructura === 'object' ? { infraestructura } : {}),
+      }),
+    });
+    const d = await r.json().catch(() => null);
+    if (!r.ok) {
+      return res.status(r.status === 400 ? 400 : 502).json({ error: d?.error || 'El motor no aceptó el cliente', issues: d?.issues });
+    }
+    return res.json({ sede: d.site });
+  } catch (e) {
+    console.error('[historial:crearSede]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
+module.exports = { buscarSedes, serviciosPrevios, vincularSede, sedesRecientes, hojaVidaSede, anadirActivo, crearSede };

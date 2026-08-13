@@ -26,6 +26,12 @@
   function pintarTipos(tipos, respaldo) {
     const s = document.getElementById("newType");
     if (!s) return;
+    // Catálogo completo (clave+etiqueta+prefijo) para que code()/createAsset()
+    // resuelvan el PREFIJO real (TAB, ACO...) — el <option value> es la clave
+    // ("tablero"), no el prefijo, y usarla tal cual como prefijo del código
+    // generaba activos "tablero-9999" en vez de "TAB-9999".
+    window.D = window.D || {};
+    window.D.tiposCatalog = tipos;
     const prev = s.value;
     s.innerHTML = "";
     for (const t of tipos) {
@@ -90,7 +96,7 @@
     
     // Call the reference UI function to show the picked asset and floating buttons
     if (window.D && window.D.pickAsset) {
-        window.D.pickAsset(codigo, nombre || 'Activo', semaforo || '');
+        window.D.pickAsset(id, codigo, nombre || 'Activo', semaforo || '');
     }
   };
 
@@ -140,8 +146,16 @@
       }
     }
     
-    // Crear el activo
-    let finalPrefix = (t === 'otro') ? window.D.prefixFrom(custom) : tipo;
+    // Crear el activo. El prefijo del código es window.D.tiposCatalog[].prefijo
+    // (TAB, ACO...), NO la clave del tipo ("tablero") — usar la clave directo
+    // generaba códigos como "tablero-9999" en vez de "TAB-9999".
+    let finalPrefix;
+    if (t === 'otro') {
+      finalPrefix = window.D.prefixFrom(custom);
+    } else {
+      const catalogado = (window.D.tiposCatalog || []).find((x) => x.clave === t);
+      finalPrefix = (catalogado && catalogado.prefijo) ? catalogado.prefijo : t.toUpperCase();
+    }
     const finalCode = `${finalPrefix}-${num}`;
 
     try {
@@ -156,11 +170,17 @@
         return;
       }
       const { activo } = await r.json();
-      
-      if(window.D.closeCreate) window.D.closeCreate();
-      window.pickAsset(activo.id, activo.codigo, 'Nuevo activo', '');
+
+      window.activoActual = { id: activo.id, codigo: activo.codigo, nombre: activo.nombre };
+      if (typeof saveCurrentFormToLocal === "function") saveCurrentFormToLocal();
+      if (window.D && window.D.closeCreate) window.D.closeCreate();
       window.loadActivos();
-      if(window.app && app.toast) app.toast('Activo creado y seleccionado ✓');
+      // Abre la ficha de inmediato — igual que la referencia: recién creado el
+      // activo, el técnico está frente al equipo y es cuando tiene sentido
+      // capturar identidad de placa, SPT y rendimiento, no después.
+      const typeName = custom || tipo;
+      if (window.D && window.D.openFicha) window.D.openFicha(activo.id, activo.codigo, typeName, true);
+      if(window.app && app.toast) app.toast('Activo creado ✓ — completa su ficha');
     } catch {
       if(window.app && app.toast) app.toast("No se pudo crear el activo");
     }

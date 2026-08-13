@@ -10,8 +10,10 @@ function preparePrintableTemplate() {
   document.getElementById("pdf-date-val").textContent = `Fecha: ${dateStr} - Hora: ${timeStr}`;
 
   // Identificación
-  document.getElementById("pdf-cliente-val").textContent = document.getElementById("field-cliente").value || "— No especificado —";
-  document.getElementById("pdf-direccion-val").textContent = document.getElementById("field-direccion").value || "— No especificado —";
+  // #field-cliente/#field-direccion ya no existen (rediseño combo) — el cliente
+  // vive en window.clienteActual y la dirección en #dir.
+  document.getElementById("pdf-cliente-val").textContent = (window.clienteActual && window.clienteActual.nombre) || "— No especificado —";
+  document.getElementById("pdf-direccion-val").textContent = document.getElementById("dir")?.value || "— No especificado —";
   document.getElementById("pdf-telefono-val").textContent = document.getElementById("field-telefono").value || "— No especificado —";
   document.getElementById("pdf-email-val").textContent = document.getElementById("field-email").value || "— No especificado —";
   document.getElementById("pdf-tipo-val").textContent = document.getElementById("field-servicio-tipo").value;
@@ -180,8 +182,9 @@ function preparePrintableTemplate() {
 
 // --- Validaciones generales para exportar/compartir ---
 function validateFormForExport(actionName = "exportar") {
-  const cliente = document.getElementById("field-cliente").value.trim();
-  const direccion = document.getElementById("field-direccion").value.trim();
+  // #field-cliente/#field-direccion ya no existen (rediseño combo).
+  const cliente = window.clienteActual ? window.clienteActual.nombre.trim() : "";
+  const direccion = document.getElementById("dir")?.value.trim() || "";
   const tecnico = document.getElementById("field-tecnico").value.trim();
   const diagnostico = document.getElementById("field-diagnostico").value.trim();
   const acciones = document.getElementById("field-acciones").value.trim();
@@ -415,8 +418,10 @@ function saveFormDataToBackend() {
 
     const payload = {
       ot: window.otBadgeNum ? window.otBadgeNum.textContent : "",
-      cliente: g("field-cliente"),
-      direccion: g("field-direccion"),
+      // #field-cliente/#field-direccion ya no existen (rediseño combo) — sin este
+      // cambio, g(...) devolvía "" siempre y el panel veía cada acta sin cliente.
+      cliente: window.clienteActual ? window.clienteActual.nombre : "",
+      direccion: g("dir"),
       telefono: g("field-telefono"),
       email: g("field-email"),
       tipo_servicio: g("field-servicio-tipo"),
