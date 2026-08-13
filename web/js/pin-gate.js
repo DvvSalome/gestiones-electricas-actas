@@ -57,6 +57,16 @@
           el.remove();
           if (typeof initOTNumber === "function" && !localStorage.getItem("ge_current_ot")) initOTNumber();
           if (window.flushOfflineQueue) void window.flushOfflineQueue();
+          // BUG FIX: activos.js pide el catálogo de tipos en su propio
+          // DOMContentLoaded, que corre ANTES de que exista sesión en un login
+          // en frío (esta compuerta se muestra primero) — esa petición se iba
+          // en 401 y nunca se reintentaba. #newType se quedaba con las 5
+          // opciones de respaldo del HTML estático (valores TAB/ACO/TRF/SPT/GEN,
+          // no las claves reales del catálogo), y el prefijo del código de
+          // activo salía vacío o incorrecto para cualquier técnico que creara
+          // un activo justo después de iniciar sesión. Reintentar aquí, ya con
+          // el token recién guardado.
+          if (typeof window.loadTiposActivo === "function") void window.loadTiposActivo();
           return;
         }
         if (r.status === 400) { el.remove(); return; } // server viejo sin login-tecnico → modo gracia
