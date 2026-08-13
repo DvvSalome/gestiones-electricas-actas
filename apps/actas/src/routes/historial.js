@@ -99,27 +99,31 @@ async function vincularSede(req, res) {
   }
 }
 
-// ── GET /api/sedes/recientes · obtiene las sedes visitadas recientemente por el técnico ──
+// ── GET /api/sedes/recientes · "Mis clientes" — todas las sedes donde este técnico
+//    ya trabajó, para la galería (F6.8). Antes tenía LIMIT 10 pensado para un widget
+//    de accesos rápidos; una galería de "clientes con los que he trabajado" necesita
+//    el historial completo del técnico, no solo los últimos 10.
 async function sedesRecientes(req, res) {
   const { verifyToken, tokenFromReq } = require('../session');
   const sess = verifyToken(tokenFromReq(req));
   if (!sess) return res.status(401).json({ error: 'No autorizado' });
-  
+
   try {
     // JOIN con public.sites para asegurar que son sedes reales del Motor
     const { rows } = await getPool().query(
-      `SELECT 
-         s.id as site_id,
-         s.name AS nombre,
-         s.city AS ciudad,
-         COUNT(a.uuid) as num_servicios
+      `SELECT
+         s.id AS id,
+         s.name AS name,
+         s.city AS city,
+         COUNT(a.uuid) AS "numServicios",
+         MAX(a.created_at) AS "ultimaVisita"
        FROM actas.actas a
        JOIN public.sites s ON a.site_id = s.id
        WHERE a.data->>'tecnico' = $1
        GROUP BY s.id, s.name, s.city
-       ORDER BY MAX(a.created_at) DESC 
-       LIMIT 10`,
-      [sess.u]
+       ORDER BY MAX(a.created_at) DESC
+       LIMIT 300`,
+      [sess.u],
     );
     return res.json({ sedes: rows });
   } catch (e) {

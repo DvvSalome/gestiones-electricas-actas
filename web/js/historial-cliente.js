@@ -49,6 +49,10 @@
     // if (box) { box.innerHTML = ""; } // No hide completely so the user sees "no results"
   }
 
+  // Expuesta en window para que mis-clientes.js (galería "Mis clientes") pueda
+  // reusar exactamente la misma lógica de selección — combo, vínculo con el
+  // acta, historial, activos — en vez de duplicarla.
+  window.seleccionarSede = seleccionarSede;
   function seleccionarSede(sede) {
     // Fill the combo input visual representation
     const comboInput = document.querySelector('#clientCombo .combo-input');

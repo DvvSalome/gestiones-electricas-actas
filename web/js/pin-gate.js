@@ -111,6 +111,8 @@
   function toggleLogout(show) {
     const b = document.getElementById("btn-logout");
     if (b) b.style.display = show ? "inline-flex" : "none";
+    const mc = document.getElementById("btn-mis-clientes");
+    if (mc) mc.style.display = show ? "inline-flex" : "none";
   }
   window.geLogout = function () {
     limpiarSesion();

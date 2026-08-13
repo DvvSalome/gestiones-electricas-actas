@@ -1660,9 +1660,25 @@
   .co-av { width:30px; height:30px; border-radius:8px; background:var(--surface-3); color:var(--olive-dark); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }  
   .co-b { flex:1; min-width:0; } .co-name { font-size:13.5px; font-weight:600; color:var(--forest); } .co-meta { font-size:11px; color:var(--text-faint); }  
   .co-count { font-size:10.5px; color:var(--olive-dark); background:var(--surface-3); padding:2px 8px; border-radius:20px; flex-shrink:0; }  
-  .combo-create { display:flex; align-items:center; gap:10px; padding:12px; cursor:pointer; border-top:1px solid var(--border); background:var(--surface-2); color:var(--olive-dark); font-size:13px; font-weight:700; }  
-  .combo-create:hover { background:var(--surface-3); }  
+  .combo-create { display:flex; align-items:center; gap:10px; padding:12px; cursor:pointer; border-top:1px solid var(--border); background:var(--surface-2); color:var(--olive-dark); font-size:13px; font-weight:700; }
+  .combo-create:hover { background:var(--surface-3); }
   .combo-create svg { width:16px; height:16px; stroke:var(--olive-dark); }
+
+  /* ============ MIS CLIENTES (galería F6.8) ============ */
+  .mc-search { padding:2px 0 14px; flex-shrink:0; }
+  .mc-search input { width:100%; border:1px solid var(--border); border-radius:11px; padding:11px 13px; font-size:14px; outline:none; }
+  .mc-search input:focus { border-color:var(--olive); }
+  .mc-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .mc-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 12px; cursor:pointer; display:flex; flex-direction:column; align-items:center; text-align:center; gap:7px; transition:border-color 0.15s, transform 0.1s; }
+  .mc-card:hover { border-color:var(--olive); }
+  .mc-card:active { transform:scale(0.97); }
+  .mc-av { width:44px; height:44px; border-radius:50%; background:var(--forest); color:var(--lime); font-size:15px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mc-name { font-size:13px; font-weight:700; color:var(--forest); line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .mc-city { font-size:11px; color:var(--text-faint); }
+  .mc-count { font-size:10.5px; font-weight:700; color:var(--olive-dark); background:var(--surface-3); padding:2px 9px; border-radius:20px; }
+  .mc-date { font-size:9.5px; color:var(--text-faint); }
+  .mc-empty { padding:40px 20px; text-align:center; font-size:13px; color:var(--text-faint); }
+  .mc-empty svg { width:34px; height:34px; stroke:var(--text-faint); margin:0 auto 12px; }
 
   .asset-picked { display:flex; align-items:center; gap:11px; background:var(--green-bg); border:1.5px solid var(--green); border-radius:var(--radius-sm); padding:11px 13px; margin-top:8px; }  
   .asset-picked .ap-ico { width:34px; height:34px; border-radius:9px; background:var(--green); display:flex; align-items:center; justify-content:center; flex-shrink:0; }  
@@ -1939,6 +1955,10 @@
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
           <div class="ot-badge" id="ot-badge-num">OT-0000</div>
+          <button id="btn-mis-clientes" type="button" title="Mis clientes" aria-label="Mis clientes" onclick="MisClientes.open()" style="display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;font-family:inherit;font-weight:700;font-size:12px;padding:7px 12px;border-radius:10px;cursor:pointer">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
+            <span>Mis clientes</span>
+          </button>
           <button id="btn-logout" type="button" title="Cerrar sesión" aria-label="Cerrar sesión" style="display:none;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff;font-family:inherit;font-weight:700;font-size:12px;padding:7px 12px;border-radius:10px;cursor:pointer">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="m16 17 5-5-5-5M21 12H9"></path></svg>
             <span>Salir</span>
@@ -2738,6 +2758,7 @@
   <script src="/js/materials.js"></script>
   <script src="/js/activos.js?v=1786406314539"></script>
   <script src="/js/historial-cliente.js?v=1786406314539"></script>
+  <script src="/js/mis-clientes.js?v=1786406314539"></script>
   <script src="/js/images.js"></script>
   <script src="/js/signature.js"></script>
   <script src="/js/timeline.js"></script>
@@ -3168,10 +3189,31 @@
 
     <div class="hint" style="margin-top:14px;"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>Esta infraestructura se guarda una sola vez con el cliente y contextualiza el diagnóstico de todos sus activos.</div>  
   </div>  
-  <div class="fl-foot">  
-    <button class="fl-btn cancel" onclick="D.closeClientCreate()">Cancelar</button>  
-    <button class="fl-btn save" onclick="D.saveClient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Crear cliente</button>  
-  </div>  
+  <div class="fl-foot">
+    <button class="fl-btn cancel" onclick="D.closeClientCreate()">Cancelar</button>
+    <button class="fl-btn save" onclick="D.saveClient()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Crear cliente</button>
+  </div>
+</div>
+
+
+<!-- ============ MIS CLIENTES (galería F6.8) ============ -->
+<div class="overlay" id="overlayMisClientes" onclick="MisClientes.close()"></div>
+<div class="floating" id="floatingMisClientes">
+  <div class="fl-head">
+    <span class="flh-tag">Mis clientes</span>
+    <div class="fl-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg></div>
+    <div><div class="fl-code">Clientes con los que ha trabajado</div><div class="fl-desc">Seleccione uno para continuar un servicio o activo</div></div>
+  </div>
+  <div class="fl-body">
+    <div class="mc-search">
+      <input id="mcSearchInput" placeholder="Buscar por nombre o ciudad…" autocomplete="off" oninput="MisClientes.filter(this.value)">
+    </div>
+    <div class="mc-grid" id="mcGrid"></div>
+    <div class="mc-empty" id="mcEmpty" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+      <div id="mcEmptyMsg">Aún no ha trabajado con ningún cliente.</div>
+    </div>
+  </div>
 </div>
 
 
