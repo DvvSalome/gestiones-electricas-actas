@@ -214,7 +214,12 @@ async function crearSede(req, res) {
     if (!r.ok) {
       return res.status(r.status === 400 ? 400 : 502).json({ error: d?.error || 'El motor no aceptó el cliente', issues: d?.issues });
     }
-    return res.json({ sede: d.site });
+    // portalAccess viene poblado SOLO la primera vez (la sede recién nació) —
+    // ver ensurePortalAccess en portal-auth.ts del motor. Se pasa tal cual;
+    // el frontend lo mete en el mismo canal que ya usa diagnostico-ui.js
+    // (window.portalAccess + localStorage ge_portal_access) para que el PDF
+    // final lo imprima sin necesitar lógica nueva ahí.
+    return res.json({ sede: d.site, portalAccess: d.portalAccess || null });
   } catch (e) {
     console.error('[historial:crearSede]', e);
     return res.status(502).json({ error: 'Motor no disponible' });

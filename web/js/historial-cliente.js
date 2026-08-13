@@ -238,6 +238,15 @@
       }
       const sede = d.sede; // { id: uuid REAL, name, city, address, ... }
 
+      // Cliente recién creado -> el motor ya le generó su cuenta de acceso al
+      // portal (usuario+contraseña). Se guarda en el MISMO canal que usa
+      // diagnostico-ui.js para que pdf-generator.js la imprima en el acta
+      // final sin necesitar ninguna lógica nueva ahí.
+      if (d.portalAccess && d.portalAccess.username && d.portalAccess.password) {
+        window.portalAccess = d.portalAccess;
+        localStorage.setItem('ge_portal_access', JSON.stringify(d.portalAccess));
+      }
+
       if (window.D.closeClientCreate) window.D.closeClientCreate();
       else { document.getElementById('overlayClient').classList.remove('open'); document.getElementById('floatingClient').classList.remove('open'); }
 
