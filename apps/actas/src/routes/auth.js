@@ -1,7 +1,7 @@
 // /api/auth — mismo contrato action-based del deploy Vercel, contra actas.users.
 const crypto = require('crypto');
 const { getPool } = require('../db');
-const { makeToken, verifyToken, hashPw, safeEq } = require('../session');
+const { makeToken, verifyToken, hashPw, safeEq, isServiceToken } = require('../session');
 
 async function getUsers(tenant) {
   const { rows } = await getPool().query(
@@ -75,14 +75,19 @@ module.exports = async function authRoute(req, res) {
     if (action === 'create-user') {
       const usersCU = await getUsers(tenant);
       const isFirstUser = usersCU.length === 0;
-      
+
       const sessCU = verifyToken(body.token);
-      if (!isFirstUser && (!sessCU || (sessCU.r && sessCU.r !== 'admin'))) {
+      const sessionOk = !!sessCU && (!sessCU.r || sessCU.r === 'admin');
+      // El motor (electroscan360) puede dar de alta técnicos server-a-server
+      // con el mismo secreto que usa MOTOR_URL en la otra dirección — pero
+      // SOLO técnicos, nunca admins del acta (forzado más abajo).
+      const viaServiceToken = !sessionOk && isServiceToken(req);
+      if (!isFirstUser && !sessionOk && !viaServiceToken) {
           return res.status(401).json({ error: 'Sesión inválida o expirada' });
       }
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
-      const role = body.role === 'tecnico' ? 'tecnico' : 'admin';
+      const role = viaServiceToken ? 'tecnico' : (body.role === 'tecnico' ? 'tecnico' : 'admin');
       if (!username) return res.status(400).json({ error: 'El usuario es obligatorio' });
       if (username.length > 40) return res.status(400).json({ error: 'El usuario es demasiado largo' });
       if (role === 'tecnico') {

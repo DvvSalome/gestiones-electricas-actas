@@ -51,6 +51,17 @@ function tokenFromReq(req) {
   return h.startsWith('Bearer ') ? h.slice(7) : '';
 }
 
+// Llamada servidor-a-servidor desde el motor (electroscan360), mismo secreto
+// compartido que ya usa MOTOR_URL en sentido contrario (acta → motor). Alcance
+// deliberadamente angosto: solo lo usa create-user, y solo para dar de alta
+// técnicos — nunca admins del acta (ver auth.js).
+function isServiceToken(req) {
+  const h = req.headers['x-service-token'];
+  const expected = process.env.MOTOR_SERVICE_TOKEN || '';
+  if (!h || !expected) return false;
+  try { return safeEq(String(h), expected); } catch { return false; }
+}
+
 // Middleware F2.5: exige sesión válida (técnico o admin). Cierra el anónimo.
 function requireAuth(req, res, next) {
   const sess = verifyToken(tokenFromReq(req));
@@ -59,4 +70,4 @@ function requireAuth(req, res, next) {
   next();
 }
 
-module.exports = { makeToken, verifyToken, hashPw, safeEq, tokenFromReq, requireAuth };
+module.exports = { makeToken, verifyToken, hashPw, safeEq, tokenFromReq, requireAuth, isServiceToken };
