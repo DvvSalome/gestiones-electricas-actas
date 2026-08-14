@@ -339,8 +339,17 @@ function validateFormForExport(actionName = "exportar") {
     return false;
   }
 
-  if (!window.signatureConfirmed || !firmante || !documento) {
-    alert(`⚠️ El cliente debe firmar el documento e ingresar su nombre/identificación antes de ${actionName}.`);
+  if (!window.signatureConfirmed) {
+    alert(`⚠️ El cliente debe firmar el documento antes de ${actionName}.`);
+    return false;
+  }
+
+  // La firma ya está confirmada en este punto — si sigue bloqueado es SOLO por
+  // estos dos campos de texto (fácil de pasar por alto junto al pad ya
+  // "✅ Confirmado"). Antes este caso caía en el mismo mensaje de "debe firmar"
+  // de arriba, lo cual confundía al técnico: la firma sí estaba puesta.
+  if (!firmante || !documento) {
+    alert(`⚠️ Falta el Nombre Responsable y/o el C.C./NIT del cliente (junto a la firma) antes de ${actionName}.`);
     return false;
   }
   return true;
