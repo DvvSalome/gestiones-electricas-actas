@@ -70,6 +70,17 @@ function setupCanvas() {
     canvas.dispatchEvent(mouseEvent);
     e.preventDefault();
   }, { passive: false });
+
+  // F-móvil: el navegador puede cancelar un touch a mitad de trazo (gesto del
+  // sistema, notificación, el propio Safari/Chrome desambiguando si es un
+  // scroll) — dispara "touchcancel" en vez de "touchend". Sin este listener,
+  // isDrawing se quedaba en true para siempre y capturarFirma() nunca corría:
+  // el técnico veía el trazo dibujado pero la firma jamás quedaba confirmada,
+  // y no había botón manual para forzarlo. Se trata igual que un touchend.
+  canvas.addEventListener("touchcancel", (e) => {
+    canvas.dispatchEvent(new MouseEvent("mouseup", {}));
+    e.preventDefault();
+  }, { passive: false });
 }
 
 function getMousePos(canvasDom, mouseEvent) {
@@ -198,6 +209,12 @@ function setupTecnicoCanvas() {
     canvas.dispatchEvent(new MouseEvent("mouseup", {}));
     e.preventDefault();
   }, { passive: false });
+
+  // Ver comentario equivalente en setupCanvas() — mismo fix para el pad del técnico.
+  canvas.addEventListener("touchcancel", (e) => {
+    canvas.dispatchEvent(new MouseEvent("mouseup", {}));
+    e.preventDefault();
+  }, { passive: false });
 }
 
 function startDrawingTecnico(e) {
@@ -234,6 +251,7 @@ function clearSignatureTecnico() {
 }
 
 function capturarFirmaTecnico() {
+  if (!window.tecnicoCanvasElement) return; // sección no presente en esta vista
   ensureTecnicoCanvasSized();
   if (isCanvasBlank(window.tecnicoCanvasElement)) return;
   window.tecnicoSignatureConfirmed = true;

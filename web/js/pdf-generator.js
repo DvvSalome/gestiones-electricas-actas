@@ -320,6 +320,17 @@ function renderFichaActivo() {
 
 // --- Validaciones generales para exportar/compartir ---
 function validateFormForExport(actionName = "exportar") {
+  // F-móvil: red de seguridad final antes de validar. El trazo se auto-captura
+  // al soltar (touchend/touchcancel, ver signature.js), pero si por lo que sea
+  // ese evento nunca llegó a disparar (el móvil es más propenso a interrumpir
+  // gestos táctiles a mitad de camino que el mouse de escritorio), el pad
+  // puede tener un trazo dibujado y NO estar confirmado — y no existe un botón
+  // separado de "Confirmar Firma" para forzarlo. "Guardar cambios" es la
+  // última oportunidad: si hay algo dibujado, se intenta capturar aquí mismo
+  // antes de exigir que ya esté confirmado.
+  if (typeof capturarFirma === "function") capturarFirma();
+  if (typeof capturarFirmaTecnico === "function") capturarFirmaTecnico();
+
   // #field-cliente/#field-direccion ya no existen (rediseño combo).
   const cliente = window.clienteActual ? window.clienteActual.nombre.trim() : "";
   const direccion = document.getElementById("dir")?.value.trim() || "";
