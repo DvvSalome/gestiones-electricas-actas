@@ -66,14 +66,19 @@
     
     // Set the hidden field if needed, or global var
     window.clienteActual = { id: sede.id, nombre: sede.name, ciudad: sede.city };
-    
+    // Limpio lo que hubiera del cliente anterior — sin esto, cambiar de
+    // cliente a mitad de acta dejaría la infraestructura del cliente viejo
+    // impresa en el PDF del nuevo.
+    window.clienteExtra = null;
+
     // Cerrar el combo
     document.getElementById('clientCombo').classList.remove('open');
-    
+
     sedeActualId = sede.id;
     localStorage.setItem("ge_sede_id", sede.id);
     vincularSedeActual(sede.id);
     cargarHistorial(sede.id);
+    cargarClienteExtra(sede.id);
     
     if (typeof window.loadActivos === "function") window.loadActivos();
     if (typeof saveCurrentFormToLocal === "function") saveCurrentFormToLocal();
@@ -81,6 +86,31 @@
     // Unlock asset combo
     document.getElementById('assetMain').textContent = 'Selecciona o crea un activo…';
   }
+
+  // Repuebla nit/contacto/infraestructura de un cliente YA EXISTENTE — sin
+  // esto, el PDF solo mostraba esos datos cuando el cliente se creaba en la
+  // MISMA sesión del acta (saveClient() los tenía a mano); en una visita de
+  // seguimiento a un cliente de hace semanas, se perdían por completo aunque
+  // sigan guardados en el motor. No bloquea la UI: para cuando el técnico
+  // termine de llenar el resto del acta, esto ya habrá llegado.
+  window.cargarClienteExtra = async function (siteId) {
+    if (!siteId) return;
+    try {
+      const r = await fetch(`/api/sedes/${encodeURIComponent(siteId)}`, { headers: window.geHeaders() });
+      if (!r.ok) return;
+      const { sede } = await r.json();
+      if (!sede || (window.clienteActual && window.clienteActual.id !== siteId)) return;
+      window.clienteExtra = {
+        nit: sede.nit || '',
+        contacto: sede.contactName || '',
+        tel: sede.contactPhone || '',
+        email: sede.contactEmail || '',
+        tipoCliente: sede.tipoCliente || '',
+        infra: sede.infraestructura || null,
+      };
+    } catch (e) { console.error('[historial-cliente] clienteExtra', e); }
+  };
+  const cargarClienteExtra = window.cargarClienteExtra;
 
   async function vincularSedeActual(siteId, relatedActaUuid) {
     const uuid = localStorage.getItem("ge_current_acta_uuid");
@@ -255,6 +285,10 @@
       else { document.getElementById('overlayClient').classList.remove('open'); document.getElementById('floatingClient').classList.remove('open'); }
 
       seleccionarSede(sede);
+      // Ya tenemos todo esto a mano — no hay que esperar el fetch de
+      // cargarClienteExtra (que seleccionarSede también dispara) para que el
+      // PDF de ESTA misma acta pueda mostrar la infraestructura recién capturada.
+      window.clienteExtra = { nit, contacto, tel, email, tipoCliente: tipo, infra };
 
       if (document.getElementById('field-direccion')) {
         document.getElementById('field-direccion').value = direccion;

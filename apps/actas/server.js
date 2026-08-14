@@ -88,6 +88,7 @@ app.post('/api/actas/:uuid/activo/conforme', requireAuth, diagnosticoRoute.activ
 const historialRoute = require('./src/routes/historial');
 app.get('/api/sedes/buscar', requireAuth, historialRoute.buscarSedes);
 app.get('/api/sedes/recientes', requireAuth, historialRoute.sedesRecientes);
+app.get('/api/sedes/:siteId', requireAuth, historialRoute.obtenerSede);
 app.get('/api/sedes/:siteId/servicios-previos', requireAuth, historialRoute.serviciosPrevios);
 app.get('/api/sedes/:siteId/hoja-vida', requireAuth, historialRoute.hojaVidaSede);
 app.post('/api/sedes/:siteId/activos', requireAuth, historialRoute.anadirActivo);

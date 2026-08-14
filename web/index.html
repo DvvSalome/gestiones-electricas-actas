@@ -2584,8 +2584,68 @@
         <img id="pdf-map-img" alt="Ubicación del servicio" style="display:block; width:100%; height:auto; border:1px solid #E5E7EB; border-radius:6px;">
       </div>
 
+      <!-- Infraestructura eléctrica del cliente — capturada al crear/seleccionar
+           el cliente (floatingClient). Se puebla dinámicamente en pdf-generator.js
+           porque los campos que aplican dependen del circuito (mono/bi/tri) y de
+           si el cliente tiene transformador propio o totalizador compartido. -->
+      <div class="pdf-section-title">2. Infraestructura Eléctrica del Cliente</div>
+      <div class="pdf-grid">
+        <div class="pdf-grid-col">
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">NIT:</div>
+            <div class="pdf-data-val" id="pdf-nit-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Nombre de contacto:</div>
+            <div class="pdf-data-val" id="pdf-contacto-val">—</div>
+          </div>
+        </div>
+        <div class="pdf-grid-col">
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Tipo de cliente:</div>
+            <div class="pdf-data-val" id="pdf-tipocliente-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Operador de red:</div>
+            <div class="pdf-data-val" id="pdf-operador-val">—</div>
+          </div>
+        </div>
+      </div>
+      <div id="pdf-infra-rows"><!-- filas dinámicas: circuito, trafo/totalizador, mediciones, comercializador, tarifa, SPT, solar --></div>
+
+      <!-- Ficha técnica del activo intervenido — capturada en el panel "Ver /
+           completar ficha" (viewFicha). Solo se imprime si el técnico llegó a
+           GUARDARLA de verdad para este activo (window.fichaGuardadaId): los
+           campos arrancan con valores de ejemplo (120V, 12Ω...) que no son una
+           medición real y no deben aparecer en un documento firmado como si lo fueran. -->
+      <div class="pdf-section-title">3. Ficha Técnica del Activo Intervenido</div>
+      <div class="pdf-grid" id="pdf-ficha-grid" style="display:none;">
+        <div class="pdf-grid-col">
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Marca:</div>
+            <div class="pdf-data-val" id="pdf-ficha-marca-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Año de instalación:</div>
+            <div class="pdf-data-val" id="pdf-ficha-ano-val">—</div>
+          </div>
+        </div>
+        <div class="pdf-grid-col">
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Capacidad nominal:</div>
+            <div class="pdf-data-val" id="pdf-ficha-cap-val">—</div>
+          </div>
+          <div class="pdf-data-row">
+            <div class="pdf-data-label">Último mantenimiento:</div>
+            <div class="pdf-data-val" id="pdf-ficha-mant-val">—</div>
+          </div>
+        </div>
+      </div>
+      <div id="pdf-ficha-rows"><!-- filas dinámicas: mediciones según conx, resistencia SPT, estado barraje/conductor/conexiones --></div>
+      <p id="pdf-ficha-vacia" class="pdf-text-box" style="display:none;">— Sin ficha técnica completada para este activo —</p>
+
       <!-- Checklist de Inspección -->
-      <div class="pdf-section-title">2. Checklist de Inspección Técnica de Seguridad</div>
+      <div class="pdf-section-title">4. Checklist de Inspección Técnica de Seguridad</div>
       <table class="pdf-checklist-table" id="pdf-checklist-tbody">
         <!-- Dinámico con JS en formato 2 columnas para optimizar espacio -->
       </table>
@@ -2608,7 +2668,7 @@
       </div>
 
       <!-- Acciones de Normalización -->
-      <div class="pdf-section-title">3. Acciones de Normalización y Materiales</div>
+      <div class="pdf-section-title">5. Acciones de Normalización y Materiales</div>
       <div>
         <div style="font-weight: bold; font-size: 9px; text-transform: uppercase; color: #656C51; margin-bottom: 4px;">Acciones Correctivas Ejecutadas (Cumplimiento RETIE)</div>
         <div class="pdf-text-box" id="pdf-acciones-val">—</div>
@@ -2658,7 +2718,7 @@
       </div>
 
       <!-- Evidencia Fotográfica en PDF -->
-      <div class="pdf-section-title">4. Evidencia Fotográfica Registrada</div>
+      <div class="pdf-section-title">6. Evidencia Fotográfica Registrada</div>
       <div class="pdf-photo-grid" id="pdf-photo-grid">
         <div class="pdf-photo-container">
           <div id="pdf-img-antes-box"></div>
@@ -2679,7 +2739,7 @@
       </div>
 
       <!-- Firmas en PDF -->
-      <div class="pdf-section-title">5. Firmas de Conformidad y Cierre</div>
+      <div class="pdf-section-title">7. Firmas de Conformidad y Cierre</div>
       <div class="pdf-signature-section">
         <!-- Técnico -->
         <div class="pdf-signature-box">
@@ -2704,7 +2764,7 @@
 
       <!-- F6.2: Acceso al Portal del Cliente — oculto por defecto, preparePrintableTemplate()
            lo muestra solo si window.portalAccess existe (sede nueva creada por esta acta). -->
-      <div class="pdf-section-title" id="pdf-portal-access-title" style="display: none;">6. Acceso al Portal del Cliente</div>
+      <div class="pdf-section-title" id="pdf-portal-access-title" style="display: none;">8. Acceso al Portal del Cliente</div>
       <div class="pdf-portal-access" id="pdf-portal-access" style="display: none;">
         <p class="pdf-portal-access-intro">
           Consulte en línea la hoja de vida de sus equipos, el historial de servicios y el estado normativo

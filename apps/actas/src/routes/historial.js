@@ -29,6 +29,27 @@ async function buscarSedes(req, res) {
   }
 }
 
+// ── GET /api/sedes/:siteId · detalle completo (nit, contacto, infraestructura) ──
+// Distinto de buscarSedes: el autocompletado solo trae {id,name,city} para no
+// sobrecargar cada tecla escrita. Esto se llama UNA vez, al seleccionar un
+// cliente ya existente, para que el PDF pueda repoblar su ficha de
+// infraestructura eléctrica aunque se haya capturado en una visita anterior.
+async function obtenerSede(req, res) {
+  const siteId = String(req.params.siteId || '').trim();
+  if (!UUID_RE.test(siteId)) return res.status(400).json({ error: 'siteId inválido' });
+  if (!TOKEN) return res.status(503).json({ error: 'Motor no configurado' });
+  try {
+    const r = await fetch(`${MOTOR_URL}/api/sites/${siteId}`, { headers: svcHeaders() });
+    if (r.status === 404) return res.status(404).json({ error: 'Sede no encontrada' });
+    if (!r.ok) return res.status(502).json({ error: 'Motor no disponible' });
+    const { site } = await r.json();
+    return res.json({ sede: site });
+  } catch (e) {
+    console.error('[historial:obtenerSede]', e);
+    return res.status(502).json({ error: 'Motor no disponible' });
+  }
+}
+
 // ── GET /api/sedes/:siteId/servicios-previos · servicios anteriores de esa sede ──
 // Vive bajo /api/sedes/ (no /api/actas/:uuid) A PROPÓSITO: esa ruta ya existe
 // y captura cualquier /api/actas/<lo-que-sea> como si fuera un uuid.
@@ -232,4 +253,4 @@ async function crearSede(req, res) {
   }
 }
 
-module.exports = { buscarSedes, serviciosPrevios, vincularSede, sedesRecientes, hojaVidaSede, anadirActivo, crearSede };
+module.exports = { buscarSedes, obtenerSede, serviciosPrevios, vincularSede, sedesRecientes, hojaVidaSede, anadirActivo, crearSede };

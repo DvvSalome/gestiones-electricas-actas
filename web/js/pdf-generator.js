@@ -21,6 +21,13 @@ function preparePrintableTemplate() {
   document.getElementById("pdf-matricula-val").textContent = document.getElementById("field-matricula").value || "— No especificado —";
   document.getElementById("pdf-coords-val").textContent = window.gpsCoordsDisplay.textContent;
 
+  // F8 — infraestructura eléctrica del cliente + ficha técnica del activo:
+  // se capturan y persisten desde hace tiempo, pero el PDF nunca las leía
+  // de vuelta (ver verificación 2026-08-14). Cada una decide por su cuenta
+  // qué mostrar según lo que de verdad haya disponible.
+  renderInfraCliente();
+  renderFichaActivo();
+
   // Diagnóstico y Mediciones
   document.getElementById("pdf-tension-val").textContent = (document.getElementById("field-tension").value || "—") + " V";
   document.getElementById("pdf-corriente-val").textContent = (document.getElementById("field-corriente").value || "—") + " A";
@@ -178,6 +185,137 @@ function preparePrintableTemplate() {
     portalAccessTitle.style.display = "none";
     portalAccessBox.style.display = "none";
   }
+}
+
+// --- Sección 2 del PDF: infraestructura eléctrica del cliente ---
+// window.clienteExtra lo llena historial-cliente.js: directo al crear un
+// cliente nuevo (saveClient), o vía fetch en segundo plano al seleccionar
+// uno existente (cargarClienteExtra) — para cuando se llega aquí, ya debería
+// haber resuelto. Los campos que aplican dependen del circuito (mono/bi/tri)
+// y de si el cliente tiene transformador propio o totalizador compartido,
+// así que las filas variables se arman dinámicamente en vez de tener ~20
+// casillas fijas que casi siempre estarían vacías.
+function renderInfraCliente() {
+  const extra = window.clienteExtra || {};
+  const infra = extra.infra || {};
+
+  document.getElementById("pdf-nit-val").textContent = extra.nit || "— No especificado —";
+  document.getElementById("pdf-contacto-val").textContent = extra.contacto || "— No especificado —";
+  document.getElementById("pdf-tipocliente-val").textContent = extra.tipoCliente || "— No especificado —";
+  document.getElementById("pdf-operador-val").textContent = infra.operadorRed || "— No especificado —";
+
+  const rows = [];
+  const add = (label, value) => {
+    if (value === undefined || value === null) return;
+    const s = String(value).trim();
+    if (s) rows.push([label, s]);
+  };
+
+  const CIRCUITO_LABEL = { mono: "Monofásico", bi: "Bifásico", tri: "Trifásico" };
+  add("Tipo de circuito", CIRCUITO_LABEL[infra.circuito] || infra.circuito);
+
+  if (infra.tieneTrafo === "si") {
+    const cap = infra.trafoCap ? `${infra.trafoCap} kVA` : "—";
+    const tipo = infra.trafoTipo === "seco" ? "Seco" : "Sumergido en aceite";
+    add("Transformador propio", `${cap} · ${infra.trafoUbic || "—"} · ${tipo}`);
+  } else if (infra.tieneTrafo === "no") {
+    add("Totalizador general", infra.totalizador);
+    add("Calibre de la acometida", infra.calibreAcometida);
+  }
+
+  if (infra.circuito === "mono") {
+    add("Voltaje / Corriente", `${infra.v_mono || "—"} V · ${infra.i_mono || "—"} A`);
+  } else if (infra.circuito === "bi") {
+    add("Voltajes F1-N / F2-N / F-F", `${infra.v_l1n || "—"} / ${infra.v_l2n || "—"} / ${infra.v_l1l2 || "—"} V`);
+    add("Corrientes F1 / F2 / N", `${infra.i_a || "—"} / ${infra.i_b || "—"} / ${infra.i_n || "—"} A`);
+  } else if (infra.circuito === "tri") {
+    add("Voltajes L-L (L1L2/L2L3/L3L1)", `${infra.v_l1l2t || "—"} / ${infra.v_l2l3t || "—"} / ${infra.v_l3l1t || "—"} V`);
+    add("Voltajes L-N (L1/L2/L3)", `${infra.v_l1nt || "—"} / ${infra.v_l2nt || "—"} / ${infra.v_l3nt || "—"} V`);
+    add("Corrientes (A/B/C/N)", `${infra.i_at || "—"} / ${infra.i_bt || "—"} / ${infra.i_ct || "—"} / ${infra.i_nt || "—"} A`);
+  }
+
+  add("Comercializador de energía", infra.comercializador);
+  add("Tarifa del comercializador", infra.tarifaComercializador ? `$${infra.tarifaComercializador}/kWh` : null);
+  if (infra.tieneSpt === "si") add("Puesta a tierra", "Sí tiene");
+  else if (infra.tieneSpt === "no") add("Puesta a tierra", "No tiene");
+  if (infra.tieneSolar === "si") {
+    add("Generación solar", `${infra.solarCap ? infra.solarCap + " kWp" : "—"} · ${infra.solarTipo === "offgrid" ? "Off-grid" : "On-grid"}`);
+  }
+
+  const container = document.getElementById("pdf-infra-rows");
+  if (!container) return;
+  if (!rows.length) {
+    container.innerHTML = '<p class="pdf-text-box">— Sin infraestructura eléctrica registrada para este cliente —</p>';
+    return;
+  }
+  container.innerHTML = rows
+    .map(([label, value]) => `<div class="pdf-data-row"><div class="pdf-data-label">${label}:</div><div class="pdf-data-val">${value}</div></div>`)
+    .join("");
+}
+
+// --- Sección 3 del PDF: ficha técnica del activo intervenido ---
+// Solo se imprime si window.fichaGuardadaId coincide con D.activeId (el
+// activo actualmente elegido en el acta): esa igualdad es la garantía de
+// que los campos del panel de ficha reflejan datos REALES (guardados o
+// repoblados desde el motor), no los valores de ejemplo con los que arranca
+// un formulario nuevo (120V, 12Ω, trifásico...). Sin ese chequeo, un activo
+// elegido sin abrir su ficha habría impreso silenciosamente la ficha del
+// activo anterior.
+function renderFichaActivo() {
+  const grid = document.getElementById("pdf-ficha-grid");
+  const rowsBox = document.getElementById("pdf-ficha-rows");
+  const vacia = document.getElementById("pdf-ficha-vacia");
+  if (!grid || !rowsBox || !vacia) return;
+
+  const tieneFicha = window.D && window.D.activeId && window.fichaGuardadaId === window.D.activeId
+    && typeof window.D.collectFicha === "function";
+  if (!tieneFicha) {
+    grid.style.display = "none";
+    rowsBox.innerHTML = "";
+    vacia.style.display = "";
+    return;
+  }
+
+  const f = window.D.collectFicha();
+  grid.style.display = "";
+  vacia.style.display = "none";
+
+  document.getElementById("pdf-ficha-marca-val").textContent = f.marca || "— No especificada —";
+  document.getElementById("pdf-ficha-ano-val").textContent = f.ano || "— No especificado —";
+  document.getElementById("pdf-ficha-cap-val").textContent = f.cap ? `${f.cap} ${f.unit || ""}`.trim() : "— No especificada —";
+  document.getElementById("pdf-ficha-mant-val").textContent = f.mantUltima || "— Sin registrar —";
+
+  const rows = [];
+  const add = (label, value) => {
+    if (value === undefined || value === null) return;
+    const s = String(value).trim();
+    if (s) rows.push([label, s]);
+  };
+
+  const CONX_LABEL = { mono: "Monofásico", bi: "Bifásico", tri: "Trifásico" };
+  add("Conexión medida", CONX_LABEL[f.conx] || f.conx);
+  if (f.conx === "mono") {
+    add("Voltaje / Corriente", `${f.fV || "—"} V · ${f.fA || "—"} A`);
+  } else if (f.conx === "bi") {
+    add("Voltajes F1-N / F2-N / F-F", `${f.fV_L1N || "—"} / ${f.fV_L2N || "—"} / ${f.fV_L1L2 || "—"} V`);
+    add("Corrientes F1 / F2 / N", `${f.fI_A || "—"} / ${f.fI_B || "—"} / ${f.fI_N || "—"} A`);
+  } else if (f.conx === "tri") {
+    add("Voltajes L-L (L1L2/L2L3/L3L1)", `${f.fV_L1L2t || "—"} / ${f.fV_L2L3t || "—"} / ${f.fV_L3L1t || "—"} V`);
+    add("Voltajes L-N (L1/L2/L3)", `${f.fV_L1Nt || "—"} / ${f.fV_L2Nt || "—"} / ${f.fV_L3Nt || "—"} V`);
+    add("Corrientes (A/B/C/N)", `${f.fI_At || "—"} / ${f.fI_Bt || "—"} / ${f.fI_Ct || "—"} / ${f.fI_Nt || "—"} A`);
+  }
+  add("Resistencia de puesta a tierra", f.ohm ? `${f.ohm} Ω` : null);
+
+  const EST = { si: "Correcto", no: "Requiere atención" };
+  add("Estado del barraje", EST[f.barraje]);
+  add("Estado del conductor", EST[f.conductor]);
+  add("Estado de las conexiones", EST[f.conexiones]);
+  add("Frecuencia de mantenimiento", f.mantFrec ? `Cada ${f.mantFrec} días` : null);
+  if (f.obs) add("Observaciones de la ficha", f.obs);
+
+  rowsBox.innerHTML = rows
+    .map(([label, value]) => `<div class="pdf-data-row"><div class="pdf-data-label">${label}:</div><div class="pdf-data-val">${value}</div></div>`)
+    .join("");
 }
 
 // --- Validaciones generales para exportar/compartir ---

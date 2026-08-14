@@ -53,6 +53,12 @@ window.D = Object.assign(window.D || {}, {
     document.getElementById('assetList').innerHTML = arr.length ? arr.map(a=>`<div class="combo-opt" onclick="D.pickAsset('${a.code}','${a.type}','${a.desc}')"><div class="co-av">${a.code.slice(0,3)}</div><div class="co-b"><div class="co-name">${a.code}</div><div class="co-meta">${a.type} · ${a.desc}</div></div></div>`).join('') : '<div style="padding:13px;font-size:12px;color:var(--text-faint);text-align:center">Sin activos aún · crea el primero</div>';  
   },  
   pickAsset(id,code,type,desc) {
+    // Antes solo openFicha() marcaba D.activeId — si el técnico elegía un
+    // activo y nunca abría su ficha, D.activeId se quedaba apuntando al
+    // activo anterior. El PDF comparaba eso contra window.fichaGuardadaId
+    // para decidir si imprimir la ficha técnica, así que sin esto podía
+    // imprimir la ficha de OTRO activo bajo el código del recién elegido.
+    D.activeId = id; D.activeCode = code;
     document.getElementById('assetCombo').classList.remove('open');
     document.getElementById('assetCombo').style.display='none';
     const descTxt = `${type}${desc ? ' · ' + desc : ''}`;
@@ -221,7 +227,11 @@ window.D = Object.assign(window.D || {}, {
         const r = await fetch(`/api/activos/${encodeURIComponent(id)}/ficha`, { headers: window.geHeaders() });
         if (r.ok) {
           const { ficha } = await r.json();
-          if (ficha) { D.applyFicha(ficha); D.calc(); D.checkSpt(); D.calcManten(); }
+          // Marca esta ficha como confiable para el PDF SOLO si de verdad vino
+          // del motor — si no hay ficha guardada, resetFichaFields() de arriba
+          // dejó valores de ejemplo (120V, 12Ω…) que no son una medición real
+          // y no deben imprimirse como si lo fueran.
+          if (ficha) { D.applyFicha(ficha); D.calc(); D.checkSpt(); D.calcManten(); window.fichaGuardadaId = id; }
         }
         const ra = await fetch(`/api/activos/${encodeURIComponent(id)}/adjuntos`, { headers: window.geHeaders() });
         if (ra.ok) { const { attachments } = await ra.json(); D.renderAttachments(attachments || []); }
@@ -303,6 +313,7 @@ window.D = Object.assign(window.D || {}, {
       D.toast('Sin conexión: no se pudo guardar la ficha');
       return;
     }
+    window.fichaGuardadaId = id;
     D.closeFicha();
     document.getElementById('assetCombo').style.display='none';
     document.getElementById('assetPickedWrap').innerHTML = `<div class="asset-picked"><div class="ap-ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M8 14h2"/></svg></div><div><div class="ap-code">${code}</div><div class="ap-desc">Ficha guardada · en base de datos</div></div><div class="ap-btns"><button class="ap-view" onclick="D.viewFicha('${id}','${code}','')">Ver / Editar</button><button class="ap-change" onclick="D.changeAsset()">Cambiar activo</button></div></div>`;
