@@ -267,6 +267,31 @@ function capturarFirmaTecnico() {
   updateTimelineProgress();
 }
 
+// Botón manual "Forzar Guardado de Firmas" (después del campo C.C./NIT).
+// El auto-guardado al soltar el trazo (touchend/touchcancel) cubre la mayoría
+// de los casos, pero en campo han seguido apareciendo firmas dibujadas que no
+// pasan a "✅ Confirmado" — variantes de interrupción táctil que el fix de
+// touchcancel no alcanza a cubrir todas. Este botón es la salida manual
+// explícita: re-intenta el mismo resize perezoso + captura que ya corre solo,
+// y esta vez SÍ le dice al técnico qué pasó en vez de fallar en silencio.
+function forzarGuardadoFirmas() {
+  if (typeof capturarFirma === "function") capturarFirma();
+  if (typeof capturarFirmaTecnico === "function") capturarFirmaTecnico();
+
+  const tecnicoOk = !window.tecnicoCanvasElement || window.tecnicoSignatureConfirmed;
+  const clienteOk = window.signatureConfirmed;
+
+  if (tecnicoOk && clienteOk) {
+    alert("✅ Firmas guardadas correctamente.");
+    return;
+  }
+
+  const faltantes = [];
+  if (!tecnicoOk) faltantes.push("del técnico");
+  if (!clienteOk) faltantes.push("del cliente");
+  alert(`⚠️ No se detectó ningún trazo en la firma ${faltantes.join(" ni en la firma ")}. Dibuja la firma en el recuadro correspondiente y vuelve a tocar este botón.`);
+}
+
 function uploadFirmaToServer() {
   const uuid = localStorage.getItem("ge_current_acta_uuid");
   if (!window.signatureDataURL) return;
