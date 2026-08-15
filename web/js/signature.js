@@ -12,19 +12,26 @@ function ensureCanvasSized() {
   const rect = canvas.getBoundingClientRect();
   if (rect.width === 0 || rect.height === 0) return false;
   if (canvas.width !== rect.width || canvas.height !== rect.height) {
-    const hadDrawing = !isCanvasBlank(canvas);
-    const prevImage = hadDrawing ? canvas.toDataURL("image/png") : null;
+    // Cambiar canvas.width/height BORRA el bitmap. La preservación anterior
+    // (toDataURL + Image + onload) es ASÍNCRONA: cualquiera que revisara el
+    // canvas justo después (isCanvasBlank en capturarFirma, incluida la
+    // llamada del botón "Forzar Guardado") lo encontraba en blanco durante
+    // esa ventana, porque el redibujado async todavía no había corrido.
+    // Reproducido en vivo: en móvil, un reflow de apenas 1px entre el trazo y
+    // soltar el dedo (barra de direcciones, teclado, sub-pixel) dispara este
+    // resize a mitad de gesto y el trazo desaparece — el técnico firmaba, lo
+    // veía dibujado un instante, y la firma nunca quedaba confirmada.
+    // getImageData/putImageData son SÍNCRONOS: sin ventana, sin carrera.
+    const oldWidth = canvas.width, oldHeight = canvas.height;
+    const hadDrawing = oldWidth > 0 && oldHeight > 0 && !isCanvasBlank(canvas);
+    const prevData = hadDrawing ? window.ctx.getImageData(0, 0, oldWidth, oldHeight) : null;
     canvas.width = rect.width;
     canvas.height = rect.height;
     window.ctx.strokeStyle = "#0D1100";
     window.ctx.lineWidth = 3;
     window.ctx.lineCap = "round";
     window.ctx.lineJoin = "round";
-    if (prevImage) {
-      const img = new Image();
-      img.onload = () => window.ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      img.src = prevImage;
-    }
+    if (prevData) window.ctx.putImageData(prevData, 0, 0);
   }
   return true;
 }
@@ -159,20 +166,22 @@ function ensureTecnicoCanvasSized() {
   if (rect.width === 0 || rect.height === 0) return false; // no visible ahora mismo
   if (canvas.width !== rect.width || canvas.height !== rect.height) {
     // Cambiar canvas.width/height BORRA el contenido — solo se hace si de
-    // verdad cambió, para no perder un trazo ya dibujado.
-    const hadDrawing = !isCanvasBlank(canvas);
-    const prevImage = hadDrawing ? canvas.toDataURL("image/png") : null;
+    // verdad cambió, para no perder un trazo ya dibujado. La preservación es
+    // SÍNCRONA (getImageData/putImageData) — ver el comentario equivalente en
+    // ensureCanvasSized(): el viejo toDataURL+Image+onload dejaba una ventana
+    // asíncrona donde isCanvasBlank() veía el canvas recién limpiado, antes de
+    // que el redibujado corriera. Reproducido en vivo: un reflow de 1px entre
+    // el trazo y soltar el dedo bastaba para perder la firma del técnico.
+    const oldWidth = canvas.width, oldHeight = canvas.height;
+    const hadDrawing = oldWidth > 0 && oldHeight > 0 && !isCanvasBlank(canvas);
+    const prevData = hadDrawing ? window.tecnicoCtx.getImageData(0, 0, oldWidth, oldHeight) : null;
     canvas.width = rect.width;
     canvas.height = rect.height;
     window.tecnicoCtx.strokeStyle = "#0D1100";
     window.tecnicoCtx.lineWidth = 3;
     window.tecnicoCtx.lineCap = "round";
     window.tecnicoCtx.lineJoin = "round";
-    if (prevImage) {
-      const img = new Image();
-      img.onload = () => window.tecnicoCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      img.src = prevImage;
-    }
+    if (prevData) window.tecnicoCtx.putImageData(prevData, 0, 0);
   }
   return true;
 }

@@ -2,7 +2,15 @@
 // Objetivo: ABRIR EN FRÍO SIN SEÑAL (el shell completo vive en cache).
 // Los DATOS nunca pasan por aquí: /api/* va directo a red (la cola offline
 // de IndexedDB ya maneja actas/fotos sin señal).
-const VERSION = "ge-acta-v8"; // v7: Tensión/Corriente en cajas segmentadas (teclado numérico puro, / automático)
+// v9: fix de firma en móvil (touchcancel, botón "Forzar Guardado", condición
+// de carrera en el resize del canvas) — los 3 PRs de hoy (31-33) NUNCA
+// bumpearon esto, así que cualquier teléfono con la PWA ya abierta seguía
+// sirviendo signature.js/pdf-generator.js/index.html VIEJOS vía
+// stale-while-revalidate (sirve caché primero SIEMPRE, refresca en segundo
+// plano solo para la próxima carga) — el service worker no tenía forma de
+// darse cuenta de que el contenido cambió si su propio archivo no cambiaba.
+// v7: Tensión/Corriente en cajas segmentadas (teclado numérico puro, / automático)
+const VERSION = "ge-acta-v9";
 
 const SHELL = [
   "/actas",
