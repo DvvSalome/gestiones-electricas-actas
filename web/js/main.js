@@ -20,8 +20,13 @@ window.addEventListener("DOMContentLoaded", () => {
   updateTimelineProgress();
   
   // Auto-guardado en inputs comunes
+  // "field-cliente" y "field-direccion" eran los ids de antes del rediseño a
+  // combos (F4.2): la identidad del cliente vive en window.clienteActual, y
+  // el campo de dirección real es "dir" (ver timeline.js). Sin este ajuste,
+  // escribir en "Dirección del Servicio" no disparaba el autoguardado por sí
+  // solo — quedaba a merced de que otro campo cambiara primero.
   const inputsToWatch = [
-    "field-servicio-tipo", "field-cliente", "field-direccion",
+    "field-servicio-tipo", "dir",
     "field-telefono", "field-email", "field-tecnico", 
     "field-matricula", "field-diagnostico", "field-tension", 
     "field-corriente", "field-acciones", "field-norma",

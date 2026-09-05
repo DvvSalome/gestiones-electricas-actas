@@ -310,11 +310,11 @@
     const i = (window.checklistItems || []).findIndex((c) => c.id === hit[1]);
     if (i < 0) return;
     window.checklistItems[i].state = "fail";
-    const div = document.querySelector(`.check-item[data-index="${i}"]`);
+    const div = document.querySelector(`.chk-item[data-index="${i}"]`);
     if (div) {
       div.classList.remove("ok");
       div.classList.add("fail");
-      const st = div.querySelector(".check-status");
+      const st = div.querySelector(".chk-state");
       if (st) st.textContent = "FALLA";
     }
   }

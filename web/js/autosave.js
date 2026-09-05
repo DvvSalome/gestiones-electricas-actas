@@ -173,6 +173,11 @@ function loadLocalStorageData() {
       const data = JSON.parse(draftStr);
       
       document.getElementById("field-servicio-tipo").value = data.servicioTipo || "Diagnóstico";
+      // El valor se restaura por código (sel.value=...), lo que NO dispara
+      // 'change' — sin esta llamada los botones segmentados de "Tipo de
+      // Servicio" (index.html) se quedarían marcando "Diagnóstico" aunque el
+      // borrador restaurado sea de otro tipo.
+      if (typeof syncServicioTipoUI === "function") syncServicioTipoUI();
       // El cliente se restaura seleccionándolo de nuevo en el combo (identidad real
       // por sede, no un input de texto) — ver historial-cliente.js. Aquí solo se
       // repuebla la dirección, que sigue siendo un campo simple (#dir).
@@ -301,10 +306,11 @@ function resetForm() {
     removePhoto("adicional");
     
     // Resetear inputs text y checklist
-    document.querySelectorAll(".input").forEach(i => {
-      if (!i.classList.contains("readonly")) i.value = "";
-    });
-    document.querySelectorAll(".textarea").forEach(t => t.value = "");
+    // ".input"/".textarea" eran las clases de ANTES del rediseño — el
+    // formulario entero usa ".fld" ahora (inputs, textareas y selects). Sin
+    // este cambio, "Resetear Formulario" dejaba de vaciar cualquier campo:
+    // el selector no encontraba nada y el forEach no hacía nada, en silencio.
+    document.querySelectorAll("input.fld, textarea.fld").forEach(i => { i.value = ""; });
     
     const activoSel = document.getElementById("field-activo");
     if (activoSel) { activoSel.value = ""; document.getElementById("activo-nuevo-row").style.display = "none"; }
@@ -318,7 +324,9 @@ function resetForm() {
     window.materialsTbody.innerHTML = "";
     addMaterialRow();
     addMaterialRow();
-    
+
+    setServicioTipo(null, "Diagnóstico");
+
     clearSignature();
     if (window.tecnicoCanvasElement) clearSignatureTecnico();
     initOTNumber();

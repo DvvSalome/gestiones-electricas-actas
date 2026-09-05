@@ -290,8 +290,10 @@
       // PDF de ESTA misma acta pueda mostrar la infraestructura recién capturada.
       window.clienteExtra = { nit, contacto, tel, email, tipoCliente: tipo, infra };
 
-      if (document.getElementById('field-direccion')) {
-        document.getElementById('field-direccion').value = direccion;
+      // 'field-direccion' era el id de antes del rediseño a combos; el campo
+      // real de "Dirección del Servicio" es #dir.
+      if (document.getElementById('dir')) {
+        document.getElementById('dir').value = direccion;
       }
       window.D.client = sede;
       if (document.getElementById('assetCombo')) document.getElementById('assetCombo').style.display = 'block';

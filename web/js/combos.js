@@ -188,8 +188,16 @@ window.D = Object.assign(window.D || {}, {
     if (t === 'otro') {
       const custom = document.getElementById('newTypeCustom').value;
       prefix = D.prefixFrom(custom) || '___';
-      document.getElementById('customPrefixHint').textContent = prefix;
-      document.getElementById('customPrefixHint2').textContent = prefix;
+      // 'customPrefixHint2' es de una versión del formulario con dos frases de
+      // ayuda (una por span) que ya no existe — hoy solo hay 'customPrefixHint'.
+      // Sin el guard, cada tecla escrita en el nombre del tipo nuevo (o en el
+      // número del activo, que también llama a D.code()) reventaba aquí antes
+      // de llegar a calcular D.newCode/#codePrev: el técnico veía la
+      // previsualización del código congelada al crear un tipo de activo nuevo.
+      const h1 = document.getElementById('customPrefixHint');
+      if (h1) h1.textContent = prefix;
+      const h2 = document.getElementById('customPrefixHint2');
+      if (h2) h2.textContent = prefix;
     } else {
       // El <option value> es la CLAVE del tipo ("tablero"), no su prefijo (TAB) —
       // sin este lookup la previsualización mostraba "tablero-9999" y no coincidía
