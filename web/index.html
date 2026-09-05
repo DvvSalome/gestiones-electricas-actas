@@ -457,10 +457,24 @@
       font-weight: 600;
     }
     .hint {
+      /* Bug real, ya existía antes de este cambio (se ve en los .hint del
+         panel "nuevo cliente"): sin display:flex ni una regla que acote el
+         SVG, el ícono crecía al tamaño de su contenedor (400px+) en vez de
+         quedarse como un ícono de 13px — no era "estético", tapaba el texto. */
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
       font-size: 12px;
       line-height: 1.45;
       color: var(--brand-muted);
       margin: 8px 0 0;
+    }
+    .hint svg {
+      width: 13px;
+      height: 13px;
+      stroke: var(--brand-olive);
+      flex-shrink: 0;
+      margin-top: 1px;
     }
     .hint-aviso { margin-top: 8px; }
     /* .btn-secondary trae flex:1 para las filas de botones; aquí estorba. */
@@ -1981,6 +1995,9 @@
           <option value="Diagnóstico" selected>Diagnóstico</option>
           <option value="Instalación">Instalación</option>
         </select>
+        <!-- Qué hacer cambia según el tipo de servicio — sin esto el técnico
+             tiene que adivinar en qué enfocarse en cada visita. -->
+        <div class="hint" id="servicioHint"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Primera visita al predio: crea el cliente y sus activos. Enfócate en levantar la información completa — el checklist y las fotos generan el informe de conversión.</span></div>
 
 
 <!-- CLIENTE -->
@@ -2745,8 +2762,21 @@
   <!-- Tipo de Servicio: botones segmentados sobre el mismo contrato de datos
        de siempre (un <select> con las mismas 4 opciones) — autosave.js,
        pdf-generator.js y timeline.js siguen leyendo #field-servicio-tipo tal
-       cual, sin saber que ahora hay botones encima. -->
+       cual, sin saber que ahora hay botones encima.
+
+       El texto de ayuda bajo los botones (#servicioHint) es funcionalidad
+       real de "Correcciones Acta Digital.html" que no era solo estética: le
+       dice al técnico en qué concentrarse SEGÚN el tipo de visita, no un
+       texto genérico. Los "8 ítems"/"bloque 03" de abajo son los reales de
+       ESTA acta (el mockup decía "10 ítems" — el checklist de aquí tiene 8;
+       ver web/index.html BLOQUE 2). -->
   <script>
+    var SERVICIO_HINTS = {
+      'Diagnóstico': 'Primera visita al predio: crea el cliente y sus activos. Enfócate en levantar la información completa — el checklist y las fotos generan el informe de conversión.',
+      'Preventivo': 'Mantenimiento programado. Completa los 8 ítems del checklist y actualiza la fecha de "Último mantenimiento" en la ficha de cada activo intervenido — eso reinicia su contador de alerta.',
+      'Correctivo': 'Responde a una falla ya identificada. Céntrate en "Acciones Correctivas Ejecutadas" (bloque 03) y en la evidencia de antes/después — ahí se documenta la normalización.',
+      'Instalación': 'Equipo nuevo en el predio. Al crear el activo, usa la fecha de hoy como año de instalación — el rendimiento que calcules será su línea base, sin historial previo.',
+    };
     function setServicioTipo(btn, valor) {
       var sel = document.getElementById('field-servicio-tipo');
       if (!sel) return;
@@ -2755,18 +2785,22 @@
       sel.dispatchEvent(new Event('change', { bubbles: true }));
       syncServicioTipoUI();
     }
-    // Pone el botón "on" que corresponda al valor actual del <select> — se
-    // llama al cargar la página y otra vez cuando autosave.js restaura un
-    // borrador (ver autosave.js), porque asignar sel.value por código no
-    // dispara 'change' y los botones se quedarían marcando el default.
+    // Pone el botón "on" que corresponda al valor actual del <select> Y
+    // actualiza el texto de ayuda — se llama al cargar la página y otra vez
+    // cuando autosave.js restaura un borrador (ver autosave.js), porque
+    // asignar sel.value por código no dispara 'change' y tanto los botones
+    // como la ayuda se quedarían marcando el default.
     function syncServicioTipoUI() {
       var sel = document.getElementById('field-servicio-tipo');
       if (!sel) return;
       var grp = sel.previousElementSibling;
-      if (!grp || !grp.classList || !grp.classList.contains('seg')) return;
-      Array.prototype.forEach.call(grp.querySelectorAll('button'), function (b) {
-        b.classList.toggle('on', b.textContent === sel.value);
-      });
+      if (grp && grp.classList && grp.classList.contains('seg')) {
+        Array.prototype.forEach.call(grp.querySelectorAll('button'), function (b) {
+          b.classList.toggle('on', b.textContent === sel.value);
+        });
+      }
+      var hint = document.querySelector('#servicioHint span');
+      if (hint && SERVICIO_HINTS[sel.value]) hint.textContent = SERVICIO_HINTS[sel.value];
     }
     document.addEventListener('DOMContentLoaded', syncServicioTipoUI);
   </script>
